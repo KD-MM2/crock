@@ -202,47 +202,6 @@ function GeneralTab({ settings, updateDraft }: { settings: SettingsState; update
           }
         />
       </div>
-
-      <SectionHeading icon={LanguagesIcon} title="Ngôn ngữ & Giao diện" description="Chọn ngôn ngữ hiển thị và theme mặc định." />
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Ngôn ngữ">
-          <Select
-            value={settings.general.language}
-            onValueChange={(value) =>
-              updateDraft((draft) => {
-                draft.general.language = value as SettingsState['general']['language'];
-              })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="vi">Tiếng Việt</SelectItem>
-              <SelectItem value="en">English</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field label="Theme">
-          <Select
-            value={settings.general.theme}
-            onValueChange={(value) =>
-              updateDraft((draft) => {
-                draft.general.theme = value as SettingsState['general']['theme'];
-              })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="system">Theo hệ thống</SelectItem>
-              <SelectItem value="light">Sáng</SelectItem>
-              <SelectItem value="dark">Tối</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
     </div>
   );
 }
@@ -796,8 +755,4 @@ function AlertNote({ icon: Icon, text }: { icon: ComponentType<{ className?: str
 
 function SettingsIcon() {
   return <Waypoints className="size-5 text-primary" aria-hidden />;
-}
-
-function LanguagesIcon() {
-  return <Globe className="size-4 text-primary" aria-hidden />;
 }

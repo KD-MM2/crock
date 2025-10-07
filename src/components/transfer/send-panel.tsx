@@ -264,7 +264,7 @@ export function SendPanel() {
           </button>
         ))}
       </div>
-      <p className="text-xs text-muted-foreground">{MODE_OPTIONS.find((option) => option.value === form.mode)?.description}</p>
+      {/* <p className="text-xs text-muted-foreground">{MODE_OPTIONS.find((option) => option.value === form.mode)?.description}</p> */}
 
       {form.mode === 'files' ? (
         <div
@@ -275,10 +275,12 @@ export function SendPanel() {
         >
           <div className="flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
             <FolderPlus className="size-8 text-primary" aria-hidden />
-            <span>Kéo thả file/folder vào đây hoặc</span>
-            <Button variant="outline" size="sm" onClick={() => void handleFileSelect()}>
-              Chọn file/folder…
-            </Button>
+            <div className="flex flex-row items-center gap-2">
+              <span>Kéo thả file/folder vào đây hoặc</span>
+              <Button variant="outline" size="sm" onClick={() => void handleFileSelect()}>
+                Chọn file/folder…
+              </Button>
+            </div>
           </div>
           {form.items.length > 0 && (
             <div className="space-y-2">
@@ -329,9 +331,9 @@ export function SendPanel() {
       <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <div className="space-y-2">
           <label className="text-xs font-medium uppercase text-muted-foreground">Mã code-phrase</label>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-row items-center gap-2">
             <Input value={form.code} onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value }))} placeholder="Để trống để croc tự sinh" className="font-mono" />
-            <Button variant="outline" size="sm" onClick={handleRandomCode}>
+            <Button variant="outline" onClick={handleRandomCode}>
               Random
             </Button>
           </div>
@@ -356,17 +358,17 @@ export function SendPanel() {
         <div className="flex flex-wrap items-center gap-4 rounded-lg border border-primary/40 bg-primary/5 p-4">
           <div className="flex items-center gap-3">
             <QrCode className="size-5 text-primary" aria-hidden />
-            <div>
-              <p className="text-sm font-medium">Code hiện tại</p>
-              <p className="font-mono text-lg">{finalCode}</p>
+            <div className="flex items-center gap-2">
+              <div>
+                <p className="text-sm font-medium">Code hiện tại</p>
+                <p className="font-mono text-lg">{finalCode}</p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => void copyToClipboard(finalCode)} aria-label="Copy code">
+                <Copy className="size-4" aria-hidden />
+              </Button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => void copyToClipboard(finalCode)}>
-              <Copy className="mr-2 size-4" aria-hidden /> Copy
-            </Button>
-            <QRCodeSVG value={finalCode} size={80} />
-          </div>
+          <QRCodeSVG value={finalCode} size={80} />
         </div>
       )}
 
