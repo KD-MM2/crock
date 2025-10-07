@@ -1,5 +1,5 @@
 import { type DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ClipboardPaste, Copy, File as FileIcon, FileText, FolderPlus, QrCode, RefreshCw, Settings2, Trash2 } from 'lucide-react';
+import { ClipboardPaste, Copy, File as FileIcon, FileText, FolderPlus, QrCode, RefreshCw, Save, Settings2, Trash2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 
@@ -46,6 +46,7 @@ export function SendPanel() {
   const [isSending, setIsSending] = useState(false);
   const [overridesOpen, setOverridesOpen] = useState(false);
   const lastCopiedCode = useRef<string | null>(null);
+  const qrCodeRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (status === 'idle') {
@@ -237,6 +238,54 @@ export function SendPanel() {
       }),
     [form, finalCode, settings]
   );
+
+  const handleSaveQr = useCallback(() => {
+    if (!finalCode) {
+      toast.error('Chưa có code để lưu.');
+      return;
+    }
+
+    if (typeof window === 'undefined') {
+      toast.error('Không thể lưu mã QR trong môi trường hiện tại.');
+      return;
+    }
+
+    const container = qrCodeRef.current;
+    const svgElement = container?.querySelector('svg');
+    if (!svgElement) {
+      toast.error('Không tìm thấy mã QR để lưu.');
+      return;
+    }
+
+    const clone = svgElement.cloneNode(true) as SVGSVGElement;
+    if (!clone.getAttribute('xmlns')) {
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    }
+
+    const serializer = new XMLSerializer();
+    let downloadUrl: string | null = null;
+
+    try {
+      const svgData = serializer.serializeToString(clone);
+      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      downloadUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      const safeCode = finalCode.replace(/[^a-z0-9-]/gi, '_');
+      anchor.href = downloadUrl;
+      anchor.download = `croc-code-${safeCode || 'code'}.svg`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      toast.success('Đã lưu mã QR (SVG).');
+    } catch (error) {
+      console.error('[SendPanel] save QR failed', error);
+      toast.error('Không thể lưu mã QR.');
+    } finally {
+      if (downloadUrl) {
+        URL.revokeObjectURL(downloadUrl);
+      }
+    }
+  }, [finalCode]);
 
   useEffect(() => {
     if (!autoCopyEnabled) {
@@ -485,9 +534,14 @@ export function SendPanel() {
               <Button variant="ghost" size="icon" onClick={() => void copyToClipboard(finalCode)} aria-label="Copy code">
                 <Copy className="size-4" aria-hidden />
               </Button>
+              <Button variant="ghost" size="icon" onClick={() => handleSaveQr()} aria-label="Lưu QR">
+                <Save className="size-4" aria-hidden />
+              </Button>
             </div>
           </div>
-          <QRCodeSVG value={finalCode} size={80} />
+          <div ref={qrCodeRef}>
+            <QRCodeSVG value={finalCode} size={80} />
+          </div>
         </div>
       )}
 
