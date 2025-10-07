@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useMemo } from 'react';
 import { Activity, ArrowUpRight, Clock, Download, ExternalLink, FileText, RefreshCw, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import type { HistoryRecord } from '@/types/history';
 import { formatBytes, formatDateTime, formatDuration, maskCode } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { getWindowApi } from '@/lib/window-api';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const statusLabels: Record<string, string> = {
   'in-progress': 'Đang xử lý',
@@ -52,6 +54,16 @@ export function HistoryDialog() {
   const handleExport = async () => {
     const api = getWindowApi();
     await api.history.saveExport();
+  };
+
+  const handleClearAll = async () => {
+    try {
+      await clearAll();
+      toast.success('Đã xóa toàn bộ lịch sử.');
+    } catch (error) {
+      console.error('[HistoryDialog] clear all failed', error);
+      toast.error('Không thể xóa lịch sử.');
+    }
   };
 
   return (
@@ -167,9 +179,25 @@ export function HistoryDialog() {
               </div>
             )}
             <DialogFooter className="mt-6 flex-col gap-2 sm:flex-col">
-              <Button variant="destructive" size="sm" onClick={() => void clearAll()} className="w-full">
-                <Trash2 className="mr-2 size-4" aria-hidden /> Xóa tất cả
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" className="w-full">
+                    <Trash2 className="mr-2 size-4" aria-hidden /> Xóa tất cả
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Xóa toàn bộ lịch sử?</AlertDialogTitle>
+                    <AlertDialogDescription>Thao tác này sẽ xóa vĩnh viễn mọi bản ghi gửi/nhận đã lưu. Bạn sẽ không thể hoàn tác.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Hủy</AlertDialogCancel>
+                    <AlertDialogAction className="gap-2 bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive" onClick={() => void handleClearAll()}>
+                      <Trash2 className="size-4" aria-hidden /> Xóa
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
               <Button variant="secondary" size="sm" onClick={() => void handleExport()} className="w-full">
                 <Download className="mr-2 size-4" aria-hidden /> Xuất JSON
               </Button>

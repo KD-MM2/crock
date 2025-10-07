@@ -14,6 +14,7 @@ import { useUiStore, type UiStore } from '@/stores/ui';
 import type { SettingsState } from '@/types/settings';
 import type { SendFormState, SelectedPathItem, SendMode } from '@/types/transfer-ui';
 import type { TransferSession } from '@/types/transfer';
+import type { HistoryRecord } from '@/types/history';
 import { getWindowApi } from '@/lib/window-api';
 import { generateCodePhrase } from '@/lib/code';
 import { createLocalId } from '@/lib/id';
@@ -308,6 +309,74 @@ export function SendPanel() {
     })();
   }, [autoCopyEnabled, activeSendSession]);
 
+  useEffect(() => {
+    const handleHistoryResend = (event: Event) => {
+      const customEvent = event as CustomEvent<HistoryRecord | undefined>;
+      const record = customEvent.detail;
+      if (!record) return;
+
+      if (record.type !== 'send') {
+        toast.info('Chỉ hỗ trợ gửi lại các phiên gửi.');
+        return;
+      }
+
+      const options = isPlainObject(record.options) ? (record.options as Record<string, unknown>) : undefined;
+      const overrideSources: Array<Record<string, unknown> | undefined> = [
+        options && isPlainObject(options['overrides']) ? (options['overrides'] as Record<string, unknown>) : undefined,
+        options && isPlainObject(options['sessionOverrides']) ? (options['sessionOverrides'] as Record<string, unknown>) : undefined,
+        options
+      ];
+
+      const textOption = pickFirstOption<string>([options], ['text', 'message'], isString);
+      const modeOption = pickFirstOption<SendMode>([options], ['mode'], isSendMode);
+      const fallbackPaths = pickFirstOption<string[]>([options], ['paths', 'items', 'sourcePaths'], isStringArray);
+      const noCompressOption = pickFirstOption<boolean>([options], ['noCompress', 'no-compress'], isBoolean);
+      const relayOverride = pickFirstOption<string>(overrideSources, ['relay', 'relayHost'], isString) ?? record.relay;
+      const passOverride = pickFirstOption<string>(overrideSources, ['pass', 'relayPass'], isString);
+      const excludeOverride = pickFirstOption<string[]>(overrideSources, ['exclude', 'excludes'], isStringArray);
+      const autoConfirmOverride = pickFirstOption<boolean>(overrideSources, ['autoConfirm', 'yes'], isBoolean);
+
+      const overrides: SendFormState['sessionOverrides'] = {};
+      if (relayOverride) overrides.relay = relayOverride;
+      if (passOverride) overrides.pass = passOverride;
+      if (excludeOverride && excludeOverride.length > 0) overrides.exclude = excludeOverride;
+      if (autoConfirmOverride) overrides.autoConfirm = true;
+
+      const hasOverride = hasSessionOverrides(overrides);
+
+      const selectedMode: SendMode = modeOption ?? (textOption ? 'text' : 'files');
+      const itemsFromHistory = selectedMode === 'files' ? buildItemsFromHistory(record.files, fallbackPaths) : [];
+      const textFromHistory = selectedMode === 'text' ? textOption ?? '' : '';
+
+      setForm((prev) => ({
+        ...prev,
+        mode: selectedMode,
+        items: itemsFromHistory,
+        text: textFromHistory,
+        code: record.code ?? '',
+        resolvedCode: undefined,
+        options: {
+          ...prev.options,
+          noCompress: typeof noCompressOption === 'boolean' ? noCompressOption : prev.options.noCompress
+        },
+        sessionOverrides: overrides
+      }));
+
+      setOverridesOpen(hasOverride);
+
+      toast.success('Đã nạp thiết lập từ lịch sử. Kiểm tra lại trước khi gửi.');
+
+      if (selectedMode === 'files' && itemsFromHistory.length === 0) {
+        toast.info('Không thể xác định danh sách tệp từ lịch sử. Hãy chọn lại file thủ công.');
+      }
+    };
+
+    window.addEventListener('history:resend', handleHistoryResend as EventListener);
+    return () => {
+      window.removeEventListener('history:resend', handleHistoryResend as EventListener);
+    };
+  }, []);
+
   return (
     <section className="relative flex flex-col gap-4 rounded-xl border border-border/80 bg-background/80 p-5 shadow-sm">
       <header className="flex items-start justify-between gap-4">
@@ -594,6 +663,61 @@ function addItems(form: SendFormState, items: SelectedPathItem[]): SendFormState
     }
   }
   return { ...form, items: merged };
+}
+
+function buildItemsFromHistory(files?: HistoryRecord['files'], fallbackPaths?: string[]): SelectedPathItem[] {
+  if (files && files.length > 0) {
+    return files.map((file) => ({
+      id: createLocalId('history'),
+      name: file.name,
+      path: file.path,
+      size: file.size,
+      kind: file.kind
+    }));
+  }
+
+  if (fallbackPaths && fallbackPaths.length > 0) {
+    return fallbackPaths.map((path) => createItemFromPath(path));
+  }
+
+  return [];
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isBoolean(value: unknown): value is boolean {
+  return typeof value === 'boolean';
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string');
+}
+
+function isSendMode(value: unknown): value is SendMode {
+  return value === 'files' || value === 'text';
+}
+
+function pickFirstOption<T>(sources: Array<Record<string, unknown> | undefined>, keys: string[], predicate: (value: unknown) => value is T): T | undefined {
+  for (const source of sources) {
+    if (!source) continue;
+    for (const key of keys) {
+      const value = source[key];
+      if (predicate(value)) {
+        return value;
+      }
+    }
+  }
+  return undefined;
+}
+
+function hasSessionOverrides(overrides: SendFormState['sessionOverrides']): boolean {
+  return Boolean(overrides.relay || overrides.pass || (overrides.exclude && overrides.exclude.length > 0) || overrides.autoConfirm);
 }
 
 async function copyToClipboard(text: string, options?: { silent?: boolean }): Promise<boolean> {
