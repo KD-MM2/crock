@@ -1,4 +1,5 @@
 import { type ComponentType, type ReactNode, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { AlertTriangle, ClipboardCopy, Cpu, Download, FileCode2, FolderOpen, Globe, Info, Link2, Network, RefreshCw, Save, ShieldCheck, ShieldQuestion, ShieldAlert, Waypoints } from 'lucide-react';
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -10,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useUiStore, type UiStore } from '@/stores/ui';
 import { useSettingsStore, type SettingsStoreState } from '@/stores/settings';
-import type { SettingsState } from '@/types/settings';
+import type { SettingsState, ConnectionStatus } from '@/types/settings';
 import { getWindowApi } from '@/lib/window-api';
 import { cn } from '@/lib/utils';
 
@@ -27,7 +28,7 @@ const TAB_ITEMS = [
 
 type UpdateDraft = (updater: (draft: SettingsState) => void) => void;
 
-type SettingsDialogSelectors = Pick<SettingsStoreState, 'status' | 'draft' | 'settings' | 'setDraft' | 'save' | 'resetDraft' | 'refreshConnectionStatus' | 'connectionStatus' | 'loadingConnection' | 'load'>;
+type SettingsDialogSelectors = Pick<SettingsStoreState, 'status' | 'draft' | 'settings' | 'setDraft' | 'save' | 'resetDraft' | 'refreshConnectionStatus' | 'connectionStatus' | 'loadingConnection' | 'load' | 'updateRelayStatus'>;
 
 const selectSettingsStore = (state: SettingsStoreState): SettingsDialogSelectors => ({
   status: state.status,
@@ -39,13 +40,14 @@ const selectSettingsStore = (state: SettingsStoreState): SettingsDialogSelectors
   refreshConnectionStatus: state.refreshConnectionStatus,
   connectionStatus: state.connectionStatus,
   loadingConnection: state.loadingConnection,
-  load: state.load
+  load: state.load,
+  updateRelayStatus: state.updateRelayStatus
 });
 
 export function SettingsDialog() {
   const open = useUiStore((state: UiStore) => state.dialogs.settingsOpen);
   const closeSettings = useUiStore((state: UiStore) => state.closeSettings);
-  const { status, draft, settings, setDraft, save, resetDraft, refreshConnectionStatus, connectionStatus, loadingConnection, load } = useSettingsStore(selectSettingsStore);
+  const { status, draft, settings, setDraft, save, resetDraft, refreshConnectionStatus, connectionStatus, loadingConnection, load, updateRelayStatus } = useSettingsStore(selectSettingsStore);
 
   const [activeTab, setActiveTab] = useState<(typeof TAB_ITEMS)[number]['value']>('general');
 
@@ -61,6 +63,32 @@ export function SettingsDialog() {
       setActiveTab('general');
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const api = getWindowApi();
+    const unsubscribe = api.events.on('relay:status', (payload) => {
+      if (!payload || typeof payload !== 'object') return;
+      const data = payload as {
+        relay?: unknown;
+        latencyMs?: unknown;
+        online?: unknown;
+        checkedAt?: unknown;
+      };
+
+      updateRelayStatus({
+        host: typeof data.relay === 'string' ? data.relay : undefined,
+        latencyMs: typeof data.latencyMs === 'number' ? data.latencyMs : undefined,
+        online: typeof data.online === 'boolean' ? data.online : undefined,
+        lastChecked: typeof data.checkedAt === 'number' ? data.checkedAt : undefined
+      });
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, [open, updateRelayStatus]);
 
   const updateDraft: UpdateDraft = (updater) => {
     setDraft((current: SettingsState | null) => {
@@ -112,7 +140,7 @@ export function SettingsDialog() {
                   <TransferTab settings={draft} updateDraft={updateDraft} />
                 </TabsContent>
                 <TabsContent value="relay" className="pb-16">
-                  <RelayTab settings={draft} updateDraft={updateDraft} connectionStatus={connectionStatus} loadingConnection={loadingConnection} onTestConnection={() => refreshConnectionStatus()} />
+                  <RelayTab settings={draft} updateDraft={updateDraft} connectionStatus={connectionStatus} loadingConnection={loadingConnection} onTestRelay={() => refreshConnectionStatus()} onTestProxy={() => refreshConnectionStatus()} />
                 </TabsContent>
                 <TabsContent value="security" className="pb-16">
                   <SecurityTab settings={draft} updateDraft={updateDraft} />
@@ -328,13 +356,15 @@ function RelayTab({
   updateDraft,
   connectionStatus,
   loadingConnection,
-  onTestConnection
+  onTestRelay,
+  onTestProxy
 }: {
   settings: SettingsState;
   updateDraft: UpdateDraft;
   connectionStatus: SettingsDialogSelectors['connectionStatus'];
   loadingConnection: boolean;
-  onTestConnection: () => void;
+  onTestRelay: () => Promise<ConnectionStatus | null>;
+  onTestProxy: () => Promise<ConnectionStatus | null>;
 }) {
   const [newRelayHost, setNewRelayHost] = useState('');
   const [newRelayPass, setNewRelayPass] = useState('');
@@ -346,6 +376,36 @@ function RelayTab({
     });
     setNewRelayHost('');
     setNewRelayPass('');
+  };
+
+  const handleTestRelay = async () => {
+    const status = await onTestRelay();
+    if (!status?.relay) {
+      toast.error('Không thể kiểm tra relay.');
+      return;
+    }
+
+    const hostLabel = status.relay.host ?? 'Relay';
+    if (status.relay.online) {
+      toast.success(`${hostLabel} hoạt động (latency ${status.relay.latencyMs ?? '—'} ms).`);
+    } else {
+      toast.warning(`${hostLabel} không phản hồi hoặc ngoại tuyến.`);
+    }
+  };
+
+  const handleTestProxy = async () => {
+    const status = await onTestProxy();
+    if (!status) {
+      toast.error('Không thể kiểm tra proxy.');
+      return;
+    }
+
+    const proxy = status.proxy;
+    if (proxy?.http || proxy?.https) {
+      toast.success(`Proxy hoạt động (HTTP ${proxy.http ? 'ON' : 'OFF'} • HTTPS ${proxy.https ? 'ON' : 'OFF'}).`);
+    } else {
+      toast.warning('Proxy chưa bật hoặc không phản hồi.');
+    }
   };
 
   return (
@@ -375,9 +435,14 @@ function RelayTab({
           />
         </Field>
       </div>
-      <Button variant="outline" size="sm" onClick={onTestConnection} disabled={loadingConnection}>
-        <RefreshCw className={cn('mr-2 size-4', loadingConnection && 'animate-spin')} aria-hidden /> Kiểm tra relay
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" onClick={() => void handleTestRelay()} disabled={loadingConnection}>
+          <RefreshCw className={cn('mr-2 size-4', loadingConnection && 'animate-spin')} aria-hidden /> Kiểm tra relay
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => void handleTestProxy()} disabled={loadingConnection}>
+          <RefreshCw className={cn('mr-2 size-4', loadingConnection && 'animate-spin')} aria-hidden /> Kiểm tra proxy
+        </Button>
+      </div>
 
       {connectionStatus?.relay && (
         <InfoCard

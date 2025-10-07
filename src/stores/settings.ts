@@ -20,7 +20,8 @@ export type SettingsStoreState = {
   setDraft: (action: SetStateAction<SettingsState | null>) => void;
   save: () => Promise<void>;
   patch: (partial: Partial<SettingsState>) => Promise<void>;
-  refreshConnectionStatus: () => Promise<void>;
+  refreshConnectionStatus: () => Promise<ConnectionStatus | null>;
+  updateRelayStatus: (payload: { host?: string; latencyMs?: number; online?: boolean; lastChecked?: number }) => void;
   resetDraft: () => void;
 };
 
@@ -84,11 +85,29 @@ const createSettingsStore: StoreInitializer<SettingsStoreState> = (set, get) => 
       const api = getWindowApi();
       const status = await api.settings.connectionStatus();
       set({ connectionStatus: status, loadingConnection: false });
+      return status;
     } catch (error) {
       console.error('[settingsStore] refresh connection failed', error);
       set({ loadingConnection: false, error: error instanceof Error ? error.message : 'Unknown error' });
+      return null;
     }
   },
+  updateRelayStatus: (payload) =>
+    set((state: SettingsStoreState) => {
+      const current = state.connectionStatus ?? {};
+      const previousRelay = current.relay ?? { online: false };
+      return {
+        connectionStatus: {
+          ...current,
+          relay: {
+            host: payload.host ?? previousRelay.host,
+            latencyMs: payload.latencyMs ?? previousRelay.latencyMs,
+            online: payload.online ?? previousRelay.online ?? false,
+            lastChecked: payload.lastChecked ?? Date.now()
+          }
+        }
+      };
+    }),
   resetDraft: () =>
     set((state: SettingsStoreState) => ({
       draft: state.settings
