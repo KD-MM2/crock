@@ -18,6 +18,10 @@ export interface CrocStartSendOptions {
   hash?: string;
   yes?: boolean;
   exclude?: string[];
+  connections?: number;
+  protocol?: 'tcp' | 'udp';
+  forceLocal?: boolean;
+  disableLocal?: boolean;
   extraFlags?: string;
 }
 
@@ -28,6 +32,8 @@ export interface CrocStartReceiveOptions {
   overwrite?: boolean;
   yes?: boolean;
   outDir?: string;
+  curve?: string;
+  hash?: string;
   extraFlags?: string;
 }
 

@@ -72,6 +72,47 @@ export function ReceivePanel() {
 
   const downloadDir = settings?.general.downloadDir ?? 'Downloads';
 
+  const receiveCli = useMemo(() => {
+    const parts: string[] = ['croc'];
+    const relayHost = resolveDefaultRelay(settings);
+    if (relayHost) {
+      parts.push('--relay', relayHost);
+    }
+    const relayPass = resolveDefaultRelayPass(settings);
+    if (relayPass) {
+      parts.push('--pass', relayPass);
+    }
+    if (form.options.autoConfirm) {
+      parts.push('--yes');
+    }
+    if (form.options.overwrite) {
+      parts.push('--overwrite');
+    }
+    const curve = resolveSecurityCurve(settings);
+    if (curve) {
+      parts.push('--curve', curve);
+    }
+    const hash = resolveSecurityHash(settings);
+    if (hash) {
+      parts.push('--hash', hash);
+    }
+    const extraFlags = settings?.advanced.extraFlags?.trim();
+    if (extraFlags) {
+      const tokens = extraFlags.match(/(?:[^\s"]+|"[^"]*")+/g) ?? [];
+      parts.push(...tokens);
+    }
+    parts.push(form.code.trim() || '<code>');
+    return parts
+      .map((part, index) => {
+        if (index === 0 || part.startsWith('--')) {
+          return part;
+        }
+        return quoteCliArg(part);
+      })
+      .join(' ')
+      .trim();
+  }, [form.code, form.options.autoConfirm, form.options.overwrite, settings]);
+
   const canReceive = useMemo(() => {
     if (isReceiving) return false;
     return form.code.trim().length > 0;
@@ -107,11 +148,13 @@ export function ReceivePanel() {
     try {
       const result = await api.croc.startReceive({
         code: trimmedCode,
-        relay: settings.relayProxy.defaultRelay.host,
-        pass: settings.relayProxy.defaultRelay.pass,
+        relay: resolveDefaultRelay(settings),
+        pass: resolveDefaultRelayPass(settings),
         overwrite: form.options.overwrite,
         yes: form.options.autoConfirm,
         outDir: downloadDir,
+        curve: resolveSecurityCurve(settings),
+        hash: resolveSecurityHash(settings),
         extraFlags: settings.advanced.extraFlags
       });
 
@@ -219,12 +262,7 @@ export function ReceivePanel() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-xs text-muted-foreground">
-          CLI tương đương:{' '}
-          <span className="font-mono">
-            croc {form.options.autoConfirm ? '--yes ' : ''}
-            {form.options.overwrite ? '--overwrite ' : ''}
-            {form.code || '<code>'}
-          </span>
+          CLI tương đương: <span className="font-mono">{receiveCli}</span>
         </div>
         <Button size="sm" onClick={() => void handleReceive()} disabled={!canReceive}>
           {isReceiving ? <RefreshCw className="mr-2 size-4 animate-spin" aria-hidden /> : <FolderOpen className="mr-2 size-4" aria-hidden />}
@@ -244,4 +282,33 @@ function buildInitialReceiveForm(settings?: SettingsState | null): ReceiveFormSt
       autoConfirm: settings?.transferDefaults.receive.yes ?? false
     }
   };
+}
+
+function resolveDefaultRelay(settings?: SettingsState | null): string | undefined {
+  const host = settings?.relayProxy.defaultRelay.host?.trim();
+  return host && host.length > 0 ? host : undefined;
+}
+
+function resolveDefaultRelayPass(settings?: SettingsState | null): string | undefined {
+  const pass = settings?.relayProxy.defaultRelay.pass?.trim();
+  return pass && pass.length > 0 ? pass : undefined;
+}
+
+function resolveSecurityCurve(settings?: SettingsState | null): string | undefined {
+  const curve = settings?.security.curve?.trim();
+  return curve ? curve : undefined;
+}
+
+function resolveSecurityHash(settings?: SettingsState | null): string | undefined {
+  const hash = settings?.security.hash?.trim();
+  return hash ? hash : undefined;
+}
+
+function quoteCliArg(value: string): string {
+  const normalized = value.replace(/\s+/g, ' ').trim();
+  if (!normalized) return value;
+  if (!normalized.includes(' ') && !normalized.includes('"')) {
+    return normalized;
+  }
+  return `"${normalized.replace(/"/g, '\\"')}"`;
 }

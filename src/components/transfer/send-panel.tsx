@@ -182,6 +182,12 @@ export function SendPanel() {
         pass: resolveRelayPass(form.sessionOverrides, settings),
         exclude: resolveExcludePatterns(form.sessionOverrides, settings),
         yes: form.sessionOverrides.autoConfirm,
+        connections: resolveConnections(settings),
+        protocol: resolveProtocol(settings),
+        forceLocal: resolveForceLocal(settings) ? true : undefined,
+        disableLocal: resolveDisableLocal(settings) ? true : undefined,
+        curve: resolveCurve(settings),
+        hash: resolveHash(settings),
         extraFlags: settings.advanced.extraFlags
       });
 
@@ -582,6 +588,34 @@ function buildSendCliCommand({ form, finalCode, settings }: { form: SendFormStat
     parts.push('--yes');
   }
 
+  const connections = resolveConnections(settings);
+  if (typeof connections === 'number') {
+    parts.push('--connections', String(connections));
+  }
+
+  const protocol = resolveProtocol(settings);
+  if (protocol) {
+    parts.push('--protocol', protocol);
+  }
+
+  if (resolveForceLocal(settings)) {
+    parts.push('--force-local');
+  }
+
+  if (resolveDisableLocal(settings)) {
+    parts.push('--no-local');
+  }
+
+  const curve = resolveCurve(settings);
+  if (curve) {
+    parts.push('--curve', curve);
+  }
+
+  const hash = resolveHash(settings);
+  if (hash) {
+    parts.push('--hash', hash);
+  }
+
   const extraFlags = settings?.advanced.extraFlags?.trim();
   if (extraFlags) {
     const tokens = extraFlags.match(/(?:[^\s"]+|"[^"]*")+/g) ?? [];
@@ -646,4 +680,33 @@ function resolveExcludePatterns(overrides: SendFormState['sessionOverrides'], se
   }
   const defaults = settings?.transferDefaults.send.exclude ?? [];
   return defaults.length > 0 ? defaults : undefined;
+}
+
+function resolveConnections(settings?: SettingsState | null): number | undefined {
+  const value = settings?.transferDefaults.send.connections;
+  if (typeof value !== 'number') return undefined;
+  return Number.isFinite(value) && value > 0 ? value : undefined;
+}
+
+function resolveProtocol(settings?: SettingsState | null): 'tcp' | 'udp' | undefined {
+  const protocol = settings?.transferDefaults.send.protocol;
+  return protocol === 'tcp' || protocol === 'udp' ? protocol : undefined;
+}
+
+function resolveForceLocal(settings?: SettingsState | null): boolean {
+  return Boolean(settings?.transferDefaults.send.forceLocal);
+}
+
+function resolveDisableLocal(settings?: SettingsState | null): boolean {
+  return Boolean(settings?.transferDefaults.send.disableLocal);
+}
+
+function resolveCurve(settings?: SettingsState | null): string | undefined {
+  const curve = settings?.security.curve?.trim();
+  return curve ? curve : undefined;
+}
+
+function resolveHash(settings?: SettingsState | null): string | undefined {
+  const hash = settings?.security.hash?.trim();
+  return hash ? hash : undefined;
 }
