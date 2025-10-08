@@ -1,24 +1,43 @@
-import { ipcRenderer, contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron';
+import type { Settings } from './types/settings';
+import type { EventPayloadMap, IpcEventName, ReceiveRequest, SelectFilesOptions, SendRequest, WindowApi } from './preload/api';
 
-// --------- Expose some API to the Renderer process ---------
-contextBridge.exposeInMainWorld('ipcRenderer', {
-  on(...args: Parameters<typeof ipcRenderer.on>) {
-    const [channel, listener] = args
-    return ipcRenderer.on(channel, (event, ...args) => listener(event, ...args))
+const api: WindowApi = {
+  app: {
+    selectFiles: (options?: SelectFilesOptions) => ipcRenderer.invoke('app:selectFiles', options),
+    selectFolder: () => ipcRenderer.invoke('app:selectFolder'),
+    clipboardRead: () => ipcRenderer.invoke('app:clipboardRead'),
+    clipboardWrite: (text: string) => ipcRenderer.invoke('app:clipboardWrite', text),
+    openPath: (target: string) => ipcRenderer.invoke('app:openPath', target)
   },
-  off(...args: Parameters<typeof ipcRenderer.off>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.off(channel, ...omit)
+  croc: {
+    getVersion: () => ipcRenderer.invoke('croc:getVersion'),
+    startSend: (options: SendRequest) => ipcRenderer.invoke('croc:startSend', options),
+    startReceive: (options: ReceiveRequest) => ipcRenderer.invoke('croc:startReceive', options),
+    stop: (id: string) => ipcRenderer.invoke('croc:stop', id)
   },
-  send(...args: Parameters<typeof ipcRenderer.send>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.send(channel, ...omit)
+  history: {
+    list: () => ipcRenderer.invoke('history:list'),
+    detail: (id: string) => ipcRenderer.invoke('history:detail', id),
+    clear: () => ipcRenderer.invoke('history:clear'),
+    export: () => ipcRenderer.invoke('history:export'),
+    saveExport: () => ipcRenderer.invoke('history:saveExport')
   },
-  invoke(...args: Parameters<typeof ipcRenderer.invoke>) {
-    const [channel, ...omit] = args
-    return ipcRenderer.invoke(channel, ...omit)
+  settings: {
+    get: () => ipcRenderer.invoke('settings:get'),
+    set: (patch: Partial<Settings>) => ipcRenderer.invoke('settings:set', patch),
+    validate: (settings) => ipcRenderer.invoke('settings:validate', settings),
+    connectionStatus: () => ipcRenderer.invoke('settings:connectionStatus')
   },
+  events: {
+    on: <T extends IpcEventName>(event: T, handler: (payload: EventPayloadMap[T]) => void) => {
+      const listener = (_event: Electron.IpcRendererEvent, payload: EventPayloadMap[T]) => handler(payload);
+      ipcRenderer.on(event, listener);
+      return () => {
+        ipcRenderer.removeListener(event, listener);
+      };
+    }
+  }
+};
 
-  // You can expose other APTs you need here.
-  // ...
-})
+contextBridge.exposeInMainWorld('api', api);

@@ -17,7 +17,7 @@ const selectSettings = (state: SettingsStoreState) => ({
   patch: state.patch
 });
 
-const LANGUAGE_LABELS: Record<SettingsState['general']['language'], string> = {
+const LANGUAGE_LABELS: Record<NonNullable<SettingsState['general']['language']>, string> = {
   vi: 'Tiếng Việt',
   en: 'English'
 };

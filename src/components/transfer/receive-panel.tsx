@@ -10,7 +10,7 @@ import { useSettingsStore, type SettingsStoreState } from '@/stores/settings';
 import { useTransferStore, type TransferStoreState } from '@/stores/transfer';
 import { useUiStore, type UiStore } from '@/stores/ui';
 import type { ReceiveFormState } from '@/types/transfer-ui';
-import type { SettingsState } from '@/types/settings';
+import type { SettingsState, CurveName, HashAlgorithm } from '@/types/settings';
 import { getWindowApi } from '@/lib/window-api';
 
 const selectSettings = (state: SettingsStoreState) => ({
@@ -154,7 +154,6 @@ export function ReceivePanel() {
         yes: form.options.autoConfirm,
         outDir: downloadDir,
         curve: resolveSecurityCurve(settings),
-        hash: resolveSecurityHash(settings),
         extraFlags: settings.advanced.extraFlags
       });
 
@@ -294,14 +293,12 @@ function resolveDefaultRelayPass(settings?: SettingsState | null): string | unde
   return pass && pass.length > 0 ? pass : undefined;
 }
 
-function resolveSecurityCurve(settings?: SettingsState | null): string | undefined {
-  const curve = settings?.security.curve?.trim();
-  return curve ? curve : undefined;
+function resolveSecurityCurve(settings?: SettingsState | null): CurveName | undefined {
+  return settings?.security.curve;
 }
 
-function resolveSecurityHash(settings?: SettingsState | null): string | undefined {
-  const hash = settings?.security.hash?.trim();
-  return hash ? hash : undefined;
+function resolveSecurityHash(settings?: SettingsState | null): HashAlgorithm | undefined {
+  return settings?.security.hash;
 }
 
 function quoteCliArg(value: string): string {

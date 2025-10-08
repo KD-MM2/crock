@@ -1,24 +1,8 @@
-import type { TransferPhase, TransferType } from './transfer';
+import type { HistoryRecord } from '../../electron/types/history';
 
-export type HistoryStatus = TransferPhase | 'in-progress';
+export type { HistoryRecord } from '../../electron/types/history';
 
-export interface HistoryRecord {
-  id: string;
-  type: TransferType;
-  createdAt: number;
-  finishedAt?: number;
-  status: HistoryStatus;
-  files?: Array<{ name: string; size: number; path?: string; kind: 'file' | 'folder' }>;
-  totalSize?: number;
-  relay?: string;
-  code?: string;
-  options?: Record<string, unknown>;
-  speedAvg?: string;
-  duration?: string;
-  logTail?: string[];
-  destinationPath?: string;
-  sourcePath?: string;
-}
+export type HistoryStatus = import('../../electron/types/croc').TransferPhase | 'in-progress';
 
 export interface HistoryFilter {
   type: 'all' | HistoryRecord['type'];

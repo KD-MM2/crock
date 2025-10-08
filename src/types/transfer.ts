@@ -1,25 +1,10 @@
-export type TransferType = 'send' | 'receive';
-
-export type TransferPhase = 'idle' | 'connecting' | 'sending' | 'receiving' | 'done' | 'failed' | 'canceled';
-
-export interface TransferProgress {
-  id: string;
-  type: TransferType;
-  phase: TransferPhase;
-  percent: number;
-  speed?: string;
-  eta?: string;
-  code?: string;
-  message?: string;
-  log?: string;
-  error?: string;
-}
+export type { TransferType, TransferPhase, TransferProgress, TransferDonePayload } from '../../electron/types/croc';
 
 export interface TransferSession {
   id: string;
-  type: TransferType;
+  type: import('../../electron/types/croc').TransferType;
   mode?: 'files' | 'text';
-  phase: TransferPhase;
+  phase: import('../../electron/types/croc').TransferPhase | 'idle';
   percent: number;
   speed?: string;
   eta?: string;

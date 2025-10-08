@@ -21,7 +21,7 @@ export type SettingsStoreState = {
   save: () => Promise<void>;
   patch: (partial: Partial<SettingsState>) => Promise<void>;
   refreshConnectionStatus: () => Promise<ConnectionStatus | null>;
-  updateRelayStatus: (payload: { host?: string; latencyMs?: number; online?: boolean; lastChecked?: number }) => void;
+  updateRelayStatus: (payload: { host?: string; latencyMs?: number; online?: boolean; checkedAt?: number; ipv6?: boolean; port?: number }) => void;
   resetDraft: () => void;
 };
 
@@ -94,17 +94,33 @@ const createSettingsStore: StoreInitializer<SettingsStoreState> = (set, get) => 
   },
   updateRelayStatus: (payload) =>
     set((state: SettingsStoreState) => {
-      const current = state.connectionStatus ?? {};
-      const previousRelay = current.relay ?? { online: false };
+      const base: ConnectionStatus = state.connectionStatus ?? {
+        relay: {
+          host: payload.host,
+          online: payload.online ?? false,
+          latencyMs: payload.latencyMs,
+          checkedAt: payload.checkedAt ?? Date.now(),
+          ipv6: payload.ipv6,
+          port: payload.port
+        },
+        proxy: {},
+        croc: { installed: false }
+      };
+
+      const updatedRelay = {
+        ...base.relay,
+        host: payload.host ?? base.relay.host,
+        latencyMs: payload.latencyMs ?? base.relay.latencyMs,
+        online: payload.online ?? base.relay.online,
+        checkedAt: payload.checkedAt ?? Date.now(),
+        ipv6: payload.ipv6 ?? base.relay.ipv6,
+        port: payload.port ?? base.relay.port
+      };
+
       return {
         connectionStatus: {
-          ...current,
-          relay: {
-            host: payload.host ?? previousRelay.host,
-            latencyMs: payload.latencyMs ?? previousRelay.latencyMs,
-            online: payload.online ?? previousRelay.online ?? false,
-            lastChecked: payload.lastChecked ?? Date.now()
-          }
+          ...base,
+          relay: updatedRelay
         }
       };
     }),

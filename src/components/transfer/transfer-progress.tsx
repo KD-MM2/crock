@@ -9,8 +9,7 @@ import { useTransferStore, type TransferStoreState } from '@/stores/transfer';
 import { useHistoryStore, type HistoryStoreState } from '@/stores/history';
 import { getWindowApi } from '@/lib/window-api';
 import { createLocalId } from '@/lib/id';
-import type { TransferLogEntry, TransferProgress, TransferSession } from '@/types/transfer';
-import type { TransferDonePayload } from '@/types/ipc';
+import type { TransferLogEntry, TransferProgress, TransferSession, TransferDonePayload } from '@/types/transfer';
 
 const selectSessions = (state: TransferStoreState) => ({
   activeId: state.activeTransferId,
@@ -66,14 +65,11 @@ export function TransferProgressPanel() {
       const progress = normalizeProgress(payload);
       if (!progress) return;
       updateProgress(progress);
-      if (progress.log) {
-        appendLog(progress.id, createLogEntry('info', progress.log));
+      if (progress.raw) {
+        appendLog(progress.id, createLogEntry('info', progress.raw));
       }
-      if (progress.message) {
+      if (progress.message && progress.message !== progress.raw) {
         appendLog(progress.id, createLogEntry('info', progress.message));
-      }
-      if (progress.error) {
-        appendLog(progress.id, createLogEntry('error', progress.error));
       }
     };
 
@@ -232,14 +228,17 @@ function normalizeDone(payload: unknown): TransferDonePayload | null {
   const candidate = payload as Partial<TransferDonePayload>;
   if (!candidate.id || typeof candidate.id !== 'string') return null;
   if (typeof candidate.success !== 'boolean' && !candidate.canceled) return null;
+  const type = candidate.type === 'receive' || candidate.type === 'send' ? candidate.type : 'send';
   return {
     id: candidate.id,
+    type,
     success: Boolean(candidate.success),
     canceled: Boolean(candidate.canceled),
     error: typeof candidate.error === 'string' ? candidate.error : undefined,
-    finishedAt: typeof candidate.finishedAt === 'number' ? candidate.finishedAt : undefined,
-    duration: typeof candidate.duration === 'number' ? candidate.duration : undefined,
-    message: typeof candidate.message === 'string' ? candidate.message : undefined
+    finishedAt: typeof candidate.finishedAt === 'number' ? candidate.finishedAt : Date.now(),
+    durationMs: typeof candidate.durationMs === 'number' ? candidate.durationMs : undefined,
+    code: typeof candidate.code === 'string' ? candidate.code : undefined,
+    bytesTransferred: typeof candidate.bytesTransferred === 'number' ? candidate.bytesTransferred : undefined
   };
 }
 

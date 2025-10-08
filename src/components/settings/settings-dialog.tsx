@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useUiStore, type UiStore } from '@/stores/ui';
 import { useSettingsStore, type SettingsStoreState } from '@/stores/settings';
-import type { SettingsState, ConnectionStatus } from '@/types/settings';
+import type { SettingsState, ConnectionStatus, CurveName, HashAlgorithm } from '@/types/settings';
 import { getWindowApi } from '@/lib/window-api';
 import { cn } from '@/lib/utils';
 
@@ -69,19 +69,13 @@ export function SettingsDialog() {
 
     const api = getWindowApi();
     const unsubscribe = api.events.on('relay:status', (payload) => {
-      if (!payload || typeof payload !== 'object') return;
-      const data = payload as {
-        relay?: unknown;
-        latencyMs?: unknown;
-        online?: unknown;
-        checkedAt?: unknown;
-      };
-
       updateRelayStatus({
-        host: typeof data.relay === 'string' ? data.relay : undefined,
-        latencyMs: typeof data.latencyMs === 'number' ? data.latencyMs : undefined,
-        online: typeof data.online === 'boolean' ? data.online : undefined,
-        lastChecked: typeof data.checkedAt === 'number' ? data.checkedAt : undefined
+        host: payload.relay,
+        latencyMs: payload.latencyMs,
+        online: payload.online,
+        checkedAt: payload.checkedAt,
+        ipv6: payload.ipv6,
+        port: payload.port
       });
     });
 
@@ -448,7 +442,7 @@ function RelayTab({
         <InfoCard
           title={`Relay: ${connectionStatus.relay.host ?? 'N/A'}`}
           status={connectionStatus.relay.online ? 'online' : 'offline'}
-          description={`Latency ${connectionStatus.relay.latencyMs ?? '—'} ms • ${connectionStatus.relay.lastChecked ? new Date(connectionStatus.relay.lastChecked).toLocaleTimeString() : '-'}`}
+          description={`Latency ${connectionStatus.relay.latencyMs ?? '—'} ms • ${connectionStatus.relay.checkedAt ? new Date(connectionStatus.relay.checkedAt).toLocaleTimeString() : '-'}`}
         />
       )}
 
@@ -559,7 +553,7 @@ function SecurityTab({ settings, updateDraft }: { settings: SettingsState; updat
             value={settings.security.curve ?? 'p256'}
             onValueChange={(value) =>
               updateDraft((draft) => {
-                draft.security.curve = value;
+                draft.security.curve = value as CurveName;
               })
             }
           >
@@ -578,7 +572,7 @@ function SecurityTab({ settings, updateDraft }: { settings: SettingsState; updat
             value={settings.security.hash ?? 'sha256'}
             onValueChange={(value) =>
               updateDraft((draft) => {
-                draft.security.hash = value;
+                draft.security.hash = value as HashAlgorithm;
               })
             }
           >

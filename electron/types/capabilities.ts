@@ -1,0 +1,20 @@
+export type CrocCapabilities = {
+  socks5?: boolean;
+  hash?: boolean;
+  curve?: boolean;
+  throttleUpload?: boolean;
+  internalDns?: boolean;
+  local?: boolean;
+  relay6?: boolean;
+  out?: boolean;
+  text?: boolean;
+  exclude?: boolean;
+  overwrite?: boolean;
+  yes?: boolean;
+  crocSecretEnv?: boolean;
+  connections?: boolean;
+  transfers?: boolean;
+  forceLocal?: boolean;
+  disableLocal?: boolean;
+  protocol?: boolean;
+};

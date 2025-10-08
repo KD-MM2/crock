@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { useSettingsStore, type SettingsStoreState } from '@/stores/settings';
 import { useTransferStore, type TransferStoreState } from '@/stores/transfer';
 import { useUiStore, type UiStore } from '@/stores/ui';
-import type { SettingsState } from '@/types/settings';
+import type { SettingsState, HashAlgorithm, CurveName } from '@/types/settings';
 import type { SendFormState, SelectedPathItem, SendMode } from '@/types/transfer-ui';
 import type { TransferSession } from '@/types/transfer';
 import type { HistoryRecord } from '@/types/history';
@@ -188,7 +188,6 @@ export function SendPanel() {
         protocol: resolveProtocol(settings),
         forceLocal: resolveForceLocal(settings) ? true : undefined,
         disableLocal: resolveDisableLocal(settings) ? true : undefined,
-        curve: resolveCurve(settings),
         hash: resolveHash(settings),
         extraFlags: settings.advanced.extraFlags
       });
@@ -672,7 +671,7 @@ function buildItemsFromHistory(files?: HistoryRecord['files'], fallbackPaths?: s
       name: file.name,
       path: file.path,
       size: file.size,
-      kind: file.kind
+      kind: file.kind ?? 'file'
     }));
   }
 
@@ -768,7 +767,7 @@ function buildSendCliCommand({ form, finalCode, settings }: { form: SendFormStat
 
   const connections = resolveConnections(settings);
   if (typeof connections === 'number') {
-    parts.push('--connections', String(connections));
+    parts.push('--transfers', String(connections));
   }
 
   const protocol = resolveProtocol(settings);
@@ -879,12 +878,10 @@ function resolveDisableLocal(settings?: SettingsState | null): boolean {
   return Boolean(settings?.transferDefaults.send.disableLocal);
 }
 
-function resolveCurve(settings?: SettingsState | null): string | undefined {
-  const curve = settings?.security.curve?.trim();
-  return curve ? curve : undefined;
+function resolveCurve(settings?: SettingsState | null): CurveName | undefined {
+  return settings?.security.curve;
 }
 
-function resolveHash(settings?: SettingsState | null): string | undefined {
-  const hash = settings?.security.hash?.trim();
-  return hash ? hash : undefined;
+function resolveHash(settings?: SettingsState | null): HashAlgorithm | undefined {
+  return settings?.security.hash;
 }

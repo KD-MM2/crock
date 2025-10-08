@@ -1,66 +1,164 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, shell } from 'electron';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { CrocBinaryManager } from './services/CrocBinaryManager';
+import { SettingsStore } from './services/SettingsStore';
+import { HistoryStore } from './services/HistoryStore';
+import { CrocCommandBuilder } from './services/CrocCommandBuilder';
+import { CapabilityDetector } from './services/CapabilityDetector';
+import { CrocProcessRunner } from './services/CrocProcessRunner';
+import { RelayStatusMonitor } from './services/RelayStatusMonitor';
+import { ConnectionDiagnostics } from './services/ConnectionDiagnostics';
+import { setupIpcHandlers } from './ipc/index.js';
+import type { AppIpcContext } from './ipc/context.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// The built directory structure
-//
-// ├─┬─┬ dist
-// │ │ └── index.html
-// │ │
-// │ ├─┬ dist-electron
-// │ │ ├── main.js
-// │ │ └── preload.mjs
-// │
 process.env.APP_ROOT = path.join(__dirname, '..');
 
-// 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
 export const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
 export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron');
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist');
 
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 'public') : RENDERER_DIST;
 
-let win: BrowserWindow | null;
+let mainWindow: BrowserWindow | null = null;
+let appContext: AppIpcContext | null = null;
 
-function createWindow() {
-  win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs')
+const singleInstanceLock = app.requestSingleInstanceLock();
+if (!singleInstanceLock) {
+  app.quit();
+}
+
+app.on('second-instance', () => {
+  if (!mainWindow) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.focus();
+});
+
+app.on('web-contents-created', (_event, contents) => {
+  contents.on('will-navigate', (event, url) => {
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      if (url !== contents.getURL()) {
+        event.preventDefault();
+      }
     }
   });
 
-  // Test active push message to Renderer-process.
-  win.webContents.on('did-finish-load', () => {
-    win?.webContents.send('main-process-message', new Date().toLocaleString());
+  contents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
   });
+});
 
-  if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL);
-  } else {
-    // win.loadFile('dist/index.html')
-    win.loadFile(path.join(RENDERER_DIST, 'index.html'));
-  }
-}
-
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
-    win = null;
   }
 });
 
 app.on('activate', () => {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
+  if (BrowserWindow.getAllWindows().length === 0 && appContext) {
+    void (async () => {
+      const window = await createMainWindow();
+      appContext.window = window;
+      await loadMainWindow(window);
+    })();
   }
 });
 
-app.whenReady().then(createWindow);
+async function createMainWindow(): Promise<BrowserWindow> {
+  if (mainWindow) return mainWindow;
+
+  const window = new BrowserWindow({
+    title: 'Crock',
+    width: 1280,
+    height: 800,
+    minWidth: 1024,
+    minHeight: 640,
+    show: false,
+    autoHideMenuBar: true,
+    icon: path.join(process.env.VITE_PUBLIC as string, 'electron-vite.svg'),
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.mjs'),
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+      spellcheck: false,
+      devTools: true
+    }
+  });
+
+  window.once('ready-to-show', () => window.show());
+  window.on('closed', () => {
+    mainWindow = null;
+  });
+
+  mainWindow = window;
+  return window;
+}
+
+async function loadMainWindow(window: BrowserWindow) {
+  if (VITE_DEV_SERVER_URL) {
+    await window.loadURL(VITE_DEV_SERVER_URL);
+  } else {
+    await window.loadFile(path.join(RENDERER_DIST, 'index.html'));
+  }
+}
+
+async function bootstrap() {
+  await app.whenReady();
+
+  const window = await createMainWindow();
+
+  const binaryManager = new CrocBinaryManager();
+  const settingsStore = new SettingsStore({
+    general: {
+      downloadDir: app.getPath('downloads'),
+      autoOpenOnDone: true,
+      autoCopyCodeOnSend: true,
+      language: 'vi',
+      theme: 'system'
+    }
+  });
+  const initialSettings = settingsStore.get();
+  const historyStore = new HistoryStore({
+    maxLogLines: initialSettings.advanced?.logTailLines,
+    retentionDays: initialSettings.advanced?.historyRetentionDays
+  });
+
+  const binaryPath = await binaryManager.ensure();
+  const capabilityDetector = new CapabilityDetector(binaryPath);
+  const capabilities = await capabilityDetector.getCapabilities();
+  const commandBuilder = new CrocCommandBuilder(capabilities, process.platform);
+  const processRunner = new CrocProcessRunner(binaryPath, window, commandBuilder);
+  const relayMonitor = new RelayStatusMonitor(window, settingsStore);
+  const diagnostics = new ConnectionDiagnostics(binaryManager, settingsStore);
+
+  appContext = {
+    window,
+    binaryPath,
+    binaryManager,
+    settingsStore,
+    historyStore,
+    commandBuilder,
+    processRunner,
+    capabilityDetector,
+    relayMonitor,
+    diagnostics
+  };
+
+  setupIpcHandlers(appContext);
+  await loadMainWindow(window);
+  relayMonitor.start();
+
+  window.on('close', () => {
+    relayMonitor.stop();
+  });
+
+  app.on('before-quit', () => {
+    processRunner.stopAll();
+  });
+}
+
+void bootstrap();

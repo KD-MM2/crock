@@ -40,7 +40,7 @@ const createTransferStore = (set: SetState<TransferStoreState>): TransferStoreSt
               type: progress.type,
               mode: undefined,
               phase: progress.phase,
-              percent: progress.percent,
+              percent: progress.percent ?? 0,
               speed: progress.speed,
               eta: progress.eta,
               code: progress.code,
@@ -54,7 +54,7 @@ const createTransferStore = (set: SetState<TransferStoreState>): TransferStoreSt
       const next: TransferSession = {
         ...existing,
         phase: progress.phase,
-        percent: progress.percent,
+        percent: progress.percent ?? existing.percent,
         speed: progress.speed,
         eta: progress.eta,
         code: progress.code ?? existing.code,
