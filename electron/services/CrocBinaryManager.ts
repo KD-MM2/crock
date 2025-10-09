@@ -14,6 +14,7 @@ import fg from 'fast-glob';
 import semver from 'semver';
 import { spawn } from 'node:child_process';
 import which from 'which';
+import type { Asset, Author, Release, Reactions } from '../types/release';
 
 export type EnsureOptions = {
   preferSystem?: boolean;
@@ -32,6 +33,7 @@ const REPO = 'croc';
 const DEFAULT_VERSION = 'v10.2.5';
 
 const manifestFileName = 'manifest.json';
+const RELEASE_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 async function pathExists(target: string) {
   try {
@@ -135,6 +137,7 @@ export class CrocBinaryManager {
   private readonly baseDir: string;
   private readonly manifestPath: string;
   private ensurePromise: Promise<string> | null = null;
+  private releaseCache: { expiresAt: number; releases: Release[] } | null = null;
 
   constructor(private readonly defaultVersion: string = DEFAULT_VERSION) {
     const userData = app.getPath('userData');
@@ -159,8 +162,9 @@ export class CrocBinaryManager {
       }
     }
 
-    const targetVersion = this.normalizeVersion(options.version ?? this.defaultVersion);
     const manifest = await readJsonSafe<{ version: string; binaryPath: string }>(this.manifestPath);
+    const normalizedOptionVersion = options.version ? this.normalizeVersion(options.version) : null;
+    const targetVersion = normalizedOptionVersion ?? manifest?.version ?? this.normalizeVersion(this.defaultVersion);
 
     if (manifest?.version === targetVersion && (await pathExists(manifest.binaryPath))) {
       return manifest.binaryPath;
@@ -208,6 +212,144 @@ export class CrocBinaryManager {
     await this.downloadAndExtract(targetVersion, binaryDir, true);
     await this.updateManifest(targetVersion, binaryPath);
     return binaryPath;
+  }
+
+  async ensureVersion(version: string): Promise<{ version: string; path: string }> {
+    const normalized = this.normalizeVersion(version);
+    const binaryPath = await this.ensure({ version: normalized });
+    return { version: normalized, path: binaryPath };
+  }
+
+  async getInstalledBinary(): Promise<{ version: string; path: string } | null> {
+    const manifest = await readJsonSafe<{ version: string; binaryPath: string }>(this.manifestPath);
+    if (!manifest) return null;
+    if (!(await pathExists(manifest.binaryPath))) {
+      return null;
+    }
+    return { version: manifest.version, path: manifest.binaryPath };
+  }
+
+  async listReleases(): Promise<Release[]> {
+    if (this.releaseCache && this.releaseCache.expiresAt > Date.now()) {
+      return this.releaseCache.releases;
+    }
+
+    const response = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/releases`, {
+      headers: {
+        'User-Agent': 'crock-app/1.0',
+        Accept: 'application/vnd.github+json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch releases: ${response.status} ${response.statusText}`);
+    }
+
+    const payload = (await response.json()) as Array<Record<string, unknown>>;
+    const releases: Release[] = payload.map((entry) => this.parseRelease(entry));
+
+    this.releaseCache = {
+      expiresAt: Date.now() + RELEASE_CACHE_TTL_MS,
+      releases
+    };
+
+    return releases;
+  }
+
+  private parseRelease(entry: Record<string, unknown>): Release {
+    return {
+      url: String(entry['url'] ?? ''),
+      assets_url: String(entry['assets_url'] ?? ''),
+      upload_url: String(entry['upload_url'] ?? ''),
+      html_url: String(entry['html_url'] ?? ''),
+      id: Number(entry['id'] ?? 0),
+      author: this.parseAuthor(entry['author']),
+      node_id: String(entry['node_id'] ?? ''),
+      tag_name: String(entry['tag_name'] ?? ''),
+      target_commitish: String(entry['target_commitish'] ?? ''),
+      name: String(entry['name'] ?? ''),
+      draft: Boolean(entry['draft']),
+      immutable: Boolean(entry['immutable']),
+      prerelease: Boolean(entry['prerelease']),
+      created_at: this.parseDate(entry['created_at']),
+      updated_at: this.parseDate(entry['updated_at']),
+      published_at: this.parseDate(entry['published_at']),
+      assets: Array.isArray(entry['assets']) ? entry['assets'].map((asset) => this.parseAsset(asset)) : [],
+      tarball_url: String(entry['tarball_url'] ?? ''),
+      zipball_url: String(entry['zipball_url'] ?? ''),
+      body: String(entry['body'] ?? ''),
+      reactions: this.parseReactions(entry['reactions']),
+      mentions_count: Number(entry['mentions_count'] ?? 0)
+    };
+  }
+
+  private parseAsset(raw: unknown): Asset {
+    const entry = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+    return {
+      url: String(entry['url'] ?? ''),
+      id: Number(entry['id'] ?? 0),
+      node_id: String(entry['node_id'] ?? ''),
+      name: String(entry['name'] ?? ''),
+      label: String(entry['label'] ?? ''),
+      uploader: this.parseAuthor(entry['uploader']),
+      content_type: String(entry['content_type'] ?? ''),
+      state: String(entry['state'] ?? ''),
+      size: Number(entry['size'] ?? 0),
+      digest: String(entry['digest'] ?? ''),
+      download_count: Number(entry['download_count'] ?? 0),
+      created_at: this.parseDate(entry['created_at']),
+      updated_at: this.parseDate(entry['updated_at']),
+      browser_download_url: String(entry['browser_download_url'] ?? '')
+    };
+  }
+
+  private parseAuthor(raw: unknown): Author {
+    const entry = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+    return {
+      login: String(entry['login'] ?? ''),
+      id: Number(entry['id'] ?? 0),
+      node_id: String(entry['node_id'] ?? ''),
+      avatar_url: String(entry['avatar_url'] ?? ''),
+      gravatar_id: String(entry['gravatar_id'] ?? ''),
+      url: String(entry['url'] ?? ''),
+      html_url: String(entry['html_url'] ?? ''),
+      followers_url: String(entry['followers_url'] ?? ''),
+      following_url: String(entry['following_url'] ?? ''),
+      gists_url: String(entry['gists_url'] ?? ''),
+      starred_url: String(entry['starred_url'] ?? ''),
+      subscriptions_url: String(entry['subscriptions_url'] ?? ''),
+      organizations_url: String(entry['organizations_url'] ?? ''),
+      repos_url: String(entry['repos_url'] ?? ''),
+      events_url: String(entry['events_url'] ?? ''),
+      received_events_url: String(entry['received_events_url'] ?? ''),
+      type: String(entry['type'] ?? ''),
+      user_view_type: String(entry['user_view_type'] ?? ''),
+      site_admin: Boolean(entry['site_admin'])
+    };
+  }
+
+  private parseReactions(raw: unknown): Reactions {
+    const entry = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+    return {
+      url: String(entry['url'] ?? ''),
+      total_count: Number(entry['total_count'] ?? 0),
+      '+1': Number(entry['+1'] ?? 0),
+      '-1': Number(entry['-1'] ?? 0),
+      laugh: Number(entry['laugh'] ?? 0),
+      hooray: Number(entry['hooray'] ?? 0),
+      confused: Number(entry['confused'] ?? 0),
+      heart: Number(entry['heart'] ?? 0),
+      rocket: Number(entry['rocket'] ?? 0),
+      eyes: Number(entry['eyes'] ?? 0)
+    };
+  }
+
+  private parseDate(value: unknown): Date {
+    if (value == null) return new Date(0);
+    const iso = String(value);
+    const timestamp = Date.parse(iso);
+    if (Number.isNaN(timestamp)) return new Date(0);
+    return new Date(timestamp);
   }
 
   private async tryResolveSystemBinary(): Promise<string | null> {

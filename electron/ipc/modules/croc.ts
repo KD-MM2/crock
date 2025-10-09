@@ -7,6 +7,7 @@ import { z } from 'zod';
 import type { HistoryFileEntry, HistoryRecord } from '../../types/history';
 import type { ReceiveOptions, SendMode, SendOptions } from '../../types/croc';
 import type { Settings } from '../../types/settings';
+import type { ReleaseInfo } from '../../types/release';
 import { parseHostPort } from '../../utils/network';
 import type { AppIpcContext } from '../context';
 
@@ -185,7 +186,7 @@ function formatDuration(durationMs?: number): string | undefined {
 }
 
 export function registerCrocHandlers(context: AppIpcContext) {
-  const { processRunner, historyStore, settingsStore, binaryManager } = context;
+  const { processRunner, historyStore, settingsStore, binaryManager, capabilityDetector, commandBuilder } = context;
 
   processRunner.on('progress', (payload) => {
     if (payload.raw) {
@@ -221,6 +222,48 @@ export function registerCrocHandlers(context: AppIpcContext) {
       }
     });
     return version;
+  });
+
+  ipcMain.handle('croc:listVersions', async (): Promise<ReleaseInfo[]> => {
+    const releases = await binaryManager.listReleases();
+    return releases.map((release) => ({
+      tagName: release.tag_name,
+      name: release.name,
+      prerelease: release.prerelease,
+      draft: release.draft,
+      immutable: Boolean(release.immutable),
+      publishedAt: release.published_at ? release.published_at.toISOString() : undefined
+    }));
+  });
+
+  ipcMain.handle('croc:installVersion', async (_event, rawVersion: unknown) => {
+    if (typeof rawVersion !== 'string' || !rawVersion.trim()) {
+      throw new Error('Version is required');
+    }
+
+    const { path: binaryPath } = await binaryManager.ensureVersion(rawVersion.trim());
+    const version = await binaryManager.getVersion(binaryPath);
+
+    processRunner.setBinaryPath(binaryPath);
+    capabilityDetector.setBinaryPath(binaryPath);
+    const capabilities = await capabilityDetector.getCapabilities();
+    commandBuilder.setCapabilities(capabilities);
+
+    settingsStore.set({
+      binary: {
+        crocVersion: version,
+        crocPath: binaryPath
+      }
+    });
+
+    context.binaryPath = binaryPath;
+    settingsStore.applyCapabilities(capabilities);
+
+    return {
+      version,
+      path: binaryPath,
+      settings: settingsStore.get()
+    };
   });
 
   ipcMain.handle('croc:startSend', async (_event, rawOptions: unknown) => {

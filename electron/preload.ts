@@ -17,6 +17,8 @@ const api: WindowApi = {
   },
   croc: {
     getVersion: () => ipcRenderer.invoke('croc:getVersion'),
+    listVersions: () => ipcRenderer.invoke('croc:listVersions'),
+    installVersion: (version: string) => ipcRenderer.invoke('croc:installVersion', version),
     startSend: (options: SendRequest) => ipcRenderer.invoke('croc:startSend', options),
     startReceive: (options: ReceiveRequest) => ipcRenderer.invoke('croc:startReceive', options),
     stop: (id: string) => ipcRenderer.invoke('croc:stop', id)

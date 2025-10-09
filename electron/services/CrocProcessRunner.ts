@@ -69,7 +69,7 @@ export interface RunnerEnv {
 export class CrocProcessRunner extends EventEmitter {
   private readonly sessions = new Map<string, RunnerSession>();
 
-  constructor(private readonly binaryPath: string, private readonly window: BrowserWindow, private readonly commandBuilder: CrocCommandBuilder) {
+  constructor(private binaryPath: string, private readonly window: BrowserWindow, private readonly commandBuilder: CrocCommandBuilder) {
     super();
   }
 
@@ -100,6 +100,10 @@ export class CrocProcessRunner extends EventEmitter {
     for (const id of this.sessions.keys()) {
       this.stop(id);
     }
+  }
+
+  setBinaryPath(binaryPath: string) {
+    this.binaryPath = binaryPath;
   }
 
   private spawnProcess(id: string, type: TransferType, args: string[], extraEnv?: Record<string, string>): ChildProcess {

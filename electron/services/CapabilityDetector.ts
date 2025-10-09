@@ -19,7 +19,13 @@ export class CapabilityDetector {
   private cache: CrocCapabilities | null = null;
   private loading: Promise<CrocCapabilities> | null = null;
 
-  constructor(private readonly binaryPath: string) {}
+  constructor(private binaryPath: string) {}
+
+  setBinaryPath(binaryPath: string) {
+    this.binaryPath = binaryPath;
+    this.cache = null;
+    this.loading = null;
+  }
 
   async getCapabilities(): Promise<CrocCapabilities> {
     if (this.cache) return this.cache;

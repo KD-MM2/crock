@@ -33,8 +33,12 @@ function maybeApplyFlag(list: string[], flag: keyof CrocCapabilities, capabiliti
 export class CrocCommandBuilder {
   private readonly platform: NodeJS.Platform;
 
-  constructor(private readonly capabilities: CrocCapabilities = {}, platform: NodeJS.Platform = process.platform) {
+  constructor(private capabilities: CrocCapabilities = {}, platform: NodeJS.Platform = process.platform) {
     this.platform = platform;
+  }
+
+  setCapabilities(next: CrocCapabilities) {
+    this.capabilities = next;
   }
 
   buildSendArgs(options: SendOptions): string[] {

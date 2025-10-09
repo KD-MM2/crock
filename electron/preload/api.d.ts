@@ -1,6 +1,7 @@
 import type { TransferDonePayload, TransferProgress } from '../types/croc';
 import type { HistoryRecord } from '../types/history';
 import type { ConnectionStatus, Settings } from '../types/settings';
+import type { ReleaseInfo } from '../types/release';
 
 export type SelectFilesOptions = {
   allowFolders?: boolean;
@@ -78,6 +79,8 @@ export interface WindowApi {
   };
   croc: {
     getVersion: () => Promise<string>;
+    listVersions: () => Promise<ReleaseInfo[]>;
+    installVersion: (version: string) => Promise<{ version: string; path: string; settings: Settings }>;
     startSend: (options: SendRequest) => Promise<TransferHandle>;
     startReceive: (options: ReceiveRequest) => Promise<TransferHandle>;
     stop: (id: string) => Promise<void>;

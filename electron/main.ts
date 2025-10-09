@@ -128,13 +128,39 @@ async function bootstrap() {
     retentionDays: initialSettings.advanced?.historyRetentionDays
   });
 
-  const binaryPath = await binaryManager.ensure();
+  let binaryPath: string;
+  const preferredVersion = initialSettings.binary?.crocVersion;
+  try {
+    binaryPath = await binaryManager.ensure({
+      version: preferredVersion && preferredVersion.startsWith('v') ? preferredVersion : undefined
+    });
+  } catch (error) {
+    console.warn('[bootstrap] failed to ensure preferred croc version, falling back', error);
+    binaryPath = await binaryManager.ensure();
+  }
+
+  let detectedVersion = 'not-installed';
+  try {
+    detectedVersion = await binaryManager.getVersion(binaryPath);
+  } catch (error) {
+    console.warn('[bootstrap] failed to detect croc version', error);
+  }
+
+  settingsStore.set({
+    binary: {
+      crocVersion: detectedVersion,
+      crocPath: binaryPath
+    }
+  });
+
   const capabilityDetector = new CapabilityDetector(binaryPath);
   const capabilities = await capabilityDetector.getCapabilities();
   const commandBuilder = new CrocCommandBuilder(capabilities, process.platform);
   const processRunner = new CrocProcessRunner(binaryPath, window, commandBuilder);
   const relayMonitor = new RelayStatusMonitor(window, settingsStore);
   const diagnostics = new ConnectionDiagnostics(binaryManager, settingsStore);
+
+  settingsStore.applyCapabilities(capabilities);
 
   appContext = {
     window,

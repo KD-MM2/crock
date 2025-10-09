@@ -12,8 +12,10 @@ import { Switch } from '@/components/ui/switch';
 import { useUiStore, type UiStore } from '@/stores/ui';
 import { useSettingsStore, type SettingsStoreState } from '@/stores/settings';
 import type { SettingsState, ConnectionStatus, CurveName } from '@/types/settings';
+import type { ReleaseInfo } from '@/types/release';
 import { getWindowApi } from '@/lib/window-api';
 import { cn } from '@/lib/utils';
+import { Spinner } from '@/components/ui/spinner';
 
 const TAB_ITEMS = [
   { value: 'general', label: 'General', icon: Info },
@@ -133,7 +135,7 @@ export function SettingsDialog() {
                   <MiscTab settings={draft} updateDraft={updateDraft} />
                 </TabsContent>
                 <TabsContent value="about" className="pb-16">
-                  <AboutTab settings={draft} updateDraft={updateDraft} />
+                  <AboutTab settings={draft} />
                 </TabsContent>
               </div>
             </Tabs>
@@ -617,20 +619,122 @@ function MiscTab({ settings, updateDraft }: { settings: SettingsState; updateDra
   );
 }
 
-function AboutTab({ settings, updateDraft }: { settings: SettingsState; updateDraft: UpdateDraft }) {
-  const api = getWindowApi();
+function AboutTab({ settings }: { settings: SettingsState }) {
+  const installedVersion = settings.binary.crocVersion?.startsWith('v') ? settings.binary.crocVersion : undefined;
+  const hasBinary = Boolean(settings.binary.crocPath);
+  const [versions, setVersions] = useState<ReleaseInfo[]>([]);
+  const [loadingVersions, setLoadingVersions] = useState(false);
+  const [installing, setInstalling] = useState(false);
+  const [selectedVersion, setSelectedVersion] = useState<string | undefined>(() => installedVersion);
+
+  const selectableVersions = useMemo(() => versions.filter((release) => !release.draft), [versions]);
+  const versionItems = useMemo(() => {
+    if (!selectedVersion || selectableVersions.some((release) => release.tagName === selectedVersion)) {
+      return selectableVersions;
+    }
+    return [
+      {
+        tagName: selectedVersion,
+        name: selectedVersion,
+        prerelease: false,
+        draft: false,
+        immutable: false,
+        publishedAt: undefined
+      },
+      ...selectableVersions
+    ];
+  }, [selectableVersions, selectedVersion]);
+
+  const isSameAsInstalled = Boolean(selectedVersion && installedVersion && selectedVersion === installedVersion && hasBinary);
+  const actionLabel = hasBinary ? 'Change version' : 'Download';
+  const selectValue = selectedVersion ?? '';
+
+  useEffect(() => {
+    let canceled = false;
+
+    const loadVersions = async () => {
+      setLoadingVersions(true);
+      try {
+        const data = await getWindowApi().croc.listVersions();
+        if (canceled) return;
+        setVersions(data);
+        setSelectedVersion((current) => {
+          if (current) return current;
+          if (installedVersion) return installedVersion;
+          const preferred = data.find((release) => !release.prerelease && !release.draft) ?? data[0];
+          return preferred?.tagName;
+        });
+      } catch (error) {
+        if (!canceled) {
+          console.error('[settings] failed to load croc releases', error);
+          toast.error('Không thể tải danh sách phiên bản croc từ GitHub.');
+        }
+      } finally {
+        if (!canceled) {
+          setLoadingVersions(false);
+        }
+      }
+    };
+
+    void loadVersions();
+
+    return () => {
+      canceled = true;
+    };
+  }, [installedVersion]);
 
   const handleRefreshVersion = async () => {
-    const version = await api.croc.getVersion();
-    updateDraft((draft) => {
-      draft.binary.crocVersion = version;
-    });
+    try {
+      const version = await getWindowApi().croc.getVersion();
+      useSettingsStore.setState((state) => {
+        if (!state.settings || !state.draft) return state;
+        const nextSettings = {
+          ...state.settings,
+          binary: {
+            ...state.settings.binary,
+            crocVersion: version
+          }
+        };
+        const nextDraft = {
+          ...state.draft,
+          binary: {
+            ...state.draft.binary,
+            crocVersion: version
+          }
+        };
+        return { ...state, settings: nextSettings, draft: nextDraft, status: 'ready' };
+      });
+      setSelectedVersion((current) => current ?? (version.startsWith('v') ? version : current));
+    } catch (error) {
+      console.error('[settings] failed to refresh croc version', error);
+      toast.error('Không thể kiểm tra phiên bản croc.');
+    }
+  };
+
+  const handleInstallVersion = async () => {
+    if (!selectedVersion) return;
+    setInstalling(true);
+    try {
+      const result = await getWindowApi().croc.installVersion(selectedVersion);
+      useSettingsStore.setState({ settings: result.settings, draft: result.settings, status: 'ready' });
+      setSelectedVersion(result.version);
+      toast.success(`Đã cài đặt croc ${result.version}.`);
+    } catch (error) {
+      console.error('[settings] failed to install croc', error);
+      toast.error('Không thể tải phiên bản croc được chọn.');
+    } finally {
+      setInstalling(false);
+    }
   };
 
   const handleOpenBinaryFolder = async () => {
     if (settings.binary.crocPath) {
-      await api.app.openPath(settings.binary.crocPath);
+      await getWindowApi().app.openPath(settings.binary.crocPath);
     }
+  };
+
+  const handleSelectVersion = (value: string) => {
+    setSelectedVersion(value === '__empty' ? undefined : value);
   };
 
   return (
@@ -657,21 +761,51 @@ function AboutTab({ settings, updateDraft }: { settings: SettingsState; updateDr
       <div className="space-y-6">
         <SectionHeading icon={FileCode2} title="Croc binary" description="Thông tin phiên bản và vị trí binary." />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Phiên bản">
-            <Input value={settings.binary.crocVersion ?? 'not-installed'} readOnly />
+          <Field label="PHIÊN BẢN">
+            <Select value={selectValue} onValueChange={handleSelectVersion} disabled={loadingVersions || installing}>
+              <SelectTrigger className="w-full" aria-label="Chọn phiên bản croc">
+                <SelectValue placeholder={loadingVersions ? 'Đang tải…' : 'Chọn phiên bản'} />
+              </SelectTrigger>
+              <SelectContent>
+                {versionItems.length === 0 ? (
+                  <SelectItem value="__empty" disabled>
+                    {loadingVersions ? 'Đang tải…' : 'Không có phiên bản'}
+                  </SelectItem>
+                ) : (
+                  versionItems.map((release) => (
+                    <SelectItem key={release.tagName} value={release.tagName} className="flex flex-col items-start text-left">
+                      <span className="text-sm font-medium">
+                        {release.tagName}
+                        {release.prerelease ? ' (pre-release)' : ''}
+                        {release.immutable ? ' • immutable' : ''}
+                      </span>
+                      {release.publishedAt ? <span className="text-xs text-muted-foreground">{new Date(release.publishedAt).toLocaleDateString()}</span> : null}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Phiên bản hiện tại: <span className="font-medium">{settings.binary.crocVersion ?? 'not-installed'}</span>
+            </p>
           </Field>
           <Field label="Đường dẫn">
             <Input value={settings.binary.crocPath ?? ''} readOnly className="font-mono" />
           </Field>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => void handleRefreshVersion()}>
+          <Button size="sm" onClick={() => void handleInstallVersion()} disabled={!selectedVersion || installing || loadingVersions || isSameAsInstalled}>
+            {installing ? <Spinner className="mr-2 size-4 animate-spin" aria-hidden /> : <Download className="mr-2 size-4" aria-hidden />}
+            {installing ? 'Đang cài đặt…' : actionLabel}
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => void handleRefreshVersion()} disabled={installing}>
             <RefreshCw className="mr-2 size-4" aria-hidden /> Kiểm tra phiên bản
           </Button>
           <Button variant="ghost" size="sm" onClick={() => void handleOpenBinaryFolder()} disabled={!settings.binary.crocPath}>
             <FolderOpen className="mr-2 size-4" aria-hidden /> Mở thư mục chứa
           </Button>
         </div>
+        {isSameAsInstalled ? <AlertNote icon={ShieldCheck} text="Đang sử dụng phiên bản này." /> : null}
         <AlertNote icon={AlertTriangle} text="Kiểm tra cập nhật croc bằng tay hoặc script tự động." />
       </div>
     </div>
