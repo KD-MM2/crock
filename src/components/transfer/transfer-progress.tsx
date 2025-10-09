@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useTransferStore, type TransferStoreState } from '@/stores/transfer';
 import { useHistoryStore, type HistoryStoreState } from '@/stores/history';
+import { useSettingsStore, type SettingsStoreState } from '@/stores/settings';
 import { getWindowApi } from '@/lib/window-api';
 import { createLocalId } from '@/lib/id';
 import type { TransferLogEntry, TransferProgress, TransferSession, TransferDonePayload } from '@/types/transfer';
@@ -25,6 +26,8 @@ const selectActions = (state: TransferStoreState) => ({
 const PHASE_LABELS: Record<TransferSession['phase'], string> = {
   idle: 'Sẵn sàng',
   connecting: 'Đang kết nối',
+  hashing: 'Đang băm',
+  waiting: 'Đang chờ người nhận',
   sending: 'Đang gửi',
   receiving: 'Đang nhận',
   done: 'Hoàn tất',
@@ -35,6 +38,8 @@ const PHASE_LABELS: Record<TransferSession['phase'], string> = {
 const PHASE_COLORS: Record<TransferSession['phase'], string> = {
   idle: 'bg-muted text-muted-foreground',
   connecting: 'bg-blue-500/15 text-blue-500 dark:bg-blue-400/10 dark:text-blue-300',
+  hashing: 'bg-purple-500/15 text-purple-600 dark:bg-purple-400/10 dark:text-purple-200',
+  waiting: 'bg-sky-500/15 text-sky-600 dark:bg-sky-400/10 dark:text-sky-300',
   sending: 'bg-emerald-500/15 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300',
   receiving: 'bg-amber-500/15 text-amber-600 dark:bg-amber-400/10 dark:text-amber-300',
   done: 'bg-emerald-500/15 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300',
@@ -45,6 +50,8 @@ const PHASE_COLORS: Record<TransferSession['phase'], string> = {
 const STATUS_ICON: Record<TransferSession['phase'], ReactNode> = {
   idle: <Activity className="size-4" aria-hidden />,
   connecting: <Loader2 className="size-4 animate-spin" aria-hidden />,
+  hashing: <Loader2 className="size-4 animate-spin" aria-hidden />,
+  waiting: <Loader2 className="size-4 animate-spin" aria-hidden />,
   sending: <Loader2 className="size-4 animate-spin" aria-hidden />,
   receiving: <Loader2 className="size-4 animate-spin" aria-hidden />,
   done: <CheckCircle2 className="size-4" aria-hidden />,
@@ -57,6 +64,7 @@ export function TransferProgressPanel() {
   const { updateProgress, finalizeSession, appendLog } = useTransferStore(selectActions);
   const refreshHistory = useHistoryStore((state: HistoryStoreState) => state.refresh);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const showLogs = useSettingsStore((state: SettingsStoreState) => state.settings?.advanced?.showTransferLogs ?? true);
 
   useEffect(() => {
     const api = getWindowApi();
@@ -145,13 +153,12 @@ export function TransferProgressPanel() {
 
   const percent = Math.min(100, Math.max(0, Math.round(session.percent)));
   const phase = session.phase;
-  const infoItems = [
-    session.targetAddress ? `Kết nối ${session.targetAddress}` : null,
-    session.sizeTransferred && session.sizeTotal ? `Dung lượng ${session.sizeTransferred}/${session.sizeTotal}` : session.sizeTotal ? `Dung lượng ${session.sizeTotal}` : null,
-    session.speed ? `Tốc độ ${session.speed}` : null,
-    session.eta ? `ETA ${session.eta}` : null,
-    session.code ? `Code ${session.code}` : null
-  ].filter(Boolean);
+  const isIndeterminate = phase === 'waiting';
+  const percentLabel = isIndeterminate ? '—' : `${percent}%`;
+  const progressStatusText = phase === 'done' ? 'Hoàn tất' : isIndeterminate ? 'Đang chờ người nhận' : 'Đang xử lý';
+  const hasRatio = phase !== 'hashing' && session.sizeTransferred && session.sizeTotal;
+  const sizeLabel = hasRatio ? `Dung lượng ${session.sizeTransferred}/${session.sizeTotal}` : session.sizeTotal ? `Dung lượng ${session.sizeTotal}` : null;
+  const infoItems = phase === 'waiting' ? [] : [session.targetAddress ? `Kết nối ${session.targetAddress}` : null, sizeLabel, session.speed ? `Tốc độ ${session.speed}` : null, session.eta ? `ETA ${session.eta}` : null].filter(Boolean);
 
   return (
     <section className="flex flex-col gap-4 rounded-xl border border-border/80 bg-background/80 p-5 shadow-sm">
@@ -188,16 +195,22 @@ export function TransferProgressPanel() {
 
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
-          <span>{percent}%</span>
-          <span>{phase === 'done' ? 'Hoàn tất' : 'Đang xử lý'}</span>
+          <span>{percentLabel}</span>
+          <span>{progressStatusText}</span>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-          <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
+          {isIndeterminate ? (
+            <div className="animate-progress-indeterminate h-full w-full rounded-full bg-primary/30">
+              <span className="sr-only">Đang chờ người nhận kết nối</span>
+            </div>
+          ) : (
+            <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
+          )}
         </div>
         {infoItems.length > 0 && <p className="text-xs text-muted-foreground">{infoItems.join(' • ')}</p>}
       </div>
 
-      {session.logTail.length > 0 && (
+      {showLogs && session.logTail.length > 0 && (
         <div className="space-y-2">
           <Separator />
           <div className="flex items-center justify-between gap-2 text-sm font-medium">

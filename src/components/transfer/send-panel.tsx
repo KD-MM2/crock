@@ -35,6 +35,8 @@ const MODE_OPTIONS: Array<{ value: SendMode; label: string; description: string 
 ];
 
 const MAX_TEXT_LENGTH = 10_000;
+const DEFAULT_RELAY_HOST = 'croc.schollz.com:9009';
+const DEFAULT_CURVE: CurveName = 'p256';
 
 export function SendPanel() {
   const { settings, load, status } = useSettingsStore(selectSettings);
@@ -743,7 +745,7 @@ function buildSendCliCommand({ form, finalCode, settings }: { form: SendFormStat
 
   const overrides = form.sessionOverrides;
   const relayHost = resolveRelay(overrides, settings);
-  if (relayHost) {
+  if (relayHost && normalizeRelayHost(relayHost) !== normalizeRelayHost(DEFAULT_RELAY_HOST)) {
     parts.push('--relay', relayHost);
   }
   const relayPass = resolveRelayPass(overrides, settings);
@@ -761,7 +763,7 @@ function buildSendCliCommand({ form, finalCode, settings }: { form: SendFormStat
   }
 
   const curve = resolveCurve(settings);
-  if (curve) {
+  if (curve && curve !== DEFAULT_CURVE) {
     parts.push('--curve', curve);
   }
 
@@ -833,4 +835,8 @@ function resolveExcludePatterns(overrides: SendFormState['sessionOverrides'], se
 
 function resolveCurve(settings?: SettingsState | null): CurveName | undefined {
   return settings?.security.curve;
+}
+
+function normalizeRelayHost(value: string): string {
+  return value.trim().toLowerCase();
 }

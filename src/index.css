@@ -41,6 +41,41 @@
     --color-sidebar-ring: var(--sidebar-ring);
 }
 
+@keyframes croc-progress-indeterminate {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    50% {
+        transform: translateX(15%);
+    }
+
+    100% {
+        transform: translateX(120%);
+    }
+}
+
+@layer utilities {
+    .animate-progress-indeterminate {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .animate-progress-indeterminate::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 45%;
+        height: 100%;
+        border-radius: inherit;
+        background-color: var(--color-primary);
+        opacity: 0.85;
+        transform: translateX(-100%);
+        animation: croc-progress-indeterminate 1.2s ease-in-out infinite;
+    }
+}
+
 :root {
     --radius: 0.65rem;
     --background: oklch(1 0 0);

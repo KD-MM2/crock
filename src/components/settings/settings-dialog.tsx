@@ -613,6 +613,18 @@ function AdvancedTab({ settings, updateDraft }: { settings: SettingsState; updat
             }
           />
         </Field>
+        <div className="sm:col-span-2">
+          <ToggleField
+            label="Hiển thị khung nhật ký"
+            description="Ẩn/hiện log chi tiết trong bảng tiến trình."
+            checked={settings.advanced.showTransferLogs ?? true}
+            onCheckedChange={(checked) =>
+              updateDraft((draft) => {
+                draft.advanced.showTransferLogs = checked;
+              })
+            }
+          />
+        </div>
       </div>
 
       <SectionHeading icon={ShieldAlert} title="Tùy chọn bảo mật" description="Điều chỉnh xác thực code và flags." />

@@ -6,12 +6,20 @@ import type { ReceiveOptions, SendOptions, TransferDonePayload, TransferProgress
 import type { CrocCommandBuilder } from './CrocCommandBuilder';
 
 const CODE_REGEX = /(?<=Code is: )[a-zA-Z0-9-]+/i;
-const FILE_REGEX = /(?:sending|receiving)\s+['"]?([^'"()]+?)['"]?\s+\(([^)]+)\)/i;
+const FILE_REGEX = /^\s*(?:sending|receiving)\s+['"]?(.+?)['"]?\s+\([^)]+\)/i;
 const TARGET_REGEX = /(?:sending|receiving)\s+\((?:->|<-)\s*([^)]+)\)/i;
 const PERCENT_REGEX = /(\d{1,3})%\s*\|/;
 const PARENTHETICAL_REGEX = /\(([^()]+)\)/g;
-const SPEED_TOKEN_REGEX = /\b\d+(?:\.\d+)?\s*[kmgtep]?b\/s\b/i;
-const SIZE_VALUE_REGEX = /\d+(?:\.\d+)?\s*(?:[kmgtep]?)(?:i)?b/i;
+const BYTE_UNIT_FRAGMENT = '(?:[kmgtpe]i?b)';
+const SPEED_TOKEN_REGEX = new RegExp(`\\b\\d+(?:\\.\\d+)?\\s*${BYTE_UNIT_FRAGMENT}\\s*/\\s*s\\b`, 'i');
+const SIZE_VALUE_REGEX = new RegExp(`\\b\\d+(?:\\.\\d+)?\\s*${BYTE_UNIT_FRAGMENT}\\b`, 'i');
+const SIZE_PAIR_REGEX = new RegExp(`^\\s*(\\d+(?:\\.\\d+)?(?:\\s*${BYTE_UNIT_FRAGMENT})?)\\s*/\\s*(\\d+(?:\\.\\d+)?\\s*${BYTE_UNIT_FRAGMENT})\\s*$`, 'i');
+const HASHING_REGEX = /\bhash(?:ing|ed)?\b/i;
+const WAITING_REGEX = /\bwait(?:ing)?\b/i;
+const WAITING_CONTEXT_REGEX = /\b(receiver|client|peer|other side|connection|connect|listener)\b/i;
+const WAITING_PROMPT_PATTERNS = [/sending\s+0\s+files/i, /sending\s+['"][^'"()]+['"]\s+\([^)]*\)/i, /code\s+is:/i, /on\s+the\s+other\s+computer\s+run/i, /code\s+copied\s+to\s+clipboard/i];
+const TRANSFER_PROGRESS_REGEX = /^.+?\b\d{1,3}%\s*\|/i;
+const PROGRESS_FILENAME_REGEX = /^(.+?)\s+\d{1,3}%\s*\|/;
 
 const BYTE_MULTIPLIERS: Record<string, number> = {
   b: 1,
@@ -39,6 +47,7 @@ export interface RunnerSession {
   type: TransferType;
   process: ChildProcess | null;
   startedAt: number;
+  phase?: TransferProgress['phase'];
   canceled?: boolean;
   code?: string;
   bytesTransferred?: number;
@@ -213,51 +222,49 @@ export class CrocProcessRunner extends EventEmitter {
           const part = rawPart.replace(/\s+/g, ' ').trim();
           if (!part) continue;
 
-          if (part.includes('/')) {
-            const [transferredRaw, totalRaw] = part
-              .split('/')
-              .map((value) => value.replace(/\s+/g, ' ').trim())
-              .filter(Boolean);
-            if (transferredRaw && totalRaw) {
-              if (!SIZE_VALUE_REGEX.test(transferredRaw) && !SIZE_VALUE_REGEX.test(totalRaw)) {
-                continue;
-              }
-
-              const totalNormalized = totalRaw.replace(/\s+/g, ' ').trim();
-              let transferredNormalized = transferredRaw.replace(/\s+/g, ' ').trim();
-              const totalUnitMatch = totalNormalized.match(/([kmgtpe]?)(?:i)?b$/i);
-              if (!/[a-z]/i.test(transferredNormalized) && totalUnitMatch) {
-                const unit = totalUnitMatch[0].toUpperCase();
-                transferredNormalized = `${transferredNormalized} ${unit}`.replace(/\s+/g, ' ').trim();
-              }
-
-              const transferredBytes = parseHumanReadableBytes(transferredNormalized);
-              const totalBytes = parseHumanReadableBytes(totalNormalized);
-              if (transferredBytes === undefined && totalBytes === undefined) {
-                continue;
-              }
-
-              if (transferredBytes !== undefined) {
-                session.bytesTransferred = transferredBytes;
-                payload.bytesTransferred = transferredBytes;
-                session.sizeTransferred = transferredNormalized;
-                payload.sizeTransferred = transferredNormalized;
-              }
-
-              if (totalBytes !== undefined) {
-                session.bytesTotal = totalBytes;
-                payload.bytesTotal = totalBytes;
-                session.sizeTotal = totalNormalized;
-                payload.sizeTotal = totalNormalized;
-              }
-            }
-            continue;
-          }
-
           if (SPEED_TOKEN_REGEX.test(part)) {
             const speedValue = part.replace(/\s+/g, ' ').trim();
             session.speed = speedValue;
             payload.speed = speedValue;
+            continue;
+          }
+
+          const pairMatch = part.match(SIZE_PAIR_REGEX);
+          if (pairMatch) {
+            const transferredRaw = pairMatch[1].trim();
+            const totalRaw = pairMatch[2].trim();
+
+            const totalNormalized = totalRaw.replace(/\s+/g, ' ').trim();
+            let transferredNormalized = transferredRaw.replace(/\s+/g, ' ').trim();
+
+            if (!/[a-z]/i.test(transferredNormalized)) {
+              const unitMatch = totalNormalized.match(new RegExp(`${BYTE_UNIT_FRAGMENT}$`, 'i'));
+              if (unitMatch) {
+                transferredNormalized = `${transferredNormalized} ${unitMatch[0]}`.replace(/\s+/g, ' ').trim();
+              }
+            }
+
+            const transferredBytes = parseHumanReadableBytes(transferredNormalized);
+            const totalBytes = parseHumanReadableBytes(totalNormalized);
+
+            if (transferredBytes !== undefined) {
+              session.bytesTransferred = transferredBytes;
+              payload.bytesTransferred = transferredBytes;
+              session.sizeTransferred = transferredNormalized;
+              payload.sizeTransferred = transferredNormalized;
+            }
+
+            if (totalBytes !== undefined) {
+              session.bytesTotal = totalBytes;
+              payload.bytesTotal = totalBytes;
+              session.sizeTotal = totalNormalized;
+              payload.sizeTotal = totalNormalized;
+            }
+
+            continue;
+          }
+
+          if (!SIZE_VALUE_REGEX.test(part)) {
             continue;
           }
 
@@ -328,42 +335,93 @@ export class CrocProcessRunner extends EventEmitter {
         payload.eta = etaValue;
       }
 
-      if (/connect|establish/i.test(line)) {
-        payload.phase = 'connecting';
-        payload.message = line;
-      } else if (/sending/i.test(line) && session.type === 'send') {
-        payload.phase = 'sending';
-        payload.message = line;
+      payload.message = payload.message ?? line;
+
+      const previousPhase = session.phase;
+      let nextPhase: TransferProgress['phase'] | undefined;
+
+      if (session.type === 'send') {
+        if (HASHING_REGEX.test(line)) {
+          nextPhase = 'hashing';
+        } else if (WAITING_PROMPT_PATTERNS.some((pattern) => pattern.test(line))) {
+          nextPhase = 'waiting';
+        } else if (WAITING_REGEX.test(line) && WAITING_CONTEXT_REGEX.test(line)) {
+          nextPhase = 'waiting';
+        }
+      }
+
+      if (!nextPhase && TRANSFER_PROGRESS_REGEX.test(line)) {
+        nextPhase = session.type === 'send' ? 'sending' : 'receiving';
+      }
+
+      if (!nextPhase) {
+        if (/connect|establish/i.test(line)) {
+          nextPhase = 'connecting';
+        } else if (/sending/i.test(line) && session.type === 'send') {
+          nextPhase = 'sending';
+        } else if (/receiving/i.test(line) && session.type === 'receive') {
+          nextPhase = 'receiving';
+        } else if (/done|complete/i.test(line)) {
+          nextPhase = 'done';
+        } else if (/error|failed|timeout/i.test(line)) {
+          nextPhase = 'failed';
+        }
+      }
+
+      if (!nextPhase) {
+        if (previousPhase && !['done', 'failed', 'canceled'].includes(previousPhase)) {
+          nextPhase = previousPhase;
+        } else {
+          nextPhase = session.type === 'send' ? 'sending' : 'receiving';
+        }
+      }
+
+      if (nextPhase === 'sending' || nextPhase === 'receiving') {
+        let matchedName: string | undefined;
         const fileMatch = line.match(FILE_REGEX);
         if (fileMatch) {
-          const matchedName = fileMatch[1] ?? fileMatch[2] ?? fileMatch[3] ?? '';
-          const normalizedName = matchedName.replace(/^["']|["']$/g, '');
+          matchedName = fileMatch[1] ?? '';
+        }
+
+        if (!matchedName) {
+          const progressMatch = line.match(PROGRESS_FILENAME_REGEX);
+          if (progressMatch) {
+            matchedName = progressMatch[1];
+          }
+        }
+
+        if (matchedName) {
+          const normalizedName = matchedName.replace(/^['"]|['"]$/g, '').trim();
           if (normalizedName) {
             session.fileName = normalizedName;
             payload.fileName = normalizedName;
           }
         }
-      } else if (/receiving/i.test(line) && session.type === 'receive') {
-        payload.phase = 'receiving';
-        payload.message = line;
-      } else if (/done|complete/i.test(line)) {
-        payload.phase = 'done';
-        payload.message = line;
-        session.percent = 100;
-        payload.percent = 100;
-      } else if (/error|failed|timeout/i.test(line)) {
-        payload.phase = 'failed';
-        payload.message = line;
-      } else {
-        payload.phase = session.type === 'send' ? 'sending' : 'receiving';
-        payload.message = line;
       }
+
+      const phaseChanged = previousPhase !== nextPhase;
+
+      if (nextPhase === 'done') {
+        payload.percent = 100;
+        session.percent = 100;
+      }
+
+      if (phaseChanged && payload.percent === undefined) {
+        const defaultPercent = nextPhase && ['done'].includes(nextPhase) ? 100 : 0;
+        payload.percent = defaultPercent;
+        session.percent = defaultPercent;
+      }
+
+      payload.phase = nextPhase;
+      session.phase = nextPhase;
+      payload.message = line;
 
       if (payload.percent === undefined) {
         if (typeof session.percent === 'number') {
           payload.percent = session.percent;
         } else {
           payload.percent = payload.phase === 'done' ? 100 : 0;
+          session.percent = payload.percent;
         }
       }
 

@@ -39,6 +39,7 @@ export type Settings = {
     extraFlags?: string;
     verboseLogs?: boolean;
     allowCodeFormatValidation?: boolean;
+    showTransferLogs?: boolean;
   };
   binary: {
     crocVersion: string;

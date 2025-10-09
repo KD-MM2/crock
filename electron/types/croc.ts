@@ -1,4 +1,4 @@
-export type TransferPhase = 'connecting' | 'sending' | 'receiving' | 'done' | 'failed' | 'canceled';
+export type TransferPhase = 'connecting' | 'hashing' | 'waiting' | 'sending' | 'receiving' | 'done' | 'failed' | 'canceled';
 export type TransferType = 'send' | 'receive';
 export type SendMode = 'files' | 'text';
 

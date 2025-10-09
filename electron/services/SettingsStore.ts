@@ -59,7 +59,8 @@ const settingsSchema = z.object({
     deepLink: z.boolean().optional(),
     extraFlags: z.string().optional(),
     verboseLogs: z.boolean().optional(),
-    allowCodeFormatValidation: z.boolean().optional()
+    allowCodeFormatValidation: z.boolean().optional(),
+    showTransferLogs: z.boolean().optional()
   }),
   binary: z.object({
     crocVersion: z.string(),
@@ -106,7 +107,8 @@ const DEFAULT_SETTINGS: Settings = {
     deepLink: true,
     extraFlags: '',
     verboseLogs: false,
-    allowCodeFormatValidation: true
+    allowCodeFormatValidation: true,
+    showTransferLogs: true
   },
   binary: {
     crocVersion: 'not-installed',
