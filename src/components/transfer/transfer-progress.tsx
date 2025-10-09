@@ -24,15 +24,15 @@ const selectActions = (state: TransferStoreState) => ({
 });
 
 const PHASE_LABELS: Record<TransferSession['phase'], string> = {
-  idle: 'Sẵn sàng',
-  connecting: 'Đang kết nối',
-  hashing: 'Đang băm',
-  waiting: 'Đang chờ người nhận',
-  sending: 'Đang gửi',
-  receiving: 'Đang nhận',
-  done: 'Hoàn tất',
-  failed: 'Thất bại',
-  canceled: 'Đã hủy'
+  idle: 'SẴN SÀNG',
+  connecting: 'ĐANG KẾT NỐI',
+  hashing: 'ĐANG MÃ HÓA',
+  waiting: 'ĐANG CHỜ NGƯỜI NHẬN',
+  sending: 'ĐANG GỬI',
+  receiving: 'ĐANG NHẬN',
+  done: 'HOÀN TẤT',
+  failed: 'THẤT BẠI',
+  canceled: 'ĐÃ HỦY'
 };
 
 const PHASE_COLORS: Record<TransferSession['phase'], string> = {
@@ -168,7 +168,6 @@ export function TransferProgressPanel() {
             {STATUS_ICON[phase]}
             {PHASE_LABELS[phase]}
           </span>
-          <span className="text-xs uppercase tracking-wide text-muted-foreground">{session.type === 'send' ? 'Đang gửi' : 'Đang nhận'}</span>
         </div>
         {canCancel ? (
           <AlertDialog>
