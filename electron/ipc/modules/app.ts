@@ -2,8 +2,7 @@ import { app, clipboard, dialog, ipcMain, shell } from 'electron';
 import fs from 'node:fs';
 import type { AppIpcContext } from '../context';
 
-export function registerAppHandlers(_context: AppIpcContext) {
-  void _context;
+export function registerAppHandlers(context: AppIpcContext) {
   ipcMain.handle('app:selectFiles', async (_event, options?: { allowFolders?: boolean; multiple?: boolean }) => {
     const properties: Array<'openFile' | 'openDirectory' | 'multiSelections'> = ['openFile'];
     if (options?.allowFolders) {
@@ -45,5 +44,28 @@ export function registerAppHandlers(_context: AppIpcContext) {
     } else {
       await shell.openPath(targetPath);
     }
+  });
+
+  ipcMain.handle('app:window:minimize', () => {
+    const window = context.window;
+    if (!window) return;
+    if (window.isMinimized()) return;
+    window.minimize();
+  });
+
+  ipcMain.handle('app:window:toggleMaximize', () => {
+    const window = context.window;
+    if (!window) return;
+    if (window.isMaximized()) {
+      window.unmaximize();
+    } else {
+      window.maximize();
+    }
+  });
+
+  ipcMain.handle('app:window:close', () => {
+    const window = context.window;
+    if (!window) return;
+    window.close();
   });
 }

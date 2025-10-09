@@ -1,4 +1,4 @@
-import { type DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ClipboardPaste, Copy, File as FileIcon, FileText, FolderPlus, QrCode, RefreshCw, Save, Settings2, Trash2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Dropzone } from '@/components/ui/dropzone';
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useSettingsStore, type SettingsStoreState } from '@/stores/settings';
 import { useTransferStore, type TransferStoreState } from '@/stores/transfer';
 import { useUiStore, type UiStore } from '@/stores/ui';
@@ -20,6 +22,7 @@ import { generateCodePhrase } from '@/lib/code';
 import { createLocalId } from '@/lib/id';
 import { formatBytes } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { DEFAULT_CURVE, DEFAULT_RELAY_HOST, normalizeRelayHost } from '@/lib/croc';
 
 const selectSettings = (state: SettingsStoreState) => ({
   settings: state.settings,
@@ -34,9 +37,7 @@ const MODE_OPTIONS: Array<{ value: SendMode; label: string; description: string 
   { value: 'text', label: 'Văn bản nhanh', description: 'Gửi đoạn text ngắn qua croc --text.' }
 ];
 
-const MAX_TEXT_LENGTH = 10_000;
-const DEFAULT_RELAY_HOST = 'croc.schollz.com:9009';
-const DEFAULT_CURVE: CurveName = 'p256';
+const MAX_TEXT_LENGTH = 1_000;
 
 export function SendPanel() {
   const { settings, load, status } = useSettingsStore(selectSettings);
@@ -45,9 +46,9 @@ export function SendPanel() {
   const sessions = useTransferStore((state: TransferStoreState) => state.sessions);
 
   const [form, setForm] = useState<SendFormState>(() => buildInitialForm(settings));
-  const [dragActive, setDragActive] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [overridesOpen, setOverridesOpen] = useState(false);
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const lastCopiedCode = useRef<string | null>(null);
   const qrCodeRef = useRef<HTMLDivElement | null>(null);
 
@@ -86,46 +87,11 @@ export function SendPanel() {
     }));
   };
 
-  const handleFileSelect = async () => {
-    const api = getWindowApi();
-    try {
-      const paths = await api.app.selectFiles({ allowFolders: true, multiple: true });
-      if (!paths || paths.length === 0) {
-        toast.info('Không có mục nào được chọn.');
-        return;
-      }
-      const items = paths.map((path) => createItemFromPath(path));
-      setForm((prev) => addItems(prev, items));
-    } catch (error) {
-      console.error('[SendPanel] select files failed', error);
-      toast.error('Không thể chọn file/folder.');
-    }
-  };
-
-  const handleDrop = useCallback((event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setDragActive(false);
-    const files = Array.from(event.dataTransfer.files ?? []);
-    if (files.length === 0) return;
-    const items: SelectedPathItem[] = files.map((file) => ({
-      id: createLocalId('file'),
-      name: file.name,
-      path: (file as ElectronFile).path,
-      size: file.size,
-      kind: 'file'
-    }));
+  const handleDropzoneFiles = useCallback((acceptedFiles: File[]) => {
+    if (!acceptedFiles || acceptedFiles.length === 0) return;
+    const items: SelectedPathItem[] = acceptedFiles.map((file) => createItemFromFile(file));
     setForm((prev) => addItems(prev, items));
   }, []);
-
-  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setDragActive(true);
-  };
-
-  const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setDragActive(false);
-  };
 
   const handleRemoveItem = (id: string) => {
     setForm((prev) => ({ ...prev, items: prev.items.filter((item) => item.id !== id) }));
@@ -224,6 +190,14 @@ export function SendPanel() {
   }, [form, isSending]);
 
   const finalCode = form.resolvedCode ?? activeSendSession?.code ?? form.code;
+  const handleCopyCode = useCallback(() => {
+    const value = form.code.trim() || finalCode?.trim();
+    if (!value) {
+      toast.error('Chưa có code để copy.');
+      return;
+    }
+    void copyToClipboard(value);
+  }, [form.code, finalCode]);
   const autoCopyEnabled = settings?.general.autoCopyCodeOnSend ?? false;
 
   const cliCommand = useMemo(
@@ -304,6 +278,12 @@ export function SendPanel() {
       }
     })();
   }, [autoCopyEnabled, activeSendSession]);
+
+  useEffect(() => {
+    if (!finalCode) {
+      setQrDialogOpen(false);
+    }
+  }, [finalCode]);
 
   useEffect(() => {
     const handleHistoryResend = (event: Event) => {
@@ -399,21 +379,14 @@ export function SendPanel() {
       {/* <p className="text-xs text-muted-foreground">{MODE_OPTIONS.find((option) => option.value === form.mode)?.description}</p> */}
 
       {form.mode === 'files' ? (
-        <div
-          className={cn('flex flex-col gap-3 rounded-lg border-2 border-dashed border-border/60 bg-muted/20 p-4 transition-colors', dragActive && 'border-primary/70 bg-primary/5')}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-        >
-          <div className="flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
-            <FolderPlus className="size-8 text-primary" aria-hidden />
-            <div className="flex flex-row items-center gap-2">
-              <span>Kéo thả file/folder vào đây hoặc</span>
-              <Button variant="outline" size="sm" onClick={() => void handleFileSelect()}>
-                Chọn file/folder…
-              </Button>
+        <div className="space-y-3">
+          <Dropzone multiple maxFiles={0} disabled={isSending} onDrop={handleDropzoneFiles} onError={(error) => toast.error(error.message ?? 'Không thể thêm tệp.')} className="p-4 sm:p-6">
+            <div className="flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
+              <FolderPlus className="size-8 text-primary" aria-hidden />
+              <p className="text-center text-sm font-medium text-foreground sm:text-base">Nhấn để chọn tệp hoặc kéo thả vào đây</p>
+              <p className="text-center text-xs text-muted-foreground">Hỗ trợ kéo thả trực tiếp từ Explorer/Finder (chỉ tệp).</p>
             </div>
-          </div>
+          </Dropzone>
           {form.items.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs uppercase tracking-wide text-muted-foreground">
@@ -463,33 +436,50 @@ export function SendPanel() {
       <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <div className="space-y-2">
           <label className="text-xs font-medium uppercase text-muted-foreground">Mã code-phrase</label>
-          <div className="flex flex-row items-center gap-2">
-            <Input value={form.code} onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value }))} placeholder="Để trống để croc tự sinh" className="font-mono" />
-            <Button variant="outline" onClick={handleRandomCode}>
-              Random
-            </Button>
+          <div className="relative">
+            <Input value={form.code} maxLength={64} onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value }))} placeholder="Để trống để croc tự sinh" className="font-mono pr-32" />
+            <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center gap-1">
+              <Button type="button" variant="ghost" size="icon" className="pointer-events-auto size-8 rounded-full text-muted-foreground hover:text-foreground" onClick={handleRandomCode} aria-label="Random code">
+                <RefreshCw className="size-4" aria-hidden />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="pointer-events-auto size-8 rounded-full text-muted-foreground hover:text-foreground"
+                onClick={handleCopyCode}
+                disabled={!form.code.trim() && !finalCode?.trim()}
+                aria-label="Copy code"
+              >
+                <Copy className="size-4" aria-hidden />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="pointer-events-auto size-8 rounded-full text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  const code = finalCode?.trim();
+                  if (!code) {
+                    toast.error('Chưa có code để hiển thị QR.');
+                    return;
+                  }
+                  setQrDialogOpen(true);
+                }}
+                disabled={!finalCode?.trim()}
+                aria-label="Hiển thị QR"
+              >
+                <QrCode className="size-4" aria-hidden />
+              </Button>
+            </div>
           </div>
         </div>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-sm">
-            <span>Không nén (no-compress)</span>
-            <Switch
-              checked={form.options.noCompress}
-              onCheckedChange={(checked) =>
-                setForm((prev) => ({
-                  ...prev,
-                  options: { ...prev.options, noCompress: checked }
-                }))
-              }
-            />
-          </div>
-        </div>
+        <Button variant="outline" onClick={() => setOverridesOpen((prev) => !prev)}>
+          {overridesOpen ? 'Ẩn tùy chọn phiên' : 'Tùy chọn phiên này'}
+        </Button>
       </div>
 
       <div>
-        <Button variant="outline" size="sm" onClick={() => setOverridesOpen((prev) => !prev)}>
-          {overridesOpen ? 'Ẩn tùy chọn phiên' : 'Tùy chọn phiên này…'}
-        </Button>
         {overridesOpen && (
           <div className="mt-3 space-y-4 rounded-lg border border-border/70 bg-muted/10 p-4">
             <div className="grid gap-3 sm:grid-cols-2">
@@ -587,28 +577,37 @@ export function SendPanel() {
         )}
       </div>
 
-      {finalCode && (
-        <div className="flex flex-wrap items-center gap-4 rounded-lg border border-primary/40 bg-primary/5 p-4">
-          <div className="flex items-center gap-3">
-            <QrCode className="size-5 text-primary" aria-hidden />
+      <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Mã QR cho phiên gửi</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4">
             <div className="flex items-center gap-2">
-              <div>
-                <p className="text-sm font-medium">Code hiện tại</p>
-                <p className="font-mono text-lg">{finalCode}</p>
-              </div>
-              <Button variant="ghost" size="icon" onClick={() => void copyToClipboard(finalCode)} aria-label="Copy code">
-                <Copy className="size-4" aria-hidden />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => handleSaveQr()} aria-label="Lưu QR">
-                <Save className="size-4" aria-hidden />
-              </Button>
+              <QrCode className="size-5 text-primary" aria-hidden />
+              <p className="font-mono text-base font-medium">{finalCode}</p>
+            </div>
+            <div ref={qrCodeRef} className="rounded-lg border border-border/70 bg-background/80 p-4">
+              {finalCode ? <QRCodeSVG value={finalCode} size={160} /> : null}
             </div>
           </div>
-          <div ref={qrCodeRef}>
-            <QRCodeSVG value={finalCode} size={80} />
-          </div>
-        </div>
-      )}
+          <DialogFooter className="sm:justify-between">
+            <div className="flex flex-1 flex-wrap items-center gap-2 sm:justify-start">
+              <Button type="button" variant="outline" size="sm" onClick={handleCopyCode} disabled={!finalCode?.trim()} className="gap-2">
+                <Copy className="size-4" aria-hidden /> Copy code
+              </Button>
+              <Button type="button" size="sm" onClick={() => handleSaveQr()} disabled={!finalCode?.trim()} className="gap-2">
+                <Save className="size-4" aria-hidden /> Lưu QR (SVG)
+              </Button>
+            </div>
+            <DialogClose asChild>
+              <Button type="button" variant="ghost" size="sm">
+                Đóng
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-xs text-muted-foreground">
@@ -633,6 +632,17 @@ function buildInitialForm(settings?: SettingsState | null): SendFormState {
       noCompress: settings?.transferDefaults.send.noCompress ?? false
     },
     sessionOverrides: {}
+  };
+}
+
+function createItemFromFile(file: File): SelectedPathItem {
+  const electronFile = file as ElectronFile;
+  return {
+    id: createLocalId('file'),
+    name: file.name,
+    path: electronFile.path ?? file.name,
+    size: file.size,
+    kind: 'file'
   };
 }
 
@@ -835,8 +845,4 @@ function resolveExcludePatterns(overrides: SendFormState['sessionOverrides'], se
 
 function resolveCurve(settings?: SettingsState | null): CurveName | undefined {
   return settings?.security.curve;
-}
-
-function normalizeRelayHost(value: string): string {
-  return value.trim().toLowerCase();
 }

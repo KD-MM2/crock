@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ClipboardPaste, DownloadCloud, FolderOpen, RefreshCw, Settings2 } from 'lucide-react';
+import { ClipboardPaste, FolderOpen, RefreshCw, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { useSettingsStore, type SettingsStoreState } from '@/stores/settings';
 import { useTransferStore, type TransferStoreState } from '@/stores/transfer';
 import { useUiStore, type UiStore } from '@/stores/ui';
 import type { ReceiveFormState } from '@/types/transfer-ui';
 import type { SettingsState, CurveName } from '@/types/settings';
 import { getWindowApi } from '@/lib/window-api';
+import { DEFAULT_CURVE, DEFAULT_RELAY_HOST, normalizeRelayHost } from '@/lib/croc';
 
 const selectSettings = (state: SettingsStoreState) => ({
   settings: state.settings,
@@ -30,6 +31,7 @@ export function ReceivePanel() {
 
   const [form, setForm] = useState<ReceiveFormState>(() => buildInitialReceiveForm(settings));
   const [isReceiving, setIsReceiving] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
 
   useEffect(() => {
     if (status === 'idle') {
@@ -74,11 +76,12 @@ export function ReceivePanel() {
 
   const receiveCli = useMemo(() => {
     const parts: string[] = ['croc'];
-    const relayHost = resolveDefaultRelay(settings);
-    if (relayHost) {
+    const relayHost = resolveRelay(form.sessionOverrides, settings);
+    const hasRelayOverride = Boolean(form.sessionOverrides.relay?.trim());
+    if (relayHost && (hasRelayOverride || normalizeRelayHost(relayHost) !== normalizeRelayHost(DEFAULT_RELAY_HOST))) {
       parts.push('--relay', relayHost);
     }
-    const relayPass = resolveDefaultRelayPass(settings);
+    const relayPass = resolveRelayPass(form.sessionOverrides, settings);
     if (relayPass) {
       parts.push('--pass', relayPass);
     }
@@ -89,7 +92,7 @@ export function ReceivePanel() {
       parts.push('--overwrite');
     }
     const curve = resolveSecurityCurve(settings);
-    if (curve) {
+    if (curve && curve !== DEFAULT_CURVE) {
       parts.push('--curve', curve);
     }
     const extraFlags = settings?.advanced.extraFlags?.trim();
@@ -107,7 +110,7 @@ export function ReceivePanel() {
       })
       .join(' ')
       .trim();
-  }, [form.code, form.options.autoConfirm, form.options.overwrite, settings]);
+  }, [form.code, form.options.autoConfirm, form.options.overwrite, form.sessionOverrides, settings]);
 
   const canReceive = useMemo(() => {
     if (isReceiving) return false;
@@ -144,8 +147,8 @@ export function ReceivePanel() {
     try {
       const result = await api.croc.startReceive({
         code: trimmedCode,
-        relay: resolveDefaultRelay(settings),
-        pass: resolveDefaultRelayPass(settings),
+        relay: resolveRelay(form.sessionOverrides, settings),
+        pass: resolveRelayPass(form.sessionOverrides, settings),
         overwrite: form.options.overwrite,
         yes: form.options.autoConfirm,
         outDir: downloadDir,
@@ -184,74 +187,123 @@ export function ReceivePanel() {
         </Button>
       </header>
 
-      <div className="space-y-2">
-        <label className="text-xs font-medium uppercase text-muted-foreground" htmlFor="receive-code">
-          Mã code-phrase
-        </label>
-        <Input
-          id="receive-code"
-          value={form.code}
-          onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value }))}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' && canReceive) {
-              event.preventDefault();
-              void handleReceive();
-            }
-          }}
-          placeholder="Ví dụ: downtown-almond-dynamo"
-          className="font-mono"
-          aria-label="Code phrase để nhận file"
-        />
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Switch id="auto-paste" checked={form.autoPaste} onCheckedChange={(checked) => setForm((prev) => ({ ...prev, autoPaste: checked }))} />
-            <label htmlFor="auto-paste" className="cursor-pointer select-none">
-              Tự dán khi mở màn hình
-            </label>
-          </div>
-          <Button variant="ghost" size="sm" onClick={() => void handlePaste()}>
-            <ClipboardPaste className="mr-2 size-4" aria-hidden /> Dán từ clipboard
-          </Button>
-        </div>
-      </div>
-
-      <Separator />
-
       <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <div className="space-y-2">
-          <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <DownloadCloud className="size-4" aria-hidden /> Lưu vào thư mục:
-            <span className="font-medium text-foreground">{downloadDir}</span>
-          </p>
-          <p className="text-xs text-muted-foreground">Thay đổi trong phần General &rarr; Default download folder.</p>
-        </div>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-sm">
-            <span>Ghi đè nếu tồn tại</span>
-            <Switch
-              checked={form.options.overwrite}
-              onCheckedChange={(checked) =>
-                setForm((prev) => ({
-                  ...prev,
-                  options: { ...prev.options, overwrite: checked }
-                }))
-              }
+          <label className="text-xs font-medium uppercase text-muted-foreground" htmlFor="receive-code">
+            Mã code-phrase
+          </label>
+          <div className="relative">
+            <Input
+              id="receive-code"
+              value={form.code}
+              onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value }))}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && canReceive) {
+                  event.preventDefault();
+                  void handleReceive();
+                }
+              }}
+              maxLength={64}
+              placeholder="Ví dụ: downtown-almond-dynamo"
+              className="font-mono"
+              aria-label="Code phrase để nhận file"
             />
+            <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center gap-1">
+              <Button variant="ghost" className="pointer-events-auto size-8 rounded-full text-muted-foreground hover:text-foreground" onClick={() => void handlePaste()}>
+                <ClipboardPaste className="size-4" aria-hidden />
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-sm">
-            <span>Tự xác nhận (--yes)</span>
+        </div>
+        <Button variant="outline" onClick={() => setOptionsOpen((prev) => !prev)}>
+          {optionsOpen ? 'Ẩn tùy chọn phiên' : 'Tùy chọn phiên này'}
+        </Button>
+      </div>
+
+      {optionsOpen && (
+        <div className="space-y-3 rounded-lg border border-border/70 bg-muted/10 p-4 text-sm">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1 text-xs font-medium uppercase text-muted-foreground">
+              <span>Relay tạm (host:port)</span>
+              <Input
+                value={form.sessionOverrides.relay ?? ''}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setForm((prev) => ({
+                    ...prev,
+                    sessionOverrides: {
+                      ...prev.sessionOverrides,
+                      relay: value ? value : undefined
+                    }
+                  }));
+                }}
+                placeholder="Ví dụ: relay.example.com:9009"
+              />
+            </label>
+            <label className="grid gap-1 text-xs font-medium uppercase text-muted-foreground">
+              <span>Mật khẩu tạm</span>
+              <Input
+                type="text"
+                value={form.sessionOverrides.pass ?? ''}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setForm((prev) => ({
+                    ...prev,
+                    sessionOverrides: {
+                      ...prev.sessionOverrides,
+                      pass: value ? value : undefined
+                    }
+                  }));
+                }}
+                placeholder="Để trống để dùng mặc định"
+              />
+            </label>
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 px-3 py-2">
+            <div>
+              <p className="font-medium">Tự dán code (clipboard)</p>
+              <p className="text-xs text-muted-foreground">Thử đọc clipboard và tự dán code (nếu có).</p>
+            </div>
+            <Switch checked={form.autoPaste} onCheckedChange={(checked) => setForm((prev) => ({ ...prev, autoPaste: checked }))} />
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 px-3 py-2">
+            <div>
+              <p className="font-medium">Tự xác nhận (--yes)</p>
+              <p className="text-xs text-muted-foreground">Bỏ qua prompt xác nhận khi nhận file.</p>
+            </div>
             <Switch
               checked={form.options.autoConfirm}
               onCheckedChange={(checked) =>
                 setForm((prev) => ({
                   ...prev,
-                  options: { ...prev.options, autoConfirm: checked }
+                  options: {
+                    ...prev.options,
+                    autoConfirm: checked
+                  }
+                }))
+              }
+            />
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 px-3 py-2">
+            <div>
+              <p className="font-medium">Ghi đè file (--overwrite)</p>
+              <p className="text-xs text-muted-foreground">Cho phép thay thế file trùng tên tại thư mục tải xuống.</p>
+            </div>
+            <Switch
+              checked={form.options.overwrite}
+              onCheckedChange={(checked) =>
+                setForm((prev) => ({
+                  ...prev,
+                  options: {
+                    ...prev.options,
+                    overwrite: checked
+                  }
                 }))
               }
             />
           </div>
         </div>
-      </div>
+      )}
 
       <Separator />
 
@@ -272,11 +324,26 @@ function buildInitialReceiveForm(settings?: SettingsState | null): ReceiveFormSt
   return {
     code: '',
     autoPaste: false,
+    sessionOverrides: {},
     options: {
       overwrite: settings?.transferDefaults.receive.overwrite ?? false,
       autoConfirm: settings?.transferDefaults.receive.yes ?? false
     }
   };
+}
+
+function resolveRelay(overrides: ReceiveFormState['sessionOverrides'], settings?: SettingsState | null): string | undefined {
+  const overrideRelay = overrides.relay?.trim();
+  if (overrideRelay) return overrideRelay;
+  return resolveDefaultRelay(settings);
+}
+
+function resolveRelayPass(overrides: ReceiveFormState['sessionOverrides'], settings?: SettingsState | null): string | undefined {
+  if (overrides.pass !== undefined) {
+    const trimmed = overrides.pass.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  return resolveDefaultRelayPass(settings);
 }
 
 function resolveDefaultRelay(settings?: SettingsState | null): string | undefined {

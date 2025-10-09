@@ -108,7 +108,7 @@ const DEFAULT_SETTINGS: Settings = {
     extraFlags: '',
     verboseLogs: false,
     allowCodeFormatValidation: true,
-    showTransferLogs: true
+    showTransferLogs: false
   },
   binary: {
     crocVersion: 'not-installed',

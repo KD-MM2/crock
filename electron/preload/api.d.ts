@@ -71,6 +71,11 @@ export interface WindowApi {
     clipboardWrite: (text: string) => Promise<void>;
     openPath: (path: string) => Promise<void>;
   };
+  window: {
+    minimize: () => Promise<void>;
+    toggleMaximize: () => Promise<void>;
+    close: () => Promise<void>;
+  };
   croc: {
     getVersion: () => Promise<string>;
     startSend: (options: SendRequest) => Promise<TransferHandle>;

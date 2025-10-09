@@ -10,6 +10,11 @@ const api: WindowApi = {
     clipboardWrite: (text: string) => ipcRenderer.invoke('app:clipboardWrite', text),
     openPath: (target: string) => ipcRenderer.invoke('app:openPath', target)
   },
+  window: {
+    minimize: () => ipcRenderer.invoke('app:window:minimize'),
+    toggleMaximize: () => ipcRenderer.invoke('app:window:toggleMaximize'),
+    close: () => ipcRenderer.invoke('app:window:close')
+  },
   croc: {
     getVersion: () => ipcRenderer.invoke('croc:getVersion'),
     startSend: (options: SendRequest) => ipcRenderer.invoke('croc:startSend', options),

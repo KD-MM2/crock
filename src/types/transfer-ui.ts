@@ -28,6 +28,10 @@ export interface SendFormState {
 export interface ReceiveFormState {
   code: string;
   autoPaste: boolean;
+  sessionOverrides: {
+    relay?: string;
+    pass?: string;
+  };
   options: {
     overwrite: boolean;
     autoConfirm: boolean;
