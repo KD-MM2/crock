@@ -9,6 +9,11 @@ export interface TransferSession {
   speed?: string;
   eta?: string;
   code?: string;
+  targetAddress?: string;
+  sizeTransferred?: string;
+  sizeTotal?: string;
+  bytesTransferred?: number;
+  bytesTotal?: number;
   startedAt: number;
   finishedAt?: number;
   logTail: TransferLogEntry[];

@@ -145,7 +145,13 @@ export function TransferProgressPanel() {
 
   const percent = Math.min(100, Math.max(0, Math.round(session.percent)));
   const phase = session.phase;
-  const infoItems = [session.speed ? `Tốc độ ${session.speed}` : null, session.eta ? `ETA ${session.eta}` : null, session.code ? `Code ${session.code}` : null].filter(Boolean);
+  const infoItems = [
+    session.targetAddress ? `Kết nối ${session.targetAddress}` : null,
+    session.sizeTransferred && session.sizeTotal ? `Dung lượng ${session.sizeTransferred}/${session.sizeTotal}` : session.sizeTotal ? `Dung lượng ${session.sizeTotal}` : null,
+    session.speed ? `Tốc độ ${session.speed}` : null,
+    session.eta ? `ETA ${session.eta}` : null,
+    session.code ? `Code ${session.code}` : null
+  ].filter(Boolean);
 
   return (
     <section className="flex flex-col gap-4 rounded-xl border border-border/80 bg-background/80 p-5 shadow-sm">

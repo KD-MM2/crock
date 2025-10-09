@@ -56,25 +56,6 @@ export class CrocCommandBuilder {
       return ['--exclude', options.exclude.join(',')];
     });
 
-    if (options.connections && Number.isFinite(options.connections)) {
-      const value = String(options.connections);
-      if (this.capabilities?.connections) {
-        args.push('--connections', value);
-      } else if (this.capabilities?.transfers) {
-        args.push('--transfers', value);
-      }
-    }
-
-    maybeApplyFlag(args, 'protocol', this.capabilities, () => {
-      if (!options.protocol) return undefined;
-      return ['--protocol', options.protocol];
-    });
-
-    maybeApplyFlag(args, 'hash', this.capabilities, () => {
-      if (!options.hash) return undefined;
-      return ['--hash', options.hash];
-    });
-
     maybeApplyFlag(args, 'throttleUpload', this.capabilities, () => {
       if (!options.throttleUpload) return undefined;
       return ['--throttleUpload', options.throttleUpload];
@@ -137,8 +118,5 @@ export class CrocCommandBuilder {
     maybeApplyFlag(args, 'socks5', this.capabilities, () => (options.socks5 ? ['--socks5', options.socks5] : undefined));
     maybeApplyFlag(args, 'local', this.capabilities, () => (options.local ? ['--local'] : undefined));
     maybeApplyFlag(args, 'internalDns', this.capabilities, () => (options.internalDns ? ['--internal-dns'] : undefined));
-
-    maybeApplyFlag(args, 'forceLocal', this.capabilities, () => (options.forceLocal ? ['--force-local'] : undefined));
-    maybeApplyFlag(args, 'disableLocal', this.capabilities, () => (options.disableLocal ? ['--disable-local'] : undefined));
   }
 }

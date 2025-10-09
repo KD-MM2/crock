@@ -26,12 +26,7 @@ const sendPayloadBase = z.object({
   internalDns: z.boolean().optional(),
   noCompress: z.boolean().optional(),
   exclude: z.array(z.string()).optional(),
-  hash: z.enum(['xxhash', 'imohash', 'sha1', 'sha256', 'sha512', 'md5']).optional(),
   throttleUpload: z.string().optional(),
-  connections: z.number().int().min(1).max(16).optional(),
-  protocol: z.enum(['tcp', 'udp']).optional(),
-  forceLocal: z.boolean().optional(),
-  disableLocal: z.boolean().optional(),
   yes: z.boolean().optional(),
   extraFlags: z.string().optional()
 });
@@ -123,12 +118,7 @@ function buildSendOptions(payload: SendPayloadInput, settings: Settings): SendOp
     internalDns: payload.internalDns ?? defaults.internalDns,
     noCompress: payload.noCompress ?? defaults.noCompress,
     exclude: payload.exclude?.length ? payload.exclude : defaults.exclude,
-    hash: payload.hash ?? defaults.hash,
     throttleUpload: payload.throttleUpload ?? defaults.throttleUpload,
-    connections: payload.connections ?? defaults.connections,
-    protocol: payload.protocol ?? defaults.protocol,
-    forceLocal: payload.forceLocal ?? defaults.forceLocal,
-    disableLocal: payload.disableLocal ?? defaults.disableLocal,
     yes: payload.yes,
     extraFlags: mergeExtraFlags(settings, payload.extraFlags)
   };

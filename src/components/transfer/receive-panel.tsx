@@ -10,7 +10,7 @@ import { useSettingsStore, type SettingsStoreState } from '@/stores/settings';
 import { useTransferStore, type TransferStoreState } from '@/stores/transfer';
 import { useUiStore, type UiStore } from '@/stores/ui';
 import type { ReceiveFormState } from '@/types/transfer-ui';
-import type { SettingsState, CurveName, HashAlgorithm } from '@/types/settings';
+import type { SettingsState, CurveName } from '@/types/settings';
 import { getWindowApi } from '@/lib/window-api';
 
 const selectSettings = (state: SettingsStoreState) => ({
@@ -91,10 +91,6 @@ export function ReceivePanel() {
     const curve = resolveSecurityCurve(settings);
     if (curve) {
       parts.push('--curve', curve);
-    }
-    const hash = resolveSecurityHash(settings);
-    if (hash) {
-      parts.push('--hash', hash);
     }
     const extraFlags = settings?.advanced.extraFlags?.trim();
     if (extraFlags) {
@@ -295,10 +291,6 @@ function resolveDefaultRelayPass(settings?: SettingsState | null): string | unde
 
 function resolveSecurityCurve(settings?: SettingsState | null): CurveName | undefined {
   return settings?.security.curve;
-}
-
-function resolveSecurityHash(settings?: SettingsState | null): HashAlgorithm | undefined {
-  return settings?.security.hash;
 }
 
 function quoteCliArg(value: string): string {

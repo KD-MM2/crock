@@ -3,7 +3,6 @@ import { z } from 'zod';
 import type { CrocCapabilities } from '../types/capabilities';
 import type { Settings } from '../types/settings';
 
-const HASH_ENUM = ['xxhash', 'imohash', 'sha1', 'sha256', 'sha512', 'md5'] as const;
 const CURVE_ENUM = ['curve25519', 'p256', 'p384', 'p521'] as const;
 
 const settingsSchema = z.object({
@@ -18,14 +17,9 @@ const settingsSchema = z.object({
     send: z.object({
       noCompress: z.boolean(),
       exclude: z.array(z.string()),
-      connections: z.number().int().min(1).max(16).optional(),
-      protocol: z.enum(['tcp', 'udp']).optional(),
-      forceLocal: z.boolean().optional(),
-      disableLocal: z.boolean().optional(),
       local: z.boolean().optional(),
       internalDns: z.boolean().optional(),
-      throttleUpload: z.string().optional(),
-      hash: z.enum(HASH_ENUM).optional()
+      throttleUpload: z.string().optional()
     }),
     receive: z.object({
       overwrite: z.boolean(),
@@ -57,8 +51,7 @@ const settingsSchema = z.object({
       .optional()
   }),
   security: z.object({
-    curve: z.enum(CURVE_ENUM).optional(),
-    hash: z.enum(HASH_ENUM).optional()
+    curve: z.enum(CURVE_ENUM).optional()
   }),
   advanced: z.object({
     logTailLines: z.number().int().min(10).max(2000),
@@ -88,10 +81,6 @@ const DEFAULT_SETTINGS: Settings = {
     send: {
       noCompress: false,
       exclude: [],
-      connections: 1,
-      protocol: 'tcp',
-      forceLocal: false,
-      disableLocal: false,
       local: false,
       internalDns: false
     },
@@ -109,8 +98,7 @@ const DEFAULT_SETTINGS: Settings = {
     proxy: {}
   },
   security: {
-    curve: 'p256',
-    hash: 'sha256'
+    curve: 'p256'
   },
   advanced: {
     logTailLines: 200,
@@ -180,9 +168,6 @@ export class SettingsStore {
   applyCapabilities(capabilities: CrocCapabilities) {
     const current = this.get();
     const filtered = { ...current };
-    if (capabilities.hash === false && filtered.transferDefaults.send.hash) {
-      delete filtered.transferDefaults.send.hash;
-    }
     if (capabilities.curve === false && filtered.transferDefaults.receive.curve) {
       delete filtered.transferDefaults.receive.curve;
     }

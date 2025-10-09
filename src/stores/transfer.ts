@@ -44,6 +44,11 @@ const createTransferStore = (set: SetState<TransferStoreState>): TransferStoreSt
               speed: progress.speed,
               eta: progress.eta,
               code: progress.code,
+              targetAddress: progress.targetAddress,
+              sizeTransferred: progress.sizeTransferred,
+              sizeTotal: progress.sizeTotal,
+              bytesTransferred: progress.bytesTransferred,
+              bytesTotal: progress.bytesTotal,
               startedAt: Date.now(),
               logTail: []
             }
@@ -55,9 +60,14 @@ const createTransferStore = (set: SetState<TransferStoreState>): TransferStoreSt
         ...existing,
         phase: progress.phase,
         percent: progress.percent ?? existing.percent,
-        speed: progress.speed,
-        eta: progress.eta,
+        speed: progress.speed ?? existing.speed,
+        eta: progress.eta ?? existing.eta,
         code: progress.code ?? existing.code,
+        targetAddress: progress.targetAddress ?? existing.targetAddress,
+        sizeTransferred: progress.sizeTransferred ?? existing.sizeTransferred,
+        sizeTotal: progress.sizeTotal ?? existing.sizeTotal,
+        bytesTransferred: progress.bytesTransferred ?? existing.bytesTransferred,
+        bytesTotal: progress.bytesTotal ?? existing.bytesTotal,
         logTail: existing.logTail
       };
 

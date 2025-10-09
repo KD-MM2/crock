@@ -3,7 +3,6 @@ import type { CrocCapabilities } from '../types/capabilities';
 
 const FLAG_PATTERNS: Array<[keyof CrocCapabilities, RegExp]> = [
   ['socks5', /--socks5/],
-  ['hash', /--hash/],
   ['curve', /--curve/],
   ['throttleUpload', /--throttleUpload/],
   ['internalDns', /--internal-dns/],
@@ -13,12 +12,7 @@ const FLAG_PATTERNS: Array<[keyof CrocCapabilities, RegExp]> = [
   ['text', /--text/],
   ['exclude', /--exclude/],
   ['overwrite', /--overwrite/],
-  ['yes', /--yes/],
-  ['connections', /--connections/],
-  ['transfers', /--transfers/],
-  ['forceLocal', /--force-local/],
-  ['disableLocal', /--disable-local/],
-  ['protocol', /--protocol/]
+  ['yes', /--yes/]
 ];
 
 export class CapabilityDetector {

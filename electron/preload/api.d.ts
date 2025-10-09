@@ -21,12 +21,7 @@ export type SendRequest = {
   internalDns?: boolean;
   noCompress?: boolean;
   exclude?: string[];
-  hash?: 'xxhash' | 'imohash' | 'sha1' | 'sha256' | 'sha512' | 'md5';
   throttleUpload?: string;
-  connections?: number;
-  protocol?: 'tcp' | 'udp';
-  forceLocal?: boolean;
-  disableLocal?: boolean;
   yes?: boolean;
   extraFlags?: string;
 };

@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { useUiStore, type UiStore } from '@/stores/ui';
 import { useSettingsStore, type SettingsStoreState } from '@/stores/settings';
-import type { SettingsState, ConnectionStatus, CurveName, HashAlgorithm } from '@/types/settings';
+import type { SettingsState, ConnectionStatus, CurveName } from '@/types/settings';
 import { getWindowApi } from '@/lib/window-api';
 import { cn } from '@/lib/utils';
 
@@ -242,57 +242,6 @@ function TransferTab({ settings, updateDraft }: { settings: SettingsState; updat
           onCheckedChange={(checked) =>
             updateDraft((draft) => {
               draft.transferDefaults.send.noCompress = checked;
-            })
-          }
-        />
-        <Field label="Số kết nối (connections)">
-          <Input
-            type="number"
-            min={1}
-            value={settings.transferDefaults.send.connections ?? ''}
-            onChange={(event) =>
-              updateDraft((draft) => {
-                const value = Number(event.target.value);
-                draft.transferDefaults.send.connections = Number.isFinite(value) ? value : undefined;
-              })
-            }
-          />
-        </Field>
-        <Field label="Ưu tiên giao thức">
-          <Select
-            value={settings.transferDefaults.send.protocol ?? 'tcp'}
-            onValueChange={(value) =>
-              updateDraft((draft) => {
-                draft.transferDefaults.send.protocol = value as 'tcp' | 'udp';
-              })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="tcp">TCP</SelectItem>
-              <SelectItem value="udp">UDP</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-        <ToggleField
-          label="Force local"
-          description="Ưu tiên kết nối nội bộ"
-          checked={settings.transferDefaults.send.forceLocal ?? false}
-          onCheckedChange={(checked) =>
-            updateDraft((draft) => {
-              draft.transferDefaults.send.forceLocal = checked;
-            })
-          }
-        />
-        <ToggleField
-          label="Disable local"
-          description="Không sử dụng LAN"
-          checked={settings.transferDefaults.send.disableLocal ?? false}
-          onCheckedChange={(checked) =>
-            updateDraft((draft) => {
-              draft.transferDefaults.send.disableLocal = checked;
             })
           }
         />
@@ -546,7 +495,7 @@ function RelayTab({
 function SecurityTab({ settings, updateDraft }: { settings: SettingsState; updateDraft: UpdateDraft }) {
   return (
     <div className="space-y-6">
-      <SectionHeading icon={ShieldCheck} title="Thuật toán" description="Lựa chọn curve và hash được hỗ trợ." />
+      <SectionHeading icon={ShieldCheck} title="Thuật toán" description="Lựa chọn curve phù hợp với relay." />
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Curve">
           <Select
@@ -564,24 +513,6 @@ function SecurityTab({ settings, updateDraft }: { settings: SettingsState; updat
               <SelectItem value="p256">p256</SelectItem>
               <SelectItem value="p521">p521</SelectItem>
               <SelectItem value="chacha20-curve25519">chacha20-curve25519</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field label="Hash">
-          <Select
-            value={settings.security.hash ?? 'sha256'}
-            onValueChange={(value) =>
-              updateDraft((draft) => {
-                draft.security.hash = value as HashAlgorithm;
-              })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="sha256">sha256</SelectItem>
-              <SelectItem value="sha512">sha512</SelectItem>
             </SelectContent>
           </Select>
         </Field>

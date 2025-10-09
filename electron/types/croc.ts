@@ -16,12 +16,7 @@ export type SendOptions = {
   internalDns?: boolean;
   noCompress?: boolean;
   exclude?: string[];
-  hash?: 'xxhash' | 'imohash' | 'sha1' | 'sha256' | 'sha512' | 'md5';
   throttleUpload?: string;
-  connections?: number;
-  protocol?: 'tcp' | 'udp';
-  forceLocal?: boolean;
-  disableLocal?: boolean;
   yes?: boolean;
   extraFlags?: string;
 };
@@ -52,6 +47,11 @@ export type TransferProgress = {
   fileName?: string;
   message?: string;
   code?: string;
+  targetAddress?: string;
+  sizeTransferred?: string;
+  sizeTotal?: string;
+  bytesTransferred?: number;
+  bytesTotal?: number;
   raw?: string;
   ts: number;
 };

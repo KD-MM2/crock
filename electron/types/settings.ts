@@ -1,4 +1,3 @@
-export type HashAlgorithm = 'xxhash' | 'imohash' | 'sha1' | 'sha256' | 'sha512' | 'md5';
 export type CurveName = 'curve25519' | 'p256' | 'p384' | 'p521';
 
 export type Settings = {
@@ -13,14 +12,9 @@ export type Settings = {
     send: {
       noCompress: boolean;
       exclude: string[];
-      connections?: number;
-      protocol?: 'tcp' | 'udp';
-      forceLocal?: boolean;
-      disableLocal?: boolean;
       local?: boolean;
       internalDns?: boolean;
       throttleUpload?: string;
-      hash?: HashAlgorithm;
     };
     receive: {
       overwrite: boolean;
@@ -37,7 +31,6 @@ export type Settings = {
   };
   security: {
     curve?: CurveName;
-    hash?: HashAlgorithm;
   };
   advanced: {
     logTailLines: number;

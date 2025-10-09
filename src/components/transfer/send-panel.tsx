@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { useSettingsStore, type SettingsStoreState } from '@/stores/settings';
 import { useTransferStore, type TransferStoreState } from '@/stores/transfer';
 import { useUiStore, type UiStore } from '@/stores/ui';
-import type { SettingsState, HashAlgorithm, CurveName } from '@/types/settings';
+import type { SettingsState, CurveName } from '@/types/settings';
 import type { SendFormState, SelectedPathItem, SendMode } from '@/types/transfer-ui';
 import type { TransferSession } from '@/types/transfer';
 import type { HistoryRecord } from '@/types/history';
@@ -184,11 +184,6 @@ export function SendPanel() {
         pass: resolveRelayPass(form.sessionOverrides, settings),
         exclude: resolveExcludePatterns(form.sessionOverrides, settings),
         yes: form.sessionOverrides.autoConfirm,
-        connections: resolveConnections(settings),
-        protocol: resolveProtocol(settings),
-        forceLocal: resolveForceLocal(settings) ? true : undefined,
-        disableLocal: resolveDisableLocal(settings) ? true : undefined,
-        hash: resolveHash(settings),
         extraFlags: settings.advanced.extraFlags
       });
 
@@ -765,32 +760,9 @@ function buildSendCliCommand({ form, finalCode, settings }: { form: SendFormStat
     parts.push('--yes');
   }
 
-  const connections = resolveConnections(settings);
-  if (typeof connections === 'number') {
-    parts.push('--transfers', String(connections));
-  }
-
-  const protocol = resolveProtocol(settings);
-  if (protocol) {
-    parts.push('--protocol', protocol);
-  }
-
-  if (resolveForceLocal(settings)) {
-    parts.push('--force-local');
-  }
-
-  if (resolveDisableLocal(settings)) {
-    parts.push('--no-local');
-  }
-
   const curve = resolveCurve(settings);
   if (curve) {
     parts.push('--curve', curve);
-  }
-
-  const hash = resolveHash(settings);
-  if (hash) {
-    parts.push('--hash', hash);
   }
 
   const extraFlags = settings?.advanced.extraFlags?.trim();
@@ -859,29 +831,6 @@ function resolveExcludePatterns(overrides: SendFormState['sessionOverrides'], se
   return defaults.length > 0 ? defaults : undefined;
 }
 
-function resolveConnections(settings?: SettingsState | null): number | undefined {
-  const value = settings?.transferDefaults.send.connections;
-  if (typeof value !== 'number') return undefined;
-  return Number.isFinite(value) && value > 0 ? value : undefined;
-}
-
-function resolveProtocol(settings?: SettingsState | null): 'tcp' | 'udp' | undefined {
-  const protocol = settings?.transferDefaults.send.protocol;
-  return protocol === 'tcp' || protocol === 'udp' ? protocol : undefined;
-}
-
-function resolveForceLocal(settings?: SettingsState | null): boolean {
-  return Boolean(settings?.transferDefaults.send.forceLocal);
-}
-
-function resolveDisableLocal(settings?: SettingsState | null): boolean {
-  return Boolean(settings?.transferDefaults.send.disableLocal);
-}
-
 function resolveCurve(settings?: SettingsState | null): CurveName | undefined {
   return settings?.security.curve;
-}
-
-function resolveHash(settings?: SettingsState | null): HashAlgorithm | undefined {
-  return settings?.security.hash;
 }
