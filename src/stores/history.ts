@@ -1,12 +1,7 @@
 import { create } from 'zustand';
+import type { StateCreator } from 'zustand';
 import type { HistoryFilter, HistoryRecord } from '@/types/history';
 import { getWindowApi } from '@/lib/window-api';
-
-type SetState<T> = (partial: T | Partial<T> | ((state: T) => T | Partial<T>), replace?: boolean) => void;
-
-type GetState<T> = () => T;
-
-type StoreInitializer<T> = (set: SetState<T>, get: GetState<T>) => T;
 
 export type HistoryStoreState = {
   records: HistoryRecord[];
@@ -39,7 +34,7 @@ const matchesFilters = (record: HistoryRecord, filters: HistoryFilter) => {
   return true;
 };
 
-const createHistoryStore: StoreInitializer<HistoryStoreState> = (set, _get) => {
+const createHistoryStore: StateCreator<HistoryStoreState> = (set, _get) => {
   void _get;
   return {
     records: [],
@@ -69,7 +64,7 @@ const createHistoryStore: StoreInitializer<HistoryStoreState> = (set, _get) => {
       }
     },
     setFilters: (filters) =>
-      set((state: HistoryStoreState) => ({
+      set((state) => ({
         filters: { ...state.filters, ...filters }
       })),
     select: (id) => set({ selectedId: id }),

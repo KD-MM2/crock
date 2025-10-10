@@ -118,6 +118,8 @@ async function bootstrap() {
       downloadDir: app.getPath('downloads'),
       autoOpenOnDone: true,
       autoCopyCodeOnSend: true,
+      autoResetOnSendSuccess: false,
+      autoResetOnSendFailure: false,
       language: 'vi',
       theme: 'system'
     }

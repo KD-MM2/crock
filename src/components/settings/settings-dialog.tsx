@@ -17,6 +17,7 @@ import { getWindowApi } from '@/lib/window-api';
 import { cn } from '@/lib/utils';
 import { Spinner } from '@/components/ui/spinner';
 import { Trans, useTranslation } from 'react-i18next';
+import crockLogo from '@/assets/crock.svg';
 
 const TAB_ITEMS = [
   { value: 'general', labelKey: 'settings.tabs.general', icon: Info },
@@ -797,7 +798,7 @@ function AboutTab({ settings }: { settings: SettingsState }) {
       <div className="space-y-4">
         <SectionHeading icon={Info} title={t('settings.about.app.title')} description={t('settings.about.app.description')} />
         <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border/60 bg-background/40 p-4">
-          <img src="/crock.svg" alt={t('settings.about.app.logoAlt')} className="h-14 w-14" />
+          <img src={crockLogo} alt={t('settings.about.app.logoAlt')} className="h-14 w-14" />
           <div className="space-y-1">
             <p className="text-base font-semibold leading-none text-foreground">{t('settings.about.app.tagline')}</p>
             <p className="text-xs text-muted-foreground">{t('settings.about.app.uiVersion', { version: '0.1.0' })}</p>

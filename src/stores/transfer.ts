@@ -1,7 +1,6 @@
 import { create } from 'zustand';
+import type { StateCreator } from 'zustand';
 import type { TransferProgress, TransferSession } from '@/types/transfer';
-
-type SetState<T> = (partial: T | Partial<T> | ((state: T) => T | Partial<T>), replace?: boolean) => void;
 
 type TransferSessions = Record<string, TransferSession>;
 
@@ -16,11 +15,11 @@ export type TransferStoreState = {
   reset: () => void;
 };
 
-const createTransferStore = (set: SetState<TransferStoreState>): TransferStoreState => ({
+const createTransferStore: StateCreator<TransferStoreState> = (set) => ({
   sessions: {},
   activeTransferId: undefined,
   upsertSession: (session: TransferSession) =>
-    set((state: TransferStoreState) => ({
+    set((state) => ({
       activeTransferId: session.id,
       sessions: {
         ...state.sessions,
@@ -28,7 +27,7 @@ const createTransferStore = (set: SetState<TransferStoreState>): TransferStoreSt
       }
     })),
   updateProgress: (progress: TransferProgress) =>
-    set((state: TransferStoreState) => {
+    set((state) => {
       const existing = state.sessions[progress.id];
       if (!existing) {
         return {
@@ -80,7 +79,7 @@ const createTransferStore = (set: SetState<TransferStoreState>): TransferStoreSt
       };
     }),
   finalizeSession: (id: string, patch: Partial<TransferSession>) =>
-    set((state: TransferStoreState) => {
+    set((state) => {
       const existing = state.sessions[id];
       if (!existing) return state;
       const next: TransferSession = {
@@ -97,7 +96,7 @@ const createTransferStore = (set: SetState<TransferStoreState>): TransferStoreSt
       };
     }),
   appendLog: (id: string, entry: TransferSession['logTail'][number]) =>
-    set((state: TransferStoreState) => {
+    set((state) => {
       const existing = state.sessions[id];
       if (!existing) return state;
 
@@ -113,7 +112,7 @@ const createTransferStore = (set: SetState<TransferStoreState>): TransferStoreSt
       };
     }),
   removeSession: (id: string) =>
-    set((state: TransferStoreState) => {
+    set((state) => {
       const { [id]: removed, ...rest } = state.sessions;
       void removed;
       const nextActive = state.activeTransferId === id ? undefined : state.activeTransferId;

@@ -14,7 +14,7 @@
   mac: {
     target: ['dmg'],
     artifactName: '${productName}-Mac-${version}-Installer.${ext}',
-    icon: 'public/crock.svg',
+    icon: 'public/crock.icns',
     category: 'public.app-category.utilities'
   },
   win: {
@@ -22,10 +22,14 @@
       {
         target: 'nsis',
         arch: ['x64']
+      },
+      {
+        target: 'portable',
+        arch: ['x64']
       }
     ],
     artifactName: '${productName}-Windows-${version}-Setup.${ext}',
-    icon: 'public/crock.svg',
+    icon: 'public/crock.ico',
     publisherName: 'KD-MM2 (Cao Thai Duong)',
     legalTrademarks: 'KD-MM2'
   },
@@ -34,13 +38,16 @@
     perMachine: false,
     allowToChangeInstallationDirectory: true,
     deleteAppDataOnUninstall: false,
-    publisher: 'KD-MM2 (Cao Thai Duong)',
     allowElevation: true
+  },
+  portable: {
+    // Optional: customize portable executable
+    artifactName: '${productName}-Windows-${version}-Portable.${ext}'
   },
   linux: {
     target: ['AppImage'],
     artifactName: '${productName}-Linux-${version}.${ext}',
-    icon: 'public/crock.svg',
+    icon: 'public/crock.png',
     maintainer: 'KD-MM2 (Cao Thai Duong) <kaotd.z3@gmail.com>',
     category: 'Utility'
   }

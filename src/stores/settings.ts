@@ -1,13 +1,8 @@
 import { create } from 'zustand';
+import type { StateCreator } from 'zustand';
 import type { SettingsState, ConnectionStatus } from '@/types/settings';
 import type { SetStateAction } from 'react';
 import { getWindowApi } from '@/lib/window-api';
-
-type SetState<T> = (partial: T | Partial<T> | ((state: T) => T | Partial<T>), replace?: boolean) => void;
-
-type GetState<T> = () => T;
-
-type StoreInitializer<T> = (set: SetState<T>, get: GetState<T>) => T;
 
 export type SettingsStoreState = {
   settings: SettingsState | null;
@@ -29,7 +24,7 @@ function applyAction<T>(value: T, action: SetStateAction<T>): T {
   return typeof action === 'function' ? (action as (prev: T) => T)(value) : action;
 }
 
-const createSettingsStore: StoreInitializer<SettingsStoreState> = (set, get) => ({
+const createSettingsStore: StateCreator<SettingsStoreState> = (set, get) => ({
   settings: null,
   draft: null,
   status: 'idle',
@@ -48,7 +43,7 @@ const createSettingsStore: StoreInitializer<SettingsStoreState> = (set, get) => 
     }
   },
   setDraft: (action) =>
-    set((state: SettingsStoreState) => ({
+    set((state) => ({
       draft: state.draft ? applyAction(state.draft, action) : state.draft
     })),
   save: async () => {
@@ -93,7 +88,7 @@ const createSettingsStore: StoreInitializer<SettingsStoreState> = (set, get) => 
     }
   },
   updateRelayStatus: (payload) =>
-    set((state: SettingsStoreState) => {
+    set((state) => {
       const base: ConnectionStatus = state.connectionStatus ?? {
         relay: {
           host: payload.host,
@@ -125,7 +120,7 @@ const createSettingsStore: StoreInitializer<SettingsStoreState> = (set, get) => 
       };
     }),
   resetDraft: () =>
-    set((state: SettingsStoreState) => ({
+    set((state) => ({
       draft: state.settings
     }))
 });

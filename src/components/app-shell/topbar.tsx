@@ -14,6 +14,7 @@ import { getWindowApi } from '@/lib/window-api';
 import { useTranslation } from 'react-i18next';
 import type { SupportedLanguage } from '@/lib/i18n';
 import i18next from '@/lib/i18n';
+import crockLogo from '@/assets/crock.svg';
 
 export function AppShellTopbar() {
   const openHistory = useUiStore((state: UiStore) => state.openHistory);
@@ -90,7 +91,7 @@ export function AppShellTopbar() {
       aria-label={t('topbar.ariaLabel')}
     >
       <div className="flex items-center gap-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
-        <img src="/crock.svg" alt="Crock logo" className="size-14" style={{ WebkitAppRegion: 'no-drag' }} />
+        <img src={crockLogo} alt="Crock logo" className="size-14" style={{ WebkitAppRegion: 'no-drag' }} />
         <span className="text-base font-semibold normal-case text-foreground" style={{ WebkitAppRegion: 'no-drag' }}>
           crock
         </span>
