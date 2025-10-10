@@ -1,7 +1,22 @@
 {
   "name": "crock",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "A polished Electron + React desktop companion for croc transfers.",
+  "author": {
+    "name": "KD-MM2 (Cao Thai Duong)",
+    "email": "kaotd.z3@gmail.com",
+    "url": "https://github.com/KD-MM2"
+  },
+  "homepage": "https://github.com/KD-MM2/crock",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KD-MM2/crock.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KD-MM2/crock/issues",
+    "email": "kaotd.z3@gmail.com"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
