@@ -12,7 +12,12 @@
   },
   files: ['dist', 'dist-electron'],
   mac: {
-    target: ['dmg'],
+    target: [
+      {
+        target: 'dmg',
+        arch: ['arm64', 'x64']
+      }
+    ],
     artifactName: '${productName}-Mac-${version}-Installer.${ext}',
     icon: 'public/crock.icns',
     category: 'public.app-category.utilities'

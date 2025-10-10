@@ -13,6 +13,7 @@ jobs:
       CI: true
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
       ELECTRON_SKIP_NOTARIZATION: 'true'
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
