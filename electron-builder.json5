@@ -28,7 +28,7 @@
         arch: ['x64']
       }
     ],
-    artifactName: '${productName}-Windows-${version}-Setup.${ext}',
+    artifactName: '${productName}-Windows-${version}-${arch}-Setup.${ext}',
     icon: 'public/crock.ico',
     publisherName: 'KD-MM2 (Cao Thai Duong)',
     legalTrademarks: 'KD-MM2'
@@ -42,7 +42,7 @@
   },
   portable: {
     // Optional: customize portable executable
-    artifactName: '${productName}-Windows-${version}-Portable.${ext}'
+    artifactName: '${productName}-Windows-${version}-${arch}-Portable.${ext}'
   },
   linux: {
     target: ['AppImage'],
