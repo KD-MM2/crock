@@ -21,6 +21,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
+    "build:linux": "tsc && vite build && electron-builder --linux --config electron-builder.json5",
+    "build:mac": "tsc && vite build && electron-builder --mac --config electron-builder.json5",
+    "build:win": "tsc && vite build && electron-builder --win --config electron-builder.json5",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "format": "prettier --write '{src,electron}/**/*.{js,ts,tsx,d.ts,html,css}'"
