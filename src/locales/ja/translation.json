@@ -53,6 +53,14 @@
                 "autoCopy": {
                     "label": "コードフレーズを自動でコピー",
                     "description": "送信開始時にクリップボードへコピーします。"
+                },
+                "autoResetSuccess": {
+                    "label": "送信成功後にリセット",
+                    "description": "croc が成功を報告したら送信フォームとステータスをクリアします。"
+                },
+                "autoResetFailure": {
+                    "label": "送信失敗/キャンセル後にリセット",
+                    "description": "croc が失敗またはキャンセルを報告したら送信フォームをクリアします。"
                 }
             },
             "sendDefaults": {
@@ -211,9 +219,12 @@
             "app": {
                 "title": "crock UI",
                 "description": "croc のデスクトップインターフェース。",
+                "logoAlt": "crock のロゴ",
+                "tagline": "croc で安全にファイル共有。",
                 "uiVersion": "UI バージョン: {{version}}",
-                "basedOn": "<crocLink>croc</crocLink> (MIT) を基にしています。ソースコード: <repoLink>GitHub</repoLink>。",
-                "feedback": "フィードバックと不具合報告は <repoLink>GitHub</repoLink> の issue でお願いします。"
+                "basedOn": "<crocLink>croc</crocLink> (MIT) を基にしています。ソースコード: <repoLink>KD-MM2/crock</repoLink>。",
+                "repository": "リポジトリ: <repoLink>KD-MM2/crock</repoLink>。",
+                "feedback": "フィードバックと不具合報告は <repoLink>KD-MM2/crock</repoLink> の issue でお願いします。"
             },
             "binary": {
                 "title": "croc バイナリ",
@@ -241,8 +252,7 @@
                     "openFolder": "保存フォルダーを開く"
                 },
                 "notes": {
-                    "current": "このバージョンを使用中です。",
-                    "manualUpdate": "croc の更新は手動またはスクリプトで確認してください。"
+                    "current": "このバージョンを使用中です。"
                 }
             },
             "toast": {
@@ -485,6 +495,7 @@
             },
             "cliPlaceholder": "croc send <paths>",
             "actions": {
+                "reset": "フォームをリセット",
                 "start": "送信を開始"
             },
             "toast": {
@@ -498,7 +509,9 @@
                 "qrNoBrowser": "この環境では QR コードを保存できません。",
                 "qrNotFound": "QR コード要素が見つかりません。",
                 "qrSaved": "QR コードを保存しました (SVG)。",
-                "qrSaveFailed": "QR コードを保存できませんでした。"
+                "qrSaveFailed": "QR コードを保存できませんでした。",
+                "resetBlockedActive": "リセットする前に現在の送信を完了またはキャンセルしてください。",
+                "resetCompleted": "送信フォームをリセットしました。"
             }
         },
         "receive": {
@@ -508,13 +521,13 @@
             "code": {
                 "label": "コードフレーズ",
                 "placeholder": "例: downtown-almond-dynamo",
-                "ariaLabel": "ファイルを受信するためのコードフレーズ"
+                "ariaLabel": "受信用コードフレーズ"
             },
             "sessionOptions": {
                 "autoConfirmDescription": "受信時の確認プロンプトをスキップします。",
                 "autoPaste": {
                     "label": "自動貼り付け (クリップボード)",
-                    "description": "クリップボードを読み取ってコードがあれば貼り付けます。"
+                    "description": "クリップボードを読み取り、利用可能な場合はコードを貼り付けます。"
                 },
                 "overwrite": {
                     "label": "ファイルを上書き (--overwrite)",

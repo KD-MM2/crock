@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ClipboardPaste, Copy, File as FileIcon, FileText, FolderPlus, QrCode, RefreshCw, Save, Settings2, Trash2 } from 'lucide-react';
+import { ClipboardPaste, Copy, File as FileIcon, FileText, FolderPlus, QrCode, RefreshCw, RotateCcw, Save, Settings2, Trash2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -34,6 +34,7 @@ const MODE_OPTIONS: Array<{ value: SendMode; labelKey: string; descriptionKey: s
 ];
 
 const MAX_TEXT_LENGTH = 1_000;
+const FINAL_SEND_PHASES: ReadonlyArray<TransferSession['phase']> = ['done', 'failed', 'canceled'];
 
 export function SendPanel() {
   const { t } = useTranslation();
@@ -43,6 +44,7 @@ export function SendPanel() {
   const openSettings = useUiStore((state: UiStore) => state.openSettings);
   const upsertSession = useTransferStore((state) => state.upsertSession);
   const sessions = useTransferStore((state) => state.sessions);
+  const removeSession = useTransferStore((state) => state.removeSession);
 
   const [form, setForm] = useState<SendFormState>(() => buildInitialForm(settings));
   const [isSending, setIsSending] = useState(false);
@@ -50,6 +52,8 @@ export function SendPanel() {
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const lastCopiedCode = useRef<string | null>(null);
   const qrCodeRef = useRef<HTMLDivElement | null>(null);
+  const originalCodeForCli = useRef<string | undefined>(undefined);
+  const lastAutoResetRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (status === 'idle') {
@@ -78,6 +82,55 @@ export function SendPanel() {
       .sort((a, b) => (b.startedAt ?? 0) - (a.startedAt ?? 0))
       .find((session) => session.type === 'send');
   }, [sessions]);
+
+  const autoResetOnSuccess = settings?.general.autoResetOnSendSuccess ?? false;
+  const autoResetOnFailure = settings?.general.autoResetOnSendFailure ?? false;
+
+  const removeSendSessions = useCallback(
+    (predicate?: (session: TransferSession) => boolean) => {
+      const allSessions = Object.values(sessions) as TransferSession[];
+      for (const session of allSessions) {
+        if (session.type !== 'send') continue;
+        if (predicate && !predicate(session)) continue;
+        removeSession(session.id);
+      }
+    },
+    [sessions, removeSession]
+  );
+
+  const resetFormState = useCallback(() => {
+    originalCodeForCli.current = undefined;
+    lastCopiedCode.current = null;
+    setForm((prev) => {
+      const base = buildInitialForm(settings);
+      return {
+        ...base,
+        mode: prev.mode,
+        options: base.options
+      };
+    });
+    setIsSending(false);
+    setOverridesOpen(false);
+    setQrDialogOpen(false);
+  }, [settings]);
+
+  const handleReset = useCallback(() => {
+    if (isSending) {
+      toast.warning(t('transfer.send.toast.resetBlockedActive'));
+      return;
+    }
+
+    const sendSessions = Object.values(sessions) as TransferSession[];
+    const hasActiveSend = sendSessions.some((session) => session.type === 'send' && !FINAL_SEND_PHASES.includes(session.phase));
+    if (hasActiveSend) {
+      toast.warning(t('transfer.send.toast.resetBlockedActive'));
+      return;
+    }
+
+    removeSendSessions();
+    resetFormState();
+    toast.success(t('transfer.send.toast.resetCompleted'));
+  }, [isSending, sessions, removeSendSessions, resetFormState, t]);
 
   const handleModeChange = (mode: SendMode) => {
     setForm((prev) => ({
@@ -113,6 +166,7 @@ export function SendPanel() {
   };
 
   const handleRandomCode = () => {
+    originalCodeForCli.current = undefined;
     setForm((prev) => ({ ...prev, code: generateCodePhrase(), resolvedCode: undefined }));
   };
 
@@ -142,6 +196,9 @@ export function SendPanel() {
 
     try {
       const codeToUse = form.code.trim() || undefined;
+      // Store the original code for CLI display
+      originalCodeForCli.current = codeToUse;
+
       const payload = await api.croc.startSend({
         code: codeToUse,
         paths: form.mode === 'files' ? form.items.map((item) => item.path!).filter(Boolean) : undefined,
@@ -203,10 +260,10 @@ export function SendPanel() {
     () =>
       buildSendCliCommand({
         form,
-        finalCode,
-        settings
+        settings,
+        originalCode: originalCodeForCli.current
       }),
-    [form, finalCode, settings]
+    [form, settings]
   );
 
   const handleSaveQr = useCallback(() => {
@@ -264,6 +321,31 @@ export function SendPanel() {
   }, [autoCopyEnabled]);
 
   useEffect(() => {
+    if (!activeSendSession) {
+      lastAutoResetRef.current = null;
+      return;
+    }
+
+    const { id, phase } = activeSendSession;
+    const key = `${id}:${phase}`;
+
+    if (phase === 'done' && autoResetOnSuccess) {
+      if (lastAutoResetRef.current === key) return;
+      lastAutoResetRef.current = key;
+      removeSendSessions((session) => FINAL_SEND_PHASES.includes(session.phase));
+      resetFormState();
+      return;
+    }
+
+    if ((phase === 'failed' || phase === 'canceled') && autoResetOnFailure) {
+      if (lastAutoResetRef.current === key) return;
+      lastAutoResetRef.current = key;
+      removeSendSessions((session) => FINAL_SEND_PHASES.includes(session.phase));
+      resetFormState();
+    }
+  }, [activeSendSession, autoResetOnSuccess, autoResetOnFailure, removeSendSessions, resetFormState]);
+
+  useEffect(() => {
     if (!autoCopyEnabled) return;
     if (!activeSendSession?.code) return;
     const identifier = `${activeSendSession.id}:${activeSendSession.code}`;
@@ -283,6 +365,26 @@ export function SendPanel() {
       setQrDialogOpen(false);
     }
   }, [finalCode]);
+
+  // Update form.code when croc generates a code
+  useEffect(() => {
+    if (!activeSendSession?.code) return;
+
+    const sessionCode = activeSendSession.code;
+    originalCodeForCli.current = sessionCode;
+
+    setForm((prev) => {
+      if (prev.code === sessionCode && prev.resolvedCode === sessionCode) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        code: sessionCode,
+        resolvedCode: sessionCode
+      };
+    });
+  }, [activeSendSession?.code]);
 
   useEffect(() => {
     const handleHistoryResend = (event: Event) => {
@@ -434,7 +536,21 @@ export function SendPanel() {
         <div className="space-y-2">
           <label className="text-xs font-medium uppercase text-muted-foreground">{t('transfer.send.code.label')}</label>
           <div className="relative">
-            <Input value={form.code} maxLength={64} onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value }))} placeholder={t('transfer.send.code.placeholder')} className="font-mono pr-32" />
+            <Input
+              value={form.code}
+              maxLength={64}
+              onChange={(event) => {
+                const value = event.target.value;
+                originalCodeForCli.current = value.trim() || undefined;
+                setForm((prev) => ({
+                  ...prev,
+                  code: value,
+                  resolvedCode: undefined
+                }));
+              }}
+              placeholder={t('transfer.send.code.placeholder')}
+              className="font-mono pr-32"
+            />
             <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center gap-1">
               <Button type="button" variant="ghost" size="icon" className="pointer-events-auto size-8 rounded-full text-muted-foreground hover:text-foreground" onClick={handleRandomCode} aria-label={t('transfer.send.code.randomAria')}>
                 <RefreshCw className="size-4" aria-hidden />
@@ -610,9 +726,14 @@ export function SendPanel() {
         <div className="text-xs text-muted-foreground">
           {t('transfer.common.cliEquivalent')} <span className="font-mono">{cliCommand ?? t('transfer.send.cliPlaceholder')}</span>
         </div>
-        <Button size="sm" onClick={() => void handleSend()} disabled={!canSend}>
-          {isSending ? <RefreshCw className="mr-2 size-4 animate-spin" aria-hidden /> : <FileText className="mr-2 size-4" aria-hidden />} {t('transfer.send.actions.start')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={handleReset}>
+            <RotateCcw className="mr-2 size-4" aria-hidden /> {t('transfer.send.actions.reset')}
+          </Button>
+          <Button size="sm" onClick={() => void handleSend()} disabled={!canSend}>
+            {isSending ? <RefreshCw className="mr-2 size-4 animate-spin" aria-hidden /> : <FileText className="mr-2 size-4" aria-hidden />} {t('transfer.send.actions.start')}
+          </Button>
+        </div>
       </div>
     </section>
   );
@@ -738,10 +859,11 @@ async function copyToClipboard(text: string, options?: { silent?: boolean }): Pr
   }
 }
 
-function buildSendCliCommand({ form, finalCode, settings }: { form: SendFormState; finalCode?: string; settings?: SettingsState | null }): string | null {
+function buildSendCliCommand({ form, settings, originalCode }: { form: SendFormState; settings?: SettingsState | null; originalCode?: string }): string | null {
   const parts: string[] = ['croc', 'send'];
 
-  const codeToShow = finalCode?.trim() || form.code.trim();
+  // Use originalCode if available (when session started), otherwise use current form.code
+  const codeToShow = originalCode !== undefined ? originalCode : form.code.trim() || undefined;
   if (codeToShow) {
     parts.push('--code', codeToShow);
   }

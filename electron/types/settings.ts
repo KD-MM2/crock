@@ -5,6 +5,8 @@ export type Settings = {
     downloadDir: string;
     autoOpenOnDone: boolean;
     autoCopyCodeOnSend: boolean;
+    autoResetOnSendSuccess: boolean;
+    autoResetOnSendFailure: boolean;
     language?: 'vi' | 'en' | 'ja';
     theme?: 'system' | 'light' | 'dark';
   };

@@ -53,6 +53,14 @@
                 "autoCopy": {
                     "label": "Copy code phrase automatically",
                     "description": "Copies to clipboard when sending starts."
+                },
+                "autoResetSuccess": {
+                    "label": "Reset after successful send",
+                    "description": "Clear the send form and status once croc reports success."
+                },
+                "autoResetFailure": {
+                    "label": "Reset after failed/canceled send",
+                    "description": "Clear the send form when croc reports failure or cancellation."
                 }
             },
             "sendDefaults": {
@@ -211,9 +219,12 @@
             "app": {
                 "title": "crock UI",
                 "description": "Desktop interface for croc.",
+                "logoAlt": "Crock logo",
+                "tagline": "Share files securely with croc.",
                 "uiVersion": "UI version: {{version}}",
-                "basedOn": "Based on <crocLink>croc</crocLink> (MIT). Source code: <repoLink>GitHub</repoLink>.",
-                "feedback": "Feedback & issues: please open an issue on <repoLink>GitHub</repoLink>."
+                "basedOn": "Based on <crocLink>croc</crocLink> (MIT). Source code: <repoLink>KD-MM2/crock</repoLink>.",
+                "repository": "Project repository: <repoLink>KD-MM2/crock</repoLink>.",
+                "feedback": "Feedback & issues: please open an issue on <repoLink>KD-MM2/crock</repoLink>."
             },
             "binary": {
                 "title": "croc binary",
@@ -241,8 +252,7 @@
                     "openFolder": "Open containing folder"
                 },
                 "notes": {
-                    "current": "You are running this version.",
-                    "manualUpdate": "Check croc updates manually or via scripts."
+                    "current": "You are running this version."
                 }
             },
             "toast": {
@@ -485,6 +495,7 @@
             },
             "cliPlaceholder": "croc send <paths>",
             "actions": {
+                "reset": "Reset form",
                 "start": "Start sending"
             },
             "toast": {
@@ -498,7 +509,9 @@
                 "qrNoBrowser": "Cannot save QR code in this environment.",
                 "qrNotFound": "QR code element not found.",
                 "qrSaved": "QR code saved (SVG).",
-                "qrSaveFailed": "Unable to save QR code."
+                "qrSaveFailed": "Unable to save QR code.",
+                "resetBlockedActive": "Finish or cancel the current send before resetting.",
+                "resetCompleted": "Send form reset."
             }
         },
         "receive": {

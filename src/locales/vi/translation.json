@@ -53,6 +53,14 @@
                 "autoCopy": {
                     "label": "Tự sao chép code-phrase",
                     "description": "Copy vào clipboard khi bắt đầu gửi."
+                },
+                "autoResetSuccess": {
+                    "label": "Tự đặt lại khi gửi thành công",
+                    "description": "Xóa biểu mẫu gửi và trạng thái khi croc báo thành công."
+                },
+                "autoResetFailure": {
+                    "label": "Tự đặt lại khi gửi thất bại/hủy",
+                    "description": "Xóa biểu mẫu gửi khi croc báo lỗi hoặc bị hủy."
                 }
             },
             "sendDefaults": {
@@ -211,9 +219,12 @@
             "app": {
                 "title": "crock UI",
                 "description": "Giao diện croc dành cho desktop.",
+                "logoAlt": "Biểu tượng crock",
+                "tagline": "Chia sẻ tệp an toàn với croc.",
                 "uiVersion": "Phiên bản UI: {{version}}",
-                "basedOn": "Dựa trên <crocLink>croc</crocLink> (MIT). Mã nguồn: <repoLink>GitHub</repoLink>.",
-                "feedback": "Feedback & issues: vui lòng mở issue trên <repoLink>GitHub</repoLink>."
+                "basedOn": "Dựa trên <crocLink>croc</crocLink> (MIT). Mã nguồn: <repoLink>KD-MM2/crock</repoLink>.",
+                "repository": "Kho mã: <repoLink>KD-MM2/crock</repoLink>.",
+                "feedback": "Feedback & issues: vui lòng mở issue trên <repoLink>KD-MM2/crock</repoLink>."
             },
             "binary": {
                 "title": "Croc binary",
@@ -241,8 +252,7 @@
                     "openFolder": "Mở thư mục chứa"
                 },
                 "notes": {
-                    "current": "Đang sử dụng phiên bản này.",
-                    "manualUpdate": "Kiểm tra cập nhật croc thủ công hoặc qua script."
+                    "current": "Đang sử dụng phiên bản này."
                 }
             },
             "toast": {
@@ -485,6 +495,7 @@
             },
             "cliPlaceholder": "croc send <paths>",
             "actions": {
+                "reset": "Đặt lại biểu mẫu",
                 "start": "Bắt đầu gửi"
             },
             "toast": {
@@ -498,7 +509,9 @@
                 "qrNoBrowser": "Không thể lưu mã QR trong môi trường hiện tại.",
                 "qrNotFound": "Không tìm thấy mã QR để lưu.",
                 "qrSaved": "Đã lưu mã QR (SVG).",
-                "qrSaveFailed": "Không thể lưu mã QR."
+                "qrSaveFailed": "Không thể lưu mã QR.",
+                "resetBlockedActive": "Hãy hoàn tất hoặc hủy phiên gửi hiện tại trước khi đặt lại.",
+                "resetCompleted": "Đã đặt lại biểu mẫu gửi."
             }
         },
         "receive": {

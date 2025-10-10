@@ -1,6 +1,6 @@
 import { type ComponentType, type ReactNode, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { AlertTriangle, ClipboardCopy, Cpu, Download, FileCode2, FolderOpen, Globe, Info, Link2, Network, RefreshCw, Save, ShieldCheck, ShieldQuestion, ShieldAlert, Waypoints } from 'lucide-react';
+import { ClipboardCopy, Cpu, Download, FileCode2, FolderOpen, Globe, Info, Link2, Network, RefreshCw, Save, ShieldCheck, ShieldQuestion, ShieldAlert, Waypoints } from 'lucide-react';
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -208,6 +208,26 @@ function GeneralTab({ settings, updateDraft }: { settings: SettingsState; update
             onCheckedChange={(checked) =>
               updateDraft((draft) => {
                 draft.general.autoCopyCodeOnSend = checked;
+              })
+            }
+          />
+          <ToggleField
+            label={t('settings.general.behavior.autoResetSuccess.label')}
+            description={t('settings.general.behavior.autoResetSuccess.description')}
+            checked={settings.general.autoResetOnSendSuccess}
+            onCheckedChange={(checked) =>
+              updateDraft((draft) => {
+                draft.general.autoResetOnSendSuccess = checked;
+              })
+            }
+          />
+          <ToggleField
+            label={t('settings.general.behavior.autoResetFailure.label')}
+            description={t('settings.general.behavior.autoResetFailure.description')}
+            checked={settings.general.autoResetOnSendFailure}
+            onCheckedChange={(checked) =>
+              updateDraft((draft) => {
+                draft.general.autoResetOnSendFailure = checked;
               })
             }
           />
@@ -776,7 +796,13 @@ function AboutTab({ settings }: { settings: SettingsState }) {
     <div className="space-y-8 text-sm">
       <div className="space-y-4">
         <SectionHeading icon={Info} title={t('settings.about.app.title')} description={t('settings.about.app.description')} />
-        <p>{t('settings.about.app.uiVersion', { version: '0.1.0' })}</p>
+        <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border/60 bg-background/40 p-4">
+          <img src="/crock.svg" alt={t('settings.about.app.logoAlt')} className="h-14 w-14" />
+          <div className="space-y-1">
+            <p className="text-base font-semibold leading-none text-foreground">{t('settings.about.app.tagline')}</p>
+            <p className="text-xs text-muted-foreground">{t('settings.about.app.uiVersion', { version: '0.1.0' })}</p>
+          </div>
+        </div>
         <p>
           <Trans
             t={t}
@@ -788,8 +814,21 @@ function AboutTab({ settings }: { settings: SettingsState }) {
                 </a>
               ),
               repoLink: (
-                <a className="underline" href="https://github.com/your-org/crock-ui" target="_blank" rel="noreferrer">
-                  GitHub
+                <a className="underline" href="https://github.com/KD-MM2/crock" target="_blank" rel="noreferrer">
+                  KD-MM2/crock
+                </a>
+              )
+            }}
+          />
+        </p>
+        <p>
+          <Trans
+            t={t}
+            i18nKey="settings.about.app.repository"
+            components={{
+              repoLink: (
+                <a className="underline" href="https://github.com/KD-MM2/crock" target="_blank" rel="noreferrer">
+                  KD-MM2/crock
                 </a>
               )
             }}
@@ -801,7 +840,7 @@ function AboutTab({ settings }: { settings: SettingsState }) {
             i18nKey="settings.about.app.feedback"
             components={{
               repoLink: (
-                <a className="underline" href="https://github.com/your-org/crock-ui" target="_blank" rel="noreferrer">
+                <a className="underline" href="https://github.com/KD-MM2/crock" target="_blank" rel="noreferrer">
                   GitHub
                 </a>
               )
@@ -864,7 +903,6 @@ function AboutTab({ settings }: { settings: SettingsState }) {
           </Button>
         </div>
         {isSameAsInstalled ? <AlertNote icon={ShieldCheck} text={t('settings.about.binary.notes.current')} /> : null}
-        <AlertNote icon={AlertTriangle} text={t('settings.about.binary.notes.manualUpdate')} />
       </div>
     </div>
   );

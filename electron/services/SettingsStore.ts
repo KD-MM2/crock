@@ -10,6 +10,8 @@ const settingsSchema = z.object({
     downloadDir: z.string().min(1),
     autoOpenOnDone: z.boolean(),
     autoCopyCodeOnSend: z.boolean(),
+    autoResetOnSendSuccess: z.boolean(),
+    autoResetOnSendFailure: z.boolean(),
     language: z.enum(['vi', 'en', 'ja']).optional(),
     theme: z.enum(['system', 'light', 'dark']).optional()
   }),
@@ -75,6 +77,8 @@ const DEFAULT_SETTINGS: Settings = {
     downloadDir: '',
     autoOpenOnDone: true,
     autoCopyCodeOnSend: true,
+    autoResetOnSendSuccess: false,
+    autoResetOnSendFailure: false,
     language: 'vi',
     theme: 'system'
   },
