@@ -11,6 +11,14 @@
     output: 'release/${version}'
   },
   files: ['dist', 'dist-electron'],
+  publish: [
+    {
+      provider: 'github',
+      owner: 'KD-MM2',
+      repo: 'crock',
+      releaseType: 'draft'
+    }
+  ],
   mac: {
     target: [
       {
