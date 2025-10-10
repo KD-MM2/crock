@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ClipboardPaste, Copy, File as FileIcon, FileText, FolderPlus, QrCode, RefreshCw, Save, Settings2, Trash2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import i18next from 'i18next';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,14 +34,15 @@ const selectSettings = (state: SettingsStoreState) => ({
 
 type ElectronFile = File & { path?: string };
 
-const MODE_OPTIONS: Array<{ value: SendMode; label: string; description: string }> = [
-  { value: 'files', label: 'Tệp / Thư mục', description: 'Kéo thả hoặc chọn tệp cần gửi.' },
-  { value: 'text', label: 'Văn bản nhanh', description: 'Gửi đoạn text ngắn qua croc --text.' }
+const MODE_OPTIONS: Array<{ value: SendMode; labelKey: string; descriptionKey: string }> = [
+  { value: 'files', labelKey: 'transfer.send.modes.files.label', descriptionKey: 'transfer.send.modes.files.description' },
+  { value: 'text', labelKey: 'transfer.send.modes.text.label', descriptionKey: 'transfer.send.modes.text.description' }
 ];
 
 const MAX_TEXT_LENGTH = 1_000;
 
 export function SendPanel() {
+  const { t } = useTranslation();
   const { settings, load, status } = useSettingsStore(selectSettings);
   const openSettings = useUiStore((state: UiStore) => state.openSettings);
   const upsertSession = useTransferStore((state: TransferStoreState) => state.upsertSession);
@@ -109,7 +112,7 @@ export function SendPanel() {
         setForm((prev) => ({ ...prev, text: text.slice(0, MAX_TEXT_LENGTH) }));
       }
     } catch (error) {
-      toast.error('Không thể đọc clipboard.');
+      toast.error(t('transfer.common.toast.clipboardReadFailed'));
     }
   };
 
@@ -119,22 +122,22 @@ export function SendPanel() {
 
   const handleSend = async () => {
     if (!settings) {
-      toast.error('Chưa tải xong thiết lập.');
+      toast.error(t('transfer.common.toast.settingsNotLoaded'));
       return;
     }
 
     if (form.mode === 'files' && form.items.length === 0) {
-      toast.error('Hãy chọn ít nhất một tệp hoặc thư mục.');
+      toast.error(t('transfer.send.toast.noItems'));
       return;
     }
 
     if (form.mode === 'text' && form.text.trim().length === 0) {
-      toast.error('Nhập nội dung văn bản để gửi.');
+      toast.error(t('transfer.send.toast.noText'));
       return;
     }
 
     if (form.mode === 'files' && form.items.some((item) => !item.path)) {
-      toast.error('Một số mục thiếu đường dẫn thực. Chọn lại bằng nút "Chọn…" trong Electron.');
+      toast.error(t('transfer.send.toast.missingPaths'));
       return;
     }
 
@@ -174,10 +177,10 @@ export function SendPanel() {
         items: prev.mode === 'files' ? prev.items : [],
         text: prev.mode === 'text' ? '' : prev.text
       }));
-      toast.success('Đã bắt đầu phiên gửi.');
+      toast.success(t('transfer.send.toast.started'));
     } catch (error) {
       console.error('[SendPanel] start send failed', error);
-      toast.error('Không thể bắt đầu gửi.');
+      toast.error(t('transfer.send.toast.startFailed'));
     } finally {
       setIsSending(false);
     }
@@ -193,11 +196,11 @@ export function SendPanel() {
   const handleCopyCode = useCallback(() => {
     const value = form.code.trim() || finalCode?.trim();
     if (!value) {
-      toast.error('Chưa có code để copy.');
+      toast.error(t('transfer.send.code.noCode'));
       return;
     }
     void copyToClipboard(value);
-  }, [form.code, finalCode]);
+  }, [form.code, finalCode, t]);
   const autoCopyEnabled = settings?.general.autoCopyCodeOnSend ?? false;
 
   const cliCommand = useMemo(
@@ -212,19 +215,19 @@ export function SendPanel() {
 
   const handleSaveQr = useCallback(() => {
     if (!finalCode) {
-      toast.error('Chưa có code để lưu.');
+      toast.error(t('transfer.send.toast.noCodeToSave'));
       return;
     }
 
     if (typeof window === 'undefined') {
-      toast.error('Không thể lưu mã QR trong môi trường hiện tại.');
+      toast.error(t('transfer.send.toast.qrNoBrowser'));
       return;
     }
 
     const container = qrCodeRef.current;
     const svgElement = container?.querySelector('svg');
     if (!svgElement) {
-      toast.error('Không tìm thấy mã QR để lưu.');
+      toast.error(t('transfer.send.toast.qrNotFound'));
       return;
     }
 
@@ -247,16 +250,16 @@ export function SendPanel() {
       document.body.appendChild(anchor);
       anchor.click();
       document.body.removeChild(anchor);
-      toast.success('Đã lưu mã QR (SVG).');
+      toast.success(t('transfer.send.toast.qrSaved'));
     } catch (error) {
       console.error('[SendPanel] save QR failed', error);
-      toast.error('Không thể lưu mã QR.');
+      toast.error(t('transfer.send.toast.qrSaveFailed'));
     } finally {
       if (downloadUrl) {
         URL.revokeObjectURL(downloadUrl);
       }
     }
-  }, [finalCode]);
+  }, [finalCode, t]);
 
   useEffect(() => {
     if (!autoCopyEnabled) {
@@ -274,10 +277,10 @@ export function SendPanel() {
     void (async () => {
       const success = await copyToClipboard(activeSendSession.code!, { silent: true });
       if (success) {
-        toast.success('Đã copy code vào clipboard.');
+        toast.success(t('transfer.send.toast.autoCopySuccess'));
       }
     })();
-  }, [autoCopyEnabled, activeSendSession]);
+  }, [autoCopyEnabled, activeSendSession, t]);
 
   useEffect(() => {
     if (!finalCode) {
@@ -292,7 +295,7 @@ export function SendPanel() {
       if (!record) return;
 
       if (record.type !== 'send') {
-        toast.info('Chỉ hỗ trợ gửi lại các phiên gửi.');
+        toast.info(t('transfer.send.history.wrongType'));
         return;
       }
 
@@ -322,7 +325,7 @@ export function SendPanel() {
 
       const selectedMode: SendMode = modeOption ?? (textOption ? 'text' : 'files');
       const itemsFromHistory = selectedMode === 'files' ? buildItemsFromHistory(record.files, fallbackPaths) : [];
-      const textFromHistory = selectedMode === 'text' ? textOption ?? '' : '';
+      const textFromHistory = selectedMode === 'text' ? (textOption ?? '') : '';
 
       setForm((prev) => ({
         ...prev,
@@ -340,10 +343,10 @@ export function SendPanel() {
 
       setOverridesOpen(hasOverride);
 
-      toast.success('Đã nạp thiết lập từ lịch sử. Kiểm tra lại trước khi gửi.');
+      toast.success(t('transfer.send.history.loaded'));
 
       if (selectedMode === 'files' && itemsFromHistory.length === 0) {
-        toast.info('Không thể xác định danh sách tệp từ lịch sử. Hãy chọn lại file thủ công.');
+        toast.info(t('transfer.send.history.missingFiles'));
       }
     };
 
@@ -351,17 +354,17 @@ export function SendPanel() {
     return () => {
       window.removeEventListener('history:resend', handleHistoryResend as EventListener);
     };
-  }, []);
+  }, [t]);
 
   return (
     <section className="relative flex flex-col gap-4 rounded-xl border border-border/80 bg-background/80 p-5 shadow-sm">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold">Gửi (Send)</h2>
-          <p className="text-sm text-muted-foreground">Chọn tệp hoặc nhập văn bản để gửi qua croc.</p>
+          <h2 className="text-lg font-semibold">{t('transfer.send.title')}</h2>
+          <p className="text-sm text-muted-foreground">{t('transfer.send.subtitle')}</p>
         </div>
         <Button variant="ghost" size="sm" onClick={openSettings} className="gap-2">
-          <Settings2 className="size-4" aria-hidden /> Mở cài đặt nâng cao…
+          <Settings2 className="size-4" aria-hidden /> {t('transfer.send.openAdvanced')}
         </Button>
       </header>
       <div className="flex flex-wrap gap-2">
@@ -372,7 +375,7 @@ export function SendPanel() {
             className={cn('rounded-full border px-3 py-1 text-sm transition-colors', form.mode === option.value ? 'border-primary bg-primary/10 text-primary' : 'border-border/70 text-muted-foreground hover:bg-muted/40')}
             onClick={() => handleModeChange(option.value)}
           >
-            {option.label}
+            {t(option.labelKey)}
           </button>
         ))}
       </div>
@@ -380,18 +383,18 @@ export function SendPanel() {
 
       {form.mode === 'files' ? (
         <div className="space-y-3">
-          <Dropzone multiple maxFiles={0} disabled={isSending} onDrop={handleDropzoneFiles} onError={(error) => toast.error(error.message ?? 'Không thể thêm tệp.')} className="p-4 sm:p-6">
+          <Dropzone multiple maxFiles={0} disabled={isSending} onDrop={handleDropzoneFiles} onError={(error) => toast.error(error.message ?? t('transfer.send.dropzone.error'))} className="p-4 sm:p-6">
             <div className="flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
               <FolderPlus className="size-8 text-primary" aria-hidden />
-              <p className="text-center text-sm font-medium text-foreground sm:text-base">Nhấn để chọn tệp hoặc kéo thả vào đây</p>
-              <p className="text-center text-xs text-muted-foreground">Hỗ trợ kéo thả trực tiếp từ Explorer/Finder (chỉ tệp).</p>
+              <p className="text-center text-sm font-medium text-foreground sm:text-base">{t('transfer.send.dropzone.title')}</p>
+              <p className="text-center text-xs text-muted-foreground">{t('transfer.send.dropzone.description')}</p>
             </div>
           </Dropzone>
           {form.items.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs uppercase tracking-wide text-muted-foreground">
-                <span>{form.items.length} mục</span>
-                <span>Tổng dung lượng: {formatBytes(totalSize)}</span>
+                <span>{t('transfer.send.items.count', { count: form.items.length })}</span>
+                <span>{t('transfer.send.items.total', { size: formatBytes(totalSize) })}</span>
               </div>
               <div className="max-h-48 space-y-2 overflow-y-auto">
                 {form.items.map((item) => (
@@ -412,20 +415,18 @@ export function SendPanel() {
                 ))}
               </div>
               <Button variant="ghost" size="sm" onClick={handleClearItems} className="self-end">
-                Xóa danh sách
+                {t('transfer.send.items.clear')}
               </Button>
             </div>
           )}
         </div>
       ) : (
         <div className="space-y-3">
-          <Textarea value={form.text} onChange={(event) => setForm((prev) => ({ ...prev, text: event.target.value.slice(0, MAX_TEXT_LENGTH) }))} placeholder="Dán hoặc nhập nội dung cần gửi" rows={6} />
+          <Textarea value={form.text} onChange={(event) => setForm((prev) => ({ ...prev, text: event.target.value.slice(0, MAX_TEXT_LENGTH) }))} placeholder={t('transfer.send.textMode.placeholder')} rows={6} />
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>
-              {form.text.length.toLocaleString()} / {MAX_TEXT_LENGTH} ký tự
-            </span>
+            <span>{t('transfer.send.textMode.counter', { current: form.text.length.toLocaleString(), max: MAX_TEXT_LENGTH.toLocaleString() })}</span>
             <Button variant="ghost" size="sm" onClick={() => void handlePasteText()}>
-              <ClipboardPaste className="mr-2 size-4" aria-hidden /> Dán từ clipboard
+              <ClipboardPaste className="mr-2 size-4" aria-hidden /> {t('transfer.send.textMode.paste')}
             </Button>
           </div>
         </div>
@@ -435,11 +436,11 @@ export function SendPanel() {
 
       <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <div className="space-y-2">
-          <label className="text-xs font-medium uppercase text-muted-foreground">Mã code-phrase</label>
+          <label className="text-xs font-medium uppercase text-muted-foreground">{t('transfer.send.code.label')}</label>
           <div className="relative">
-            <Input value={form.code} maxLength={64} onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value }))} placeholder="Để trống để croc tự sinh" className="font-mono pr-32" />
+            <Input value={form.code} maxLength={64} onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value }))} placeholder={t('transfer.send.code.placeholder')} className="font-mono pr-32" />
             <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center gap-1">
-              <Button type="button" variant="ghost" size="icon" className="pointer-events-auto size-8 rounded-full text-muted-foreground hover:text-foreground" onClick={handleRandomCode} aria-label="Random code">
+              <Button type="button" variant="ghost" size="icon" className="pointer-events-auto size-8 rounded-full text-muted-foreground hover:text-foreground" onClick={handleRandomCode} aria-label={t('transfer.send.code.randomAria')}>
                 <RefreshCw className="size-4" aria-hidden />
               </Button>
               <Button
@@ -449,7 +450,7 @@ export function SendPanel() {
                 className="pointer-events-auto size-8 rounded-full text-muted-foreground hover:text-foreground"
                 onClick={handleCopyCode}
                 disabled={!form.code.trim() && !finalCode?.trim()}
-                aria-label="Copy code"
+                aria-label={t('transfer.send.code.copyAria')}
               >
                 <Copy className="size-4" aria-hidden />
               </Button>
@@ -461,13 +462,13 @@ export function SendPanel() {
                 onClick={() => {
                   const code = finalCode?.trim();
                   if (!code) {
-                    toast.error('Chưa có code để hiển thị QR.');
+                    toast.error(t('transfer.send.code.noCodeForQr'));
                     return;
                   }
                   setQrDialogOpen(true);
                 }}
                 disabled={!finalCode?.trim()}
-                aria-label="Hiển thị QR"
+                aria-label={t('transfer.send.code.qrAria')}
               >
                 <QrCode className="size-4" aria-hidden />
               </Button>
@@ -475,7 +476,7 @@ export function SendPanel() {
           </div>
         </div>
         <Button variant="outline" onClick={() => setOverridesOpen((prev) => !prev)}>
-          {overridesOpen ? 'Ẩn tùy chọn phiên' : 'Tùy chọn phiên này'}
+          {overridesOpen ? t('transfer.common.sessionOptions.hide') : t('transfer.common.sessionOptions.show')}
         </Button>
       </div>
 
@@ -484,7 +485,7 @@ export function SendPanel() {
           <div className="mt-3 space-y-4 rounded-lg border border-border/70 bg-muted/10 p-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="grid gap-1 text-xs font-medium uppercase text-muted-foreground">
-                <span>Relay tạm (host:port)</span>
+                <span>{t('transfer.common.sessionOptions.relay.label')}</span>
                 <Input
                   value={form.sessionOverrides.relay ?? ''}
                   onChange={(event) => {
@@ -497,11 +498,11 @@ export function SendPanel() {
                       }
                     }));
                   }}
-                  placeholder="Ví dụ: relay.example.com:9009"
+                  placeholder={t('transfer.common.sessionOptions.relay.placeholder')}
                 />
               </label>
               <label className="grid gap-1 text-xs font-medium uppercase text-muted-foreground">
-                <span>Mật khẩu tạm</span>
+                <span>{t('transfer.common.sessionOptions.pass.label')}</span>
                 <Input
                   type="text"
                   value={form.sessionOverrides.pass ?? ''}
@@ -515,12 +516,12 @@ export function SendPanel() {
                       }
                     }));
                   }}
-                  placeholder="Để trống để dùng mặc định"
+                  placeholder={t('transfer.common.sessionOptions.pass.placeholder')}
                 />
               </label>
             </div>
             <label className="grid gap-1 text-xs font-medium uppercase text-muted-foreground">
-              <span>Exclude tạm thời</span>
+              <span>{t('transfer.common.sessionOptions.exclude.label')}</span>
               <Textarea
                 rows={3}
                 value={form.sessionOverrides.exclude?.join('\n') ?? ''}
@@ -537,14 +538,14 @@ export function SendPanel() {
                     }
                   }));
                 }}
-                placeholder={['Ví dụ:', '*.tmp', 'Thumbs.db'].join('\n')}
+                placeholder={t('transfer.common.sessionOptions.exclude.placeholder')}
               />
-              <span className="text-[10px] text-muted-foreground">Mỗi dòng tương ứng một --exclude</span>
+              <span className="text-[10px] text-muted-foreground">{t('transfer.common.sessionOptions.exclude.help')}</span>
             </label>
             <div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 px-3 py-2 text-sm">
               <div>
-                <p className="font-medium">Tự xác nhận (--yes)</p>
-                <p className="text-xs text-muted-foreground">Bỏ qua prompt xác nhận khi gửi.</p>
+                <p className="font-medium">{t('transfer.common.sessionOptions.autoConfirm.label')}</p>
+                <p className="text-xs text-muted-foreground">{t('transfer.send.sessionOptions.autoConfirmDescription')}</p>
               </div>
               <Switch
                 checked={Boolean(form.sessionOverrides.autoConfirm)}
@@ -570,7 +571,7 @@ export function SendPanel() {
                   }))
                 }
               >
-                Đặt lại tùy chọn phiên
+                {t('transfer.common.sessionOptions.reset')}
               </Button>
             </div>
           </div>
@@ -580,7 +581,7 @@ export function SendPanel() {
       <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Mã QR cho phiên gửi</DialogTitle>
+            <DialogTitle>{t('transfer.send.code.dialog.title')}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center gap-4">
             <div className="flex items-center gap-2">
@@ -594,15 +595,15 @@ export function SendPanel() {
           <DialogFooter className="sm:justify-between">
             <div className="flex flex-1 flex-wrap items-center gap-2 sm:justify-start">
               <Button type="button" variant="outline" size="sm" onClick={handleCopyCode} disabled={!finalCode?.trim()} className="gap-2">
-                <Copy className="size-4" aria-hidden /> Copy code
+                <Copy className="size-4" aria-hidden /> {t('transfer.send.code.dialog.copy')}
               </Button>
               <Button type="button" size="sm" onClick={() => handleSaveQr()} disabled={!finalCode?.trim()} className="gap-2">
-                <Save className="size-4" aria-hidden /> Lưu QR (SVG)
+                <Save className="size-4" aria-hidden /> {t('transfer.send.code.dialog.save')}
               </Button>
             </div>
             <DialogClose asChild>
               <Button type="button" variant="ghost" size="sm">
-                Đóng
+                {t('transfer.common.dialogs.close')}
               </Button>
             </DialogClose>
           </DialogFooter>
@@ -611,10 +612,10 @@ export function SendPanel() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-xs text-muted-foreground">
-          CLI tương đương: <span className="font-mono">{cliCommand ?? 'croc send <paths>'}</span>
+          {t('transfer.common.cliEquivalent')} <span className="font-mono">{cliCommand ?? t('transfer.send.cliPlaceholder')}</span>
         </div>
         <Button size="sm" onClick={() => void handleSend()} disabled={!canSend}>
-          {isSending ? <RefreshCw className="mr-2 size-4 animate-spin" aria-hidden /> : <FileText className="mr-2 size-4" aria-hidden />} Bắt đầu gửi
+          {isSending ? <RefreshCw className="mr-2 size-4 animate-spin" aria-hidden /> : <FileText className="mr-2 size-4" aria-hidden />} {t('transfer.send.actions.start')}
         </Button>
       </div>
     </section>
@@ -731,12 +732,12 @@ async function copyToClipboard(text: string, options?: { silent?: boolean }): Pr
     const api = getWindowApi();
     await api.app.clipboardWrite(text);
     if (!options?.silent) {
-      toast.success('Đã copy code.');
+      toast.success(i18next.t('transfer.common.toast.copySuccess'));
     }
     return true;
   } catch (error) {
     console.error('[SendPanel] copy failed', error);
-    toast.error('Không thể copy code.');
+    toast.error(i18next.t('transfer.common.toast.copyFailure'));
     return false;
   }
 }

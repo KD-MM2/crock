@@ -30,7 +30,10 @@ async function checkRelay(host: string, port: number): Promise<{ online: boolean
 }
 
 export class ConnectionDiagnostics {
-  constructor(private readonly binaryManager: CrocBinaryManager, private readonly settingsStore: SettingsStore) {}
+  constructor(
+    private readonly binaryManager: CrocBinaryManager,
+    private readonly settingsStore: SettingsStore
+  ) {}
 
   async run(): Promise<ConnectionStatus> {
     const settings = this.settingsStore.get();

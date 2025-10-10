@@ -31,7 +31,11 @@ async function pingRelay(host: string, port: number): Promise<{ online: boolean;
 export class RelayStatusMonitor {
   private interval: NodeJS.Timeout | null = null;
 
-  constructor(private readonly window: BrowserWindow, private readonly settingsStore: SettingsStore, private readonly intervalMs: number = DEFAULT_INTERVAL_MS) {}
+  constructor(
+    private readonly window: BrowserWindow,
+    private readonly settingsStore: SettingsStore,
+    private readonly intervalMs: number = DEFAULT_INTERVAL_MS
+  ) {}
 
   start() {
     this.stop();

@@ -1,0 +1,583 @@
+{
+    "common": {
+        "appName": "crock",
+        "loading": "Đang tải…",
+        "loadingShort": "Đang tải…",
+        "actions": {
+            "reset": "Khôi phục",
+            "saveChanges": "Lưu thay đổi",
+            "cancel": "Hủy",
+            "close": "Đóng",
+            "copy": "Sao chép",
+            "delete": "Xóa",
+            "refresh": "Làm mới"
+        },
+        "status": {
+            "online": "Online",
+            "offline": "Offline",
+            "on": "ON",
+            "off": "OFF",
+            "unknown": "Không rõ",
+            "notAvailable": "—",
+            "notConfigured": "Chưa thiết lập"
+        }
+    },
+    "settings": {
+        "dialog": {
+            "title": "Cài đặt",
+            "description": "Tùy chỉnh hành vi ứng dụng, mặc định truyền tải và cấu hình kết nối cho croc.",
+            "loading": "Đang tải thiết lập…",
+            "footer": {
+                "note": "Thay đổi được lưu cục bộ và đồng bộ với tiến trình chính thông qua IPC."
+            }
+        },
+        "tabs": {
+            "general": "Chung",
+            "advanced": "Nâng cao",
+            "misc": "Khác",
+            "about": "Giới thiệu"
+        },
+        "general": {
+            "download": {
+                "title": "Thư mục tải về mặc định",
+                "description": "Chọn nơi lưu tệp sau khi nhận.",
+                "selectFolder": "Chọn…"
+            },
+            "behavior": {
+                "title": "Hành vi gửi/nhận",
+                "description": "Tự động hóa sau khi phiên hoàn tất.",
+                "autoOpen": {
+                    "label": "Tự mở thư mục khi nhận xong",
+                    "description": "Áp dụng cho các phiên nhận."
+                },
+                "autoCopy": {
+                    "label": "Tự sao chép code-phrase",
+                    "description": "Copy vào clipboard khi bắt đầu gửi."
+                }
+            },
+            "sendDefaults": {
+                "title": "Defaults khi gửi",
+                "description": "Thiết lập mặc định cho croc send.",
+                "noCompress": {
+                    "label": "Không nén (--no-compress)",
+                    "description": "Giữ nguyên kích thước gốc khi gửi."
+                },
+                "exclude": {
+                    "label": "Exclude patterns",
+                    "placeholder": "Ví dụ: *.tmp\nThumbs.db",
+                    "help": "Mỗi dòng tương ứng một --exclude."
+                }
+            },
+            "receiveDefaults": {
+                "title": "Defaults khi nhận",
+                "description": "Áp dụng cho croc receive.",
+                "overwrite": {
+                    "label": "Ghi đè tệp (--overwrite)",
+                    "description": "Tự động ghi đè tệp trùng tên."
+                },
+                "yes": {
+                    "label": "Tự xác nhận (--yes)",
+                    "description": "Bỏ qua bước xác nhận khi nhận."
+                },
+                "defaultDir": "Thư mục mặc định"
+            }
+        },
+        "advanced": {
+            "labels": {
+                "relay": "Relay"
+            },
+            "toast": {
+                "relayTestFailure": "Không thể kiểm tra relay.",
+                "relayOnline": "{{host}} hoạt động (latency {{latency}} ms).",
+                "relayOffline": "{{host}} không phản hồi hoặc ngoại tuyến.",
+                "proxyTestFailure": "Không thể kiểm tra proxy.",
+                "proxyOnline": "Proxy hoạt động (HTTP {{http}} • HTTPS {{https}}).",
+                "proxyOffline": "Proxy chưa bật hoặc không phản hồi."
+            },
+            "defaultRelay": {
+                "title": "Relay mặc định",
+                "description": "Host:Port và mật khẩu ưu tiên.",
+                "fields": {
+                    "host": "Host:Port",
+                    "hostPlaceholder": "croc.schollz.com:9009",
+                    "pass": "Mật khẩu"
+                },
+                "actions": {
+                    "testRelay": "Kiểm tra relay",
+                    "testProxy": "Kiểm tra proxy"
+                },
+                "info": {
+                    "title": "Relay: {{host}}",
+                    "description": "Latency {{latency}} ms • {{checkedAt}}"
+                }
+            },
+            "favorites": {
+                "title": "Danh sách relay ưa thích",
+                "description": "Lưu nhiều relay để chuyển đổi nhanh.",
+                "empty": "Chưa có relay ưa thích.",
+                "passLabel": "Pass: {{value}}",
+                "passMasked": "••••••",
+                "passMissing": "Không",
+                "actions": {
+                    "setDefault": "Đặt mặc định"
+                },
+                "add": {
+                    "fields": {
+                        "host": "Host:Port",
+                        "hostPlaceholder": "relay.example.com:9009",
+                        "pass": "Pass",
+                        "passPlaceholder": "Tùy chọn"
+                    },
+                    "button": "Thêm relay"
+                }
+            },
+            "proxy": {
+                "title": "Proxy",
+                "description": "Cấu hình HTTP(S) proxy cho phiên.",
+                "fields": {
+                    "http": "HTTP Proxy",
+                    "httpPlaceholder": "http://127.0.0.1:8080",
+                    "https": "HTTPS Proxy",
+                    "httpsPlaceholder": "https://127.0.0.1:8080"
+                },
+                "info": {
+                    "title": "Trạng thái proxy",
+                    "description": "HTTP: {{http}} • HTTPS: {{https}}"
+                }
+            },
+            "security": {
+                "title": "Thuật toán",
+                "description": "Chọn curve phù hợp với relay.",
+                "fields": {
+                    "curve": "Curve"
+                },
+                "note": "Các lựa chọn phụ thuộc phiên bản croc hiện tại."
+            },
+            "connectionStatus": {
+                "title": "Trạng thái kết nối",
+                "description": "Kiểm tra relay, proxy và phiên bản croc.",
+                "cards": {
+                    "relay": {
+                        "title": "Relay: {{host}}",
+                        "description": "Latency: {{latency}} ms"
+                    },
+                    "proxy": {
+                        "title": "Proxy",
+                        "description": "HTTP {{http}} • HTTPS {{https}}"
+                    },
+                    "croc": {
+                        "title": "croc",
+                        "description": "Phiên bản: {{version}}"
+                    }
+                }
+            }
+        },
+        "misc": {
+            "logging": {
+                "title": "Logging & History",
+                "description": "Điều chỉnh log tail và thời gian giữ.",
+                "fields": {
+                    "logTail": "Số dòng log tail",
+                    "historyRetention": "Giữ lịch sử (ngày)"
+                },
+                "showLogs": {
+                    "label": "Hiển thị khung nhật ký",
+                    "description": "Ẩn/hiện log chi tiết trong bảng tiến trình."
+                }
+            },
+            "security": {
+                "title": "Tùy chọn bảo mật",
+                "description": "Điều chỉnh xác thực code và flags.",
+                "deepLink": {
+                    "label": "Bật deep links",
+                    "description": "Cho phép croc-ui://receive?code=…"
+                },
+                "verbose": {
+                    "label": "Verbose logs",
+                    "description": "Ghi thêm stderr/stdout."
+                },
+                "validate": {
+                    "label": "Kiểm tra code-phrase",
+                    "description": "Kiểm tra định dạng trước khi chạy."
+                }
+            },
+            "extraFlags": {
+                "label": "Extra flags",
+                "placeholder": "Ví dụ: --max-retries 3",
+                "help": "Các cờ bổ sung sẽ được nối vào lệnh croc. Hãy cẩn trọng!"
+            }
+        },
+        "about": {
+            "app": {
+                "title": "crock UI",
+                "description": "Giao diện croc dành cho desktop.",
+                "uiVersion": "Phiên bản UI: {{version}}",
+                "basedOn": "Dựa trên <crocLink>croc</crocLink> (MIT). Mã nguồn: <repoLink>GitHub</repoLink>.",
+                "feedback": "Feedback & issues: vui lòng mở issue trên <repoLink>GitHub</repoLink>."
+            },
+            "binary": {
+                "title": "Croc binary",
+                "description": "Thông tin phiên bản và vị trí binary.",
+                "fields": {
+                    "version": "PHIÊN BẢN",
+                    "versionAria": "Chọn phiên bản croc",
+                    "versionPlaceholder": "Chọn phiên bản",
+                    "versionEmpty": "Không có phiên bản",
+                    "path": "Đường dẫn"
+                },
+                "current": "Phiên bản hiện tại: {{version}}",
+                "labels": {
+                    "releaseTitle": "{{version}}{{status}}",
+                    "preRelease": "pre-release",
+                    "immutable": "immutable",
+                    "publishedAt": "Phát hành {{date}}",
+                    "notInstalled": "chưa cài đặt"
+                },
+                "actions": {
+                    "change": "Đổi phiên bản",
+                    "download": "Tải về",
+                    "installing": "Đang cài đặt…",
+                    "checkVersion": "Kiểm tra phiên bản",
+                    "openFolder": "Mở thư mục chứa"
+                },
+                "notes": {
+                    "current": "Đang sử dụng phiên bản này.",
+                    "manualUpdate": "Kiểm tra cập nhật croc thủ công hoặc qua script."
+                }
+            },
+            "toast": {
+                "loadVersionsFailure": "Không thể tải danh sách phiên bản croc từ GitHub.",
+                "checkVersionFailure": "Không thể kiểm tra phiên bản croc.",
+                "installSuccess": "Đã cài đặt croc {{version}}.",
+                "installFailure": "Không thể tải phiên bản croc được chọn."
+            }
+        }
+    },
+    "topbar": {
+        "ariaLabel": "Thanh tiêu đề ứng dụng",
+        "history": {
+            "label": "Lịch sử",
+            "tooltip": "Xem lịch sử truyền tải (Ctrl+H)",
+            "ariaLabel": "Mở lịch sử truyền tải"
+        },
+        "settings": {
+            "label": "Cài đặt",
+            "tooltip": "Mở cài đặt (Ctrl+,)",
+            "ariaLabel": "Mở cài đặt"
+        },
+        "language": {
+            "buttonAria": "Đổi ngôn ngữ (hiện tại: {{language}})",
+            "tooltip": "Ngôn ngữ: {{language}}",
+            "options": {
+                "vi": "Tiếng Việt",
+                "en": "English"
+            }
+        },
+        "theme": {
+            "tooltip": "Chuyển giao diện",
+            "ariaLabel": "Chuyển giao diện",
+            "options": {
+                "light": "Giao diện sáng",
+                "dark": "Giao diện tối",
+                "system": "Theo hệ thống"
+            }
+        },
+        "window": {
+            "minimize": {
+                "label": "Thu nhỏ",
+                "tooltip": "Thu nhỏ cửa sổ",
+                "ariaLabel": "Thu nhỏ cửa sổ"
+            },
+            "maximize": {
+                "label": "Phóng to",
+                "tooltip": "Phóng to hoặc khôi phục",
+                "ariaLabel": "Phóng to hoặc khôi phục cửa sổ"
+            },
+            "close": {
+                "label": "Đóng",
+                "tooltip": "Đóng ứng dụng",
+                "ariaLabel": "Đóng ứng dụng"
+            }
+        }
+    },
+    "history": {
+        "dialog": {
+            "title": "Lịch sử truyền tải",
+            "description": "Theo dõi các phiên gửi/nhận trước đây. Chọn một bản ghi để xem chi tiết.",
+            "filters": {
+                "type": {
+                    "label": "Loại",
+                    "options": {
+                        "all": "Tất cả"
+                    }
+                },
+                "status": {
+                    "label": "Trạng thái",
+                    "options": {
+                        "all": "Tất cả"
+                    }
+                },
+                "search": {
+                    "label": "Tìm kiếm",
+                    "placeholder": "Mã code, relay, tên file..."
+                }
+            },
+            "actions": {
+                "refresh": "Làm mới",
+                "resetFilters": "Đặt lại",
+                "clearAll": "Xóa tất cả",
+                "exportJson": "Xuất JSON"
+            },
+            "table": {
+                "headers": {
+                    "type": "Loại",
+                    "time": "Thời gian",
+                    "size": "Dung lượng",
+                    "relay": "Relay",
+                    "code": "Code",
+                    "status": "Trạng thái"
+                }
+            },
+            "loading": "Đang tải lịch sử...",
+            "empty": "Chưa có phiên truyền tải nào. Hãy bắt đầu gửi hoặc nhận để ghi lịch sử.",
+            "selection": {
+                "promptTitle": "Chọn một bản ghi",
+                "promptDescription": "Xem thông tin chi tiết về phiên truyền tải."
+            },
+            "clearConfirm": {
+                "title": "Xóa toàn bộ lịch sử?",
+                "description": "Thao tác này sẽ xóa vĩnh viễn mọi bản ghi gửi/nhận đã lưu. Bạn sẽ không thể hoàn tác.",
+                "confirm": "Xóa"
+            }
+        },
+        "toast": {
+            "clearAllSuccess": "Đã xóa toàn bộ lịch sử.",
+            "clearAllFailure": "Không thể xóa lịch sử."
+        },
+        "statuses": {
+            "in-progress": "ĐANG XỬ LÝ",
+            "connecting": "ĐANG KẾT NỐI",
+            "sending": "ĐANG GỬI",
+            "receiving": "ĐANG NHẬN",
+            "done": "HOÀN TẤT",
+            "failed": "THẤT BẠI",
+            "canceled": "ĐÃ HỦY"
+        },
+        "types": {
+            "send": "Gửi",
+            "receive": "Nhận"
+        },
+        "detail": {
+            "sessionLabel": "Phiên {{type}}",
+            "fields": {
+                "code": "Mã code",
+                "relay": "Relay",
+                "status": "Trạng thái",
+                "totalSize": "Tổng dung lượng",
+                "duration": "Thời lượng"
+            },
+            "files": {
+                "title": "Tệp tin"
+            },
+            "log": {
+                "title": "Log"
+            },
+            "actions": {
+                "resend": "Gửi lại với thiết lập cũ",
+                "openDestination": "Mở thư mục đích"
+            }
+        }
+    },
+    "transfer": {
+        "tabs": {
+            "send": "Gửi",
+            "receive": "Nhận"
+        },
+        "common": {
+            "cliEquivalent": "CLI tương đương:",
+            "cliPlaceholder": {
+                "send": "croc send <paths>",
+                "receive": "croc <code>"
+            },
+            "sessionOptions": {
+                "show": "Tùy chọn phiên này",
+                "hide": "Ẩn tùy chọn phiên",
+                "relay": {
+                    "label": "Relay tạm (host:port)",
+                    "placeholder": "Ví dụ: relay.example.com:9009"
+                },
+                "pass": {
+                    "label": "Mật khẩu tạm",
+                    "placeholder": "Để trống để dùng mặc định"
+                },
+                "exclude": {
+                    "label": "Exclude tạm thời",
+                    "placeholder": "Ví dụ:\n*.tmp\nThumbs.db",
+                    "help": "Mỗi dòng tương ứng một --exclude"
+                },
+                "autoConfirm": {
+                    "label": "Tự xác nhận (--yes)"
+                },
+                "reset": "Đặt lại tùy chọn phiên"
+            },
+            "dialogs": {
+                "close": "Đóng"
+            },
+            "toast": {
+                "clipboardReadFailed": "Không thể đọc clipboard.",
+                "copySuccess": "Đã copy code.",
+                "copyFailure": "Không thể copy code.",
+                "settingsNotLoaded": "Chưa tải xong thiết lập."
+            }
+        },
+        "send": {
+            "title": "Gửi",
+            "subtitle": "Chọn tệp hoặc nhập văn bản để gửi qua croc.",
+            "openAdvanced": "Mở cài đặt nâng cao…",
+            "modes": {
+                "files": {
+                    "label": "Tệp / Thư mục",
+                    "description": "Kéo thả hoặc chọn tệp cần gửi."
+                },
+                "text": {
+                    "label": "Văn bản nhanh",
+                    "description": "Gửi đoạn text ngắn qua croc --text."
+                }
+            },
+            "dropzone": {
+                "title": "Nhấn để chọn tệp hoặc kéo thả vào đây",
+                "description": "Hỗ trợ kéo thả trực tiếp từ Explorer/Finder (chỉ tệp).",
+                "error": "Không thể thêm tệp."
+            },
+            "items": {
+                "count_one": "{{count}} mục",
+                "count_other": "{{count}} mục",
+                "total": "Tổng dung lượng: {{size}}",
+                "clear": "Xóa danh sách"
+            },
+            "textMode": {
+                "placeholder": "Dán hoặc nhập nội dung cần gửi",
+                "counter": "{{current}} / {{max}} ký tự",
+                "paste": "Dán từ clipboard"
+            },
+            "code": {
+                "label": "Mã code-phrase",
+                "placeholder": "Để trống để croc tự sinh",
+                "randomAria": "Sinh code ngẫu nhiên",
+                "copyAria": "Copy code",
+                "qrAria": "Hiển thị QR",
+                "dialog": {
+                    "title": "Mã QR cho phiên gửi",
+                    "copy": "Copy code",
+                    "save": "Lưu QR (SVG)"
+                },
+                "noCode": "Chưa có code để copy.",
+                "noCodeForQr": "Chưa có code để hiển thị QR."
+            },
+            "sessionOptions": {
+                "autoConfirmDescription": "Bỏ qua prompt xác nhận khi gửi."
+            },
+            "history": {
+                "wrongType": "Chỉ hỗ trợ gửi lại các phiên gửi.",
+                "loaded": "Đã nạp thiết lập từ lịch sử. Kiểm tra lại trước khi gửi.",
+                "missingFiles": "Không thể xác định danh sách tệp từ lịch sử. Hãy chọn lại file thủ công."
+            },
+            "cliPlaceholder": "croc send <paths>",
+            "actions": {
+                "start": "Bắt đầu gửi"
+            },
+            "toast": {
+                "noItems": "Hãy chọn ít nhất một tệp hoặc thư mục.",
+                "noText": "Nhập nội dung văn bản để gửi.",
+                "missingPaths": "Một số mục thiếu đường dẫn thực. Chọn lại bằng nút \"Chọn…\" trong Electron.",
+                "started": "Đã bắt đầu phiên gửi.",
+                "startFailed": "Không thể bắt đầu gửi.",
+                "autoCopySuccess": "Đã copy code vào clipboard.",
+                "noCodeToSave": "Chưa có code để lưu.",
+                "qrNoBrowser": "Không thể lưu mã QR trong môi trường hiện tại.",
+                "qrNotFound": "Không tìm thấy mã QR để lưu.",
+                "qrSaved": "Đã lưu mã QR (SVG).",
+                "qrSaveFailed": "Không thể lưu mã QR."
+            }
+        },
+        "receive": {
+            "title": "Nhận",
+            "subtitle": "Nhập mã đã nhận từ người gửi để tải xuống.",
+            "openSettings": "Thiết lập nhận…",
+            "code": {
+                "label": "Mã code-phrase",
+                "placeholder": "Ví dụ: downtown-almond-dynamo",
+                "ariaLabel": "Code phrase để nhận file"
+            },
+            "sessionOptions": {
+                "autoConfirmDescription": "Bỏ qua prompt xác nhận khi nhận file.",
+                "autoPaste": {
+                    "label": "Tự dán code (clipboard)",
+                    "description": "Thử đọc clipboard và tự dán code (nếu có)."
+                },
+                "overwrite": {
+                    "label": "Ghi đè file (--overwrite)",
+                    "description": "Cho phép thay thế file trùng tên tại thư mục tải xuống."
+                }
+            },
+            "actions": {
+                "receive": "Nhận file",
+                "receiving": "Đang chuẩn bị…",
+                "paste": "Dán từ clipboard"
+            },
+            "cliPlaceholder": "croc <code>",
+            "toast": {
+                "missingCode": "Nhập mã code-phrase để nhận.",
+                "started": "Đang chờ nhận file…",
+                "startFailed": "Không thể bắt đầu nhận."
+            }
+        },
+        "progress": {
+            "empty": {
+                "title": "Chưa có phiên truyền tải nào đang hoạt động.",
+                "description": "Sau khi bắt đầu gửi hoặc nhận, tiến trình sẽ hiển thị tại đây."
+            },
+            "phases": {
+                "idle": "SẴN SÀNG",
+                "connecting": "ĐANG KẾT NỐI",
+                "hashing": "ĐANG MÃ HÓA",
+                "waiting": "ĐANG CHỜ NGƯỜI NHẬN",
+                "sending": "ĐANG GỬI",
+                "receiving": "ĐANG NHẬN",
+                "done": "HOÀN TẤT",
+                "failed": "THẤT BẠI",
+                "canceled": "ĐÃ HỦY"
+            },
+            "status": {
+                "done": "Hoàn tất",
+                "waiting": "Đang chờ người nhận",
+                "processing": "Đang xử lý"
+            },
+            "info": {
+                "connection": "Kết nối {{address}}",
+                "sizeRatio": "Dung lượng {{transferred}}/{{total}}",
+                "sizeTotal": "Dung lượng {{total}}",
+                "speed": "Tốc độ {{speed}}",
+                "eta": "ETA {{eta}}"
+            },
+            "logs": {
+                "title": "Nhật ký gần nhất"
+            },
+            "cancel": {
+                "button": "Hủy phiên",
+                "confirmTitle": "Hủy phiên hiện tại?",
+                "confirmDescription": "Việc hủy sẽ dừng quá trình truyền tải. Bạn có thể bắt đầu lại sau nếu cần.",
+                "confirm": "Xác nhận hủy"
+            },
+            "progressbar": {
+                "srWaiting": "Đang chờ người nhận kết nối"
+            },
+            "toast": {
+                "canceled": "Phiên truyền tải đã bị hủy.",
+                "completed": "Phiên truyền tải hoàn tất.",
+                "canceling": "Đang yêu cầu hủy phiên…",
+                "cancelFailed": "Không thể hủy phiên."
+            }
+        }
+    }
+}

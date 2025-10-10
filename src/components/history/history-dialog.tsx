@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useMemo } from 'react';
 import { Activity, ArrowUpRight, Clock, Download, ExternalLink, FileText, RefreshCw, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -15,24 +16,25 @@ import { cn } from '@/lib/utils';
 import { getWindowApi } from '@/lib/window-api';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
-const statusLabels: Record<string, string> = {
-  'in-progress': 'Đang xử lý',
-  connecting: 'Đang kết nối',
-  sending: 'Đang gửi',
-  receiving: 'Đang nhận',
-  done: 'Hoàn tất',
-  failed: 'Thất bại',
-  canceled: 'Đã hủy'
+const statusLabelKeys: Record<string, string> = {
+  'in-progress': 'history.statuses.in-progress',
+  connecting: 'history.statuses.connecting',
+  sending: 'history.statuses.sending',
+  receiving: 'history.statuses.receiving',
+  done: 'history.statuses.done',
+  failed: 'history.statuses.failed',
+  canceled: 'history.statuses.canceled'
 };
 
-const typeLabels: Record<string, string> = {
-  send: 'Gửi',
-  receive: 'Nhận'
+const typeLabelKeys: Record<string, string> = {
+  send: 'history.types.send',
+  receive: 'history.types.receive'
 };
 
 export function HistoryDialog() {
   const open = useUiStore((state: UiStore) => state.dialogs.historyOpen);
   const closeHistory = useUiStore((state: UiStore) => state.closeHistory);
+  const { t } = useTranslation();
 
   const status = useHistoryStore((state: HistoryStoreState) => state.status);
   const load = useHistoryStore((state: HistoryStoreState) => state.load);
@@ -59,10 +61,10 @@ export function HistoryDialog() {
   const handleClearAll = async () => {
     try {
       await clearAll();
-      toast.success('Đã xóa toàn bộ lịch sử.');
+      toast.success(t('history.toast.clearAllSuccess'));
     } catch (error) {
       console.error('[HistoryDialog] clear all failed', error);
-      toast.error('Không thể xóa lịch sử.');
+      toast.error(t('history.toast.clearAllFailure'));
     }
   };
 
@@ -74,78 +76,79 @@ export function HistoryDialog() {
             <DialogHeader className="items-start text-left">
               <DialogTitle className="flex items-center gap-2 text-xl">
                 <Clock className="size-5 text-primary" aria-hidden />
-                Lịch sử truyền tải
+                {t('history.dialog.title')}
               </DialogTitle>
-              <DialogDescription>Theo dõi các phiên gửi/nhận trước đây. Chọn một bản ghi để xem chi tiết.</DialogDescription>
+              <DialogDescription>{t('history.dialog.description')}</DialogDescription>
             </DialogHeader>
 
             <div className="mt-4 grid gap-4">
-              <div className="grid gap-3 rounded-lg border border-border/60 bg-muted/20 p-3 sm:grid-cols-[repeat(3, minmax(0, 1fr))_auto] sm:items-end sm:gap-4">
-                <div>
-                  <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">Loại</label>
+              <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border/60 bg-muted/20 p-3">
+                <div className="flex-1 min-w-[200px]">
+                  <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">{t('history.dialog.filters.type.label')}</label>
                   <Select value={filters.type} onValueChange={(value) => setFilters({ type: value as typeof filters.type })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Tất cả" />
+                      <SelectValue placeholder={t('history.dialog.filters.type.options.all')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tất cả</SelectItem>
-                      <SelectItem value="send">Gửi</SelectItem>
-                      <SelectItem value="receive">Nhận</SelectItem>
+                      <SelectItem value="all">{t('history.dialog.filters.type.options.all')}</SelectItem>
+                      <SelectItem value="send">{t(typeLabelKeys.send)}</SelectItem>
+                      <SelectItem value="receive">{t(typeLabelKeys.receive)}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">Trạng thái</label>
+                <div className="flex-1 min-w-[200px]">
+                  <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">{t('history.dialog.filters.status.label')}</label>
                   <Select value={filters.status} onValueChange={(value) => setFilters({ status: value as typeof filters.status })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Tất cả" />
+                      <SelectValue placeholder={t('history.dialog.filters.status.options.all')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tất cả</SelectItem>
-                      <SelectItem value="done">Hoàn tất</SelectItem>
-                      <SelectItem value="failed">Thất bại</SelectItem>
-                      <SelectItem value="canceled">Đã hủy</SelectItem>
-                      <SelectItem value="in-progress">Đang xử lý</SelectItem>
+                      <SelectItem value="all">{t('history.dialog.filters.status.options.all')}</SelectItem>
+                      <SelectItem value="done">{t(statusLabelKeys.done)}</SelectItem>
+                      <SelectItem value="failed">{t(statusLabelKeys.failed)}</SelectItem>
+                      <SelectItem value="canceled">{t(statusLabelKeys.canceled)}</SelectItem>
+                      <SelectItem value="in-progress">{t(statusLabelKeys['in-progress'])}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="sm:col-span-1">
-                  <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">Tìm kiếm</label>
-                  <Input placeholder="Mã code, relay, tên file..." value={filters.search} onChange={(event) => setFilters({ search: event.target.value })} />
+                <div className="flex-1 min-w-[200px]">
+                  <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">{t('history.dialog.filters.search.label')}</label>
+                  <Input placeholder={t('history.dialog.filters.search.placeholder')} value={filters.search} onChange={(event) => setFilters({ search: event.target.value })} />
                 </div>
-                <div className="flex items-center gap-2 sm:justify-end">
-                  <Button variant="outline" size="sm" onClick={() => void refresh()} className="w-full sm:w-auto">
-                    <RefreshCw className="mr-2 size-4" aria-hidden /> Làm mới
+                <div className="flex-1 min-w-[200px]">
+                  <Button variant="outline" size="sm" onClick={() => void refresh()}>
+                    <RefreshCw className="mr-2 size-4" aria-hidden /> {t('history.dialog.actions.refresh')}
                   </Button>
+                </div>
+                <div className="flex-1 min-w-[200px]">
                   <Button variant="ghost" size="sm" onClick={() => setFilters({ type: 'all', status: 'all', search: '' })}>
-                    Đặt lại
+                    {t('history.dialog.actions.resetFilters')}
                   </Button>
                 </div>
               </div>
-
               <div className="rounded-lg border border-border/60">
                 <div className="flex items-center justify-between border-b border-border/60 bg-muted/30 px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  <span className="w-12">Loại</span>
-                  <span className="flex-1">Thời gian</span>
-                  <span className="w-24 text-right">Dung lượng</span>
-                  <span className="w-32 text-right">Relay</span>
-                  <span className="w-32 text-right">Code</span>
-                  <span className="w-24 text-right">Trạng thái</span>
+                  <span className="w-12">{t('history.dialog.table.headers.type')}</span>
+                  <span className="flex-1">{t('history.dialog.table.headers.time')}</span>
+                  <span className="w-24 text-right">{t('history.dialog.table.headers.size')}</span>
+                  <span className="w-32 text-right">{t('history.dialog.table.headers.relay')}</span>
+                  <span className="w-32 text-right">{t('history.dialog.table.headers.code')}</span>
+                  <span className="w-24 text-right">{t('history.dialog.table.headers.status')}</span>
                 </div>
                 <div className="max-h-[320px] overflow-y-auto">
                   {status === 'loading' && (
                     <div className="flex items-center justify-center gap-2 px-4 py-6 text-muted-foreground">
-                      <Activity className="size-4 animate-spin" aria-hidden /> Đang tải lịch sử...
+                      <Activity className="size-4 animate-spin" aria-hidden /> {t('history.dialog.loading')}
                     </div>
                   )}
-                  {status === 'ready' && records.length === 0 && <div className="px-4 py-6 text-sm text-muted-foreground">Chưa có phiên truyền tải nào. Hãy bắt đầu gửi hoặc nhận để ghi lịch sử.</div>}
+                  {status === 'ready' && records.length === 0 && <div className="px-4 py-6 text-sm text-muted-foreground">{t('history.dialog.empty')}</div>}
                   {records.map((record: HistoryRecord) => (
                     <button
                       key={record.id}
                       className={cn('flex w-full items-center gap-2 border-b border-border/40 px-4 py-3 text-sm transition-colors last:border-none hover:bg-muted/40', selectedId === record.id && 'bg-primary/10')}
                       onClick={() => select(record.id)}
                     >
-                      <span className="w-12 text-left font-medium text-muted-foreground">{typeLabels[record.type]}</span>
+                      <span className="w-12 text-left font-medium text-muted-foreground">{t(typeLabelKeys[record.type] ?? 'history.types.unknown', { defaultValue: record.type })}</span>
                       <span className="flex-1 text-left text-xs text-muted-foreground">{formatDateTime(record.createdAt)}</span>
                       <span className="w-24 text-right font-medium">{formatBytes(record.totalSize)}</span>
                       <span className="w-32 truncate text-right text-xs text-muted-foreground" title={record.relay ?? ''}>
@@ -173,8 +176,8 @@ export function HistoryDialog() {
               <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-sm text-muted-foreground">
                 <FileText className="size-10 text-muted-foreground" aria-hidden />
                 <div>
-                  <p className="font-medium text-foreground">Chọn một bản ghi</p>
-                  <p>Xem thông tin chi tiết về phiên truyền tải.</p>
+                  <p className="font-medium text-foreground">{t('history.dialog.selection.promptTitle')}</p>
+                  <p>{t('history.dialog.selection.promptDescription')}</p>
                 </div>
               </div>
             )}
@@ -182,24 +185,24 @@ export function HistoryDialog() {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm" className="w-full">
-                    <Trash2 className="mr-2 size-4" aria-hidden /> Xóa tất cả
+                    <Trash2 className="mr-2 size-4" aria-hidden /> {t('history.dialog.actions.clearAll')}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Xóa toàn bộ lịch sử?</AlertDialogTitle>
-                    <AlertDialogDescription>Thao tác này sẽ xóa vĩnh viễn mọi bản ghi gửi/nhận đã lưu. Bạn sẽ không thể hoàn tác.</AlertDialogDescription>
+                    <AlertDialogTitle>{t('history.dialog.clearConfirm.title')}</AlertDialogTitle>
+                    <AlertDialogDescription>{t('history.dialog.clearConfirm.description')}</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Hủy</AlertDialogCancel>
+                    <AlertDialogCancel>{t('common.actions.cancel')}</AlertDialogCancel>
                     <AlertDialogAction className="gap-2 bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive" onClick={() => void handleClearAll()}>
-                      <Trash2 className="size-4" aria-hidden /> Xóa
+                      <Trash2 className="size-4" aria-hidden /> {t('history.dialog.clearConfirm.confirm')}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
               <Button variant="secondary" size="sm" onClick={() => void handleExport()} className="w-full">
-                <Download className="mr-2 size-4" aria-hidden /> Xuất JSON
+                <Download className="mr-2 size-4" aria-hidden /> {t('history.dialog.actions.exportJson')}
               </Button>
             </DialogFooter>
           </aside>
@@ -210,13 +213,18 @@ export function HistoryDialog() {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const label = statusLabels[status] ?? status;
+  const { t } = useTranslation();
+  const labelKey = statusLabelKeys[status];
+  const label = labelKey ? t(labelKey) : status;
   const color = status === 'done' ? 'bg-emerald-500/10 text-emerald-500' : status === 'failed' ? 'bg-red-500/10 text-red-500' : status === 'canceled' ? 'bg-amber-500/10 text-amber-500' : 'bg-slate-500/10 text-slate-500';
   return <span className={cn('inline-flex items-center justify-end rounded-full px-2 py-0.5 text-xs font-medium', color)}>{label}</span>;
 }
 
 function HistoryDetail({ record, onClose }: { record: HistoryRecord; onClose: () => void }) {
   const api = getWindowApi();
+  const { t } = useTranslation();
+  const typeLabelKey = typeLabelKeys[record.type];
+  const typeLabel = typeLabelKey ? t(typeLabelKey) : record.type;
 
   const handleOpenFolder = async () => {
     const path = record.type === 'receive' ? record.destinationPath : record.sourcePath;
@@ -237,23 +245,23 @@ function HistoryDetail({ record, onClose }: { record: HistoryRecord; onClose: ()
     <div className="flex h-full flex-col gap-4 text-sm">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-xs uppercase text-muted-foreground">Phiên {typeLabels[record.type] ?? record.type}</p>
+          <p className="text-xs uppercase text-muted-foreground">{t('history.detail.sessionLabel', { type: typeLabel })}</p>
           <p className="font-semibold text-foreground">{formatDateTime(record.createdAt)}</p>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose}>
-          Đóng
+          {t('common.actions.close')}
         </Button>
       </div>
       <div className="space-y-2 rounded-lg border border-border/60 bg-background/40 p-3">
-        <DetailRow label="Mã code" value={record.code ?? '—'} mono />
-        <DetailRow label="Relay" value={record.relay ?? '—'} />
-        <DetailRow label="Trạng thái" value={<StatusBadge status={record.status} />} />
-        <DetailRow label="Tổng dung lượng" value={formatBytes(record.totalSize)} />
-        <DetailRow label="Thời lượng" value={record.duration ?? formatDuration(record.finishedAt && record.createdAt ? record.finishedAt - record.createdAt : undefined)} />
+        <DetailRow label={t('history.detail.fields.code')} value={record.code ?? '—'} mono />
+        <DetailRow label={t('history.detail.fields.relay')} value={record.relay ?? '—'} />
+        <DetailRow label={t('history.detail.fields.status')} value={<StatusBadge status={record.status} />} />
+        <DetailRow label={t('history.detail.fields.totalSize')} value={formatBytes(record.totalSize)} />
+        <DetailRow label={t('history.detail.fields.duration')} value={record.duration ?? formatDuration(record.finishedAt && record.createdAt ? record.finishedAt - record.createdAt : undefined)} />
       </div>
       {record.files && record.files.length > 0 && (
         <div>
-          <p className="mb-2 text-xs font-medium uppercase text-muted-foreground">Tệp tin</p>
+          <p className="mb-2 text-xs font-medium uppercase text-muted-foreground">{t('history.detail.files.title')}</p>
           <div className="space-y-2 rounded-lg border border-border/60 bg-background/40 p-3">
             {record.files.map((file: NonNullable<HistoryRecord['files']>[number]) => (
               <div key={file.name} className="flex items-center justify-between text-xs">
@@ -268,7 +276,7 @@ function HistoryDetail({ record, onClose }: { record: HistoryRecord; onClose: ()
       )}
       {record.logTail && record.logTail.length > 0 && (
         <div>
-          <p className="mb-2 text-xs font-medium uppercase text-muted-foreground">Log</p>
+          <p className="mb-2 text-xs font-medium uppercase text-muted-foreground">{t('history.detail.log.title')}</p>
           <div className="max-h-32 space-y-1 overflow-y-auto rounded-lg border border-border/60 bg-background/60 p-3 text-xs font-mono">
             {record.logTail.map((line: string, index: number) => (
               <p key={`${record.id}-log-${index}`} className="whitespace-pre-wrap text-left">
@@ -280,11 +288,11 @@ function HistoryDetail({ record, onClose }: { record: HistoryRecord; onClose: ()
       )}
       <div className="mt-auto grid gap-2">
         <Button variant="outline" size="sm" onClick={() => void handleResend()}>
-          <ArrowUpRight className="mr-2 size-4" aria-hidden /> Gửi lại với thiết lập cũ
+          <ArrowUpRight className="mr-2 size-4" aria-hidden /> {t('history.detail.actions.resend')}
         </Button>
         {record.type === 'receive' && record.destinationPath && (
           <Button variant="secondary" size="sm" onClick={() => void handleOpenFolder()}>
-            <ExternalLink className="mr-2 size-4" aria-hidden /> Mở thư mục đích
+            <ExternalLink className="mr-2 size-4" aria-hidden /> {t('history.detail.actions.openDestination')}
           </Button>
         )}
       </div>

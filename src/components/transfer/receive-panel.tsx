@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ClipboardPaste, FolderOpen, RefreshCw, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,7 @@ const selectUpsertSession = (state: TransferStoreState) => state.upsertSession;
 const selectOpenSettings = (state: UiStore) => state.openSettings;
 
 export function ReceivePanel() {
+  const { t } = useTranslation();
   const { settings, load, status } = useSettingsStore(selectSettings);
   const upsertSession = useTransferStore(selectUpsertSession);
   const openSettings = useUiStore(selectOpenSettings);
@@ -125,19 +127,19 @@ export function ReceivePanel() {
         setForm((prev) => ({ ...prev, code: text.trim() }));
       }
     } catch (error) {
-      toast.error('Không thể đọc clipboard.');
+      toast.error(t('transfer.common.toast.clipboardReadFailed'));
     }
   };
 
   const handleReceive = async () => {
     if (!settings) {
-      toast.error('Chưa tải xong thiết lập.');
+      toast.error(t('transfer.common.toast.settingsNotLoaded'));
       return;
     }
 
     const trimmedCode = form.code.trim();
     if (!trimmedCode) {
-      toast.error('Nhập mã code-phrase để nhận.');
+      toast.error(t('transfer.receive.toast.missingCode'));
       return;
     }
 
@@ -166,10 +168,10 @@ export function ReceivePanel() {
         code: trimmedCode
       });
 
-      toast.success('Đang chờ nhận file…');
+      toast.success(t('transfer.receive.toast.started'));
     } catch (error) {
       console.error('[ReceivePanel] start receive failed', error);
-      toast.error('Không thể bắt đầu nhận.');
+      toast.error(t('transfer.receive.toast.startFailed'));
     } finally {
       setIsReceiving(false);
     }
@@ -179,18 +181,18 @@ export function ReceivePanel() {
     <section className="flex flex-col gap-4 rounded-xl border border-border/80 bg-background/80 p-5 shadow-sm">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold">Nhận (Receive)</h2>
-          <p className="text-sm text-muted-foreground">Nhập mã đã nhận từ người gửi để tải xuống.</p>
+          <h2 className="text-lg font-semibold">{t('transfer.receive.title')}</h2>
+          <p className="text-sm text-muted-foreground">{t('transfer.receive.subtitle')}</p>
         </div>
         <Button variant="ghost" size="sm" onClick={openSettings} className="gap-2">
-          <Settings2 className="size-4" aria-hidden /> Thiết lập nhận…
+          <Settings2 className="size-4" aria-hidden /> {t('transfer.receive.openSettings')}
         </Button>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <div className="space-y-2">
           <label className="text-xs font-medium uppercase text-muted-foreground" htmlFor="receive-code">
-            Mã code-phrase
+            {t('transfer.receive.code.label')}
           </label>
           <div className="relative">
             <Input
@@ -204,19 +206,25 @@ export function ReceivePanel() {
                 }
               }}
               maxLength={64}
-              placeholder="Ví dụ: downtown-almond-dynamo"
+              placeholder={t('transfer.receive.code.placeholder')}
               className="font-mono"
-              aria-label="Code phrase để nhận file"
+              aria-label={t('transfer.receive.code.ariaLabel')}
             />
             <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center gap-1">
-              <Button variant="ghost" className="pointer-events-auto size-8 rounded-full text-muted-foreground hover:text-foreground" onClick={() => void handlePaste()}>
+              <Button
+                variant="ghost"
+                className="pointer-events-auto size-8 rounded-full text-muted-foreground hover:text-foreground"
+                onClick={() => void handlePaste()}
+                aria-label={t('transfer.receive.actions.paste')}
+                title={t('transfer.receive.actions.paste')}
+              >
                 <ClipboardPaste className="size-4" aria-hidden />
               </Button>
             </div>
           </div>
         </div>
         <Button variant="outline" onClick={() => setOptionsOpen((prev) => !prev)}>
-          {optionsOpen ? 'Ẩn tùy chọn phiên' : 'Tùy chọn phiên này'}
+          {optionsOpen ? t('transfer.common.sessionOptions.hide') : t('transfer.common.sessionOptions.show')}
         </Button>
       </div>
 
@@ -224,7 +232,7 @@ export function ReceivePanel() {
         <div className="space-y-3 rounded-lg border border-border/70 bg-muted/10 p-4 text-sm">
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="grid gap-1 text-xs font-medium uppercase text-muted-foreground">
-              <span>Relay tạm (host:port)</span>
+              <span>{t('transfer.common.sessionOptions.relay.label')}</span>
               <Input
                 value={form.sessionOverrides.relay ?? ''}
                 onChange={(event) => {
@@ -237,11 +245,11 @@ export function ReceivePanel() {
                     }
                   }));
                 }}
-                placeholder="Ví dụ: relay.example.com:9009"
+                placeholder={t('transfer.common.sessionOptions.relay.placeholder')}
               />
             </label>
             <label className="grid gap-1 text-xs font-medium uppercase text-muted-foreground">
-              <span>Mật khẩu tạm</span>
+              <span>{t('transfer.common.sessionOptions.pass.label')}</span>
               <Input
                 type="text"
                 value={form.sessionOverrides.pass ?? ''}
@@ -255,21 +263,21 @@ export function ReceivePanel() {
                     }
                   }));
                 }}
-                placeholder="Để trống để dùng mặc định"
+                placeholder={t('transfer.common.sessionOptions.pass.placeholder')}
               />
             </label>
           </div>
           <div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 px-3 py-2">
             <div>
-              <p className="font-medium">Tự dán code (clipboard)</p>
-              <p className="text-xs text-muted-foreground">Thử đọc clipboard và tự dán code (nếu có).</p>
+              <p className="font-medium">{t('transfer.receive.sessionOptions.autoPaste.label')}</p>
+              <p className="text-xs text-muted-foreground">{t('transfer.receive.sessionOptions.autoPaste.description')}</p>
             </div>
             <Switch checked={form.autoPaste} onCheckedChange={(checked) => setForm((prev) => ({ ...prev, autoPaste: checked }))} />
           </div>
           <div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 px-3 py-2">
             <div>
-              <p className="font-medium">Tự xác nhận (--yes)</p>
-              <p className="text-xs text-muted-foreground">Bỏ qua prompt xác nhận khi nhận file.</p>
+              <p className="font-medium">{t('transfer.common.sessionOptions.autoConfirm.label')}</p>
+              <p className="text-xs text-muted-foreground">{t('transfer.receive.sessionOptions.autoConfirmDescription')}</p>
             </div>
             <Switch
               checked={form.options.autoConfirm}
@@ -286,8 +294,8 @@ export function ReceivePanel() {
           </div>
           <div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 px-3 py-2">
             <div>
-              <p className="font-medium">Ghi đè file (--overwrite)</p>
-              <p className="text-xs text-muted-foreground">Cho phép thay thế file trùng tên tại thư mục tải xuống.</p>
+              <p className="font-medium">{t('transfer.receive.sessionOptions.overwrite.label')}</p>
+              <p className="text-xs text-muted-foreground">{t('transfer.receive.sessionOptions.overwrite.description')}</p>
             </div>
             <Switch
               checked={form.options.overwrite}
@@ -309,11 +317,11 @@ export function ReceivePanel() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="text-xs text-muted-foreground">
-          CLI tương đương: <span className="font-mono">{receiveCli}</span>
+          {t('transfer.common.cliEquivalent')} <span className="font-mono">{receiveCli || t('transfer.receive.cliPlaceholder')}</span>
         </div>
         <Button size="sm" onClick={() => void handleReceive()} disabled={!canReceive}>
           {isReceiving ? <RefreshCw className="mr-2 size-4 animate-spin" aria-hidden /> : <FolderOpen className="mr-2 size-4" aria-hidden />}
-          {isReceiving ? 'Đang chuẩn bị…' : 'Nhận file'}
+          {isReceiving ? t('transfer.receive.actions.receiving') : t('transfer.receive.actions.receive')}
         </Button>
       </div>
     </section>

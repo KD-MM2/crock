@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { Activity, AlertTriangle, CheckCircle2, CircleSlash, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
@@ -23,16 +24,16 @@ const selectActions = (state: TransferStoreState) => ({
   appendLog: state.appendLog
 });
 
-const PHASE_LABELS: Record<TransferSession['phase'], string> = {
-  idle: 'SẴN SÀNG',
-  connecting: 'ĐANG KẾT NỐI',
-  hashing: 'ĐANG MÃ HÓA',
-  waiting: 'ĐANG CHỜ NGƯỜI NHẬN',
-  sending: 'ĐANG GỬI',
-  receiving: 'ĐANG NHẬN',
-  done: 'HOÀN TẤT',
-  failed: 'THẤT BẠI',
-  canceled: 'ĐÃ HỦY'
+const PHASE_LABEL_KEYS: Record<TransferSession['phase'], string> = {
+  idle: 'transfer.progress.phases.idle',
+  connecting: 'transfer.progress.phases.connecting',
+  hashing: 'transfer.progress.phases.hashing',
+  waiting: 'transfer.progress.phases.waiting',
+  sending: 'transfer.progress.phases.sending',
+  receiving: 'transfer.progress.phases.receiving',
+  done: 'transfer.progress.phases.done',
+  failed: 'transfer.progress.phases.failed',
+  canceled: 'transfer.progress.phases.canceled'
 };
 
 const PHASE_COLORS: Record<TransferSession['phase'], string> = {
@@ -65,6 +66,7 @@ export function TransferProgressPanel() {
   const refreshHistory = useHistoryStore((state: HistoryStoreState) => state.refresh);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
   const showLogs = useSettingsStore((state: SettingsStoreState) => state.settings?.advanced?.showTransferLogs ?? true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const api = getWindowApi();
@@ -97,9 +99,9 @@ export function TransferProgressPanel() {
         appendLog(done.id, createLogEntry('error', done.error));
         toast.error(done.error);
       } else if (done.canceled) {
-        toast.info('Phiên truyền tải đã bị hủy.');
+        toast.info(t('transfer.progress.toast.canceled'));
       } else if (done.success) {
-        toast.success('Phiên truyền tải hoàn tất.');
+        toast.success(t('transfer.progress.toast.completed'));
       }
 
       try {
@@ -116,7 +118,7 @@ export function TransferProgressPanel() {
       unsubProgress();
       unsubDone();
     };
-  }, [updateProgress, finalizeSession, appendLog, refreshHistory]);
+  }, [updateProgress, finalizeSession, appendLog, refreshHistory, t]);
 
   const session = useMemo<TransferSession | undefined>(() => {
     if (activeId && sessions[activeId]) return sessions[activeId];
@@ -133,10 +135,10 @@ export function TransferProgressPanel() {
     try {
       const api = getWindowApi();
       await api.croc.stop(session.id);
-      toast.info('Đang yêu cầu hủy phiên…');
+      toast.info(t('transfer.progress.toast.canceling'));
     } catch (error) {
       console.error('[TransferProgress] cancel failed', error);
-      toast.error('Không thể hủy phiên.');
+      toast.error(t('transfer.progress.toast.cancelFailed'));
     } finally {
       setCancelingId(null);
     }
@@ -145,8 +147,8 @@ export function TransferProgressPanel() {
   if (!session) {
     return (
       <section className="flex flex-col justify-center gap-3 rounded-xl border border-dashed border-border/70 bg-muted/10 p-6 text-center text-sm text-muted-foreground">
-        <p>Chưa có phiên truyền tải nào đang hoạt động.</p>
-        <p>Sau khi bắt đầu gửi hoặc nhận, tiến trình sẽ hiển thị tại đây.</p>
+        <p>{t('transfer.progress.empty.title')}</p>
+        <p>{t('transfer.progress.empty.description')}</p>
       </section>
     );
   }
@@ -155,10 +157,18 @@ export function TransferProgressPanel() {
   const phase = session.phase;
   const isIndeterminate = phase === 'waiting';
   const percentLabel = isIndeterminate ? '—' : `${percent}%`;
-  const progressStatusText = phase === 'done' ? 'Hoàn tất' : isIndeterminate ? 'Đang chờ người nhận' : 'Đang xử lý';
+  const progressStatusText = phase === 'done' ? t('transfer.progress.status.done') : isIndeterminate ? t('transfer.progress.status.waiting') : t('transfer.progress.status.processing');
   const hasRatio = phase !== 'hashing' && session.sizeTransferred && session.sizeTotal;
-  const sizeLabel = hasRatio ? `Dung lượng ${session.sizeTransferred}/${session.sizeTotal}` : session.sizeTotal ? `Dung lượng ${session.sizeTotal}` : null;
-  const infoItems = phase === 'waiting' ? [] : [session.targetAddress ? `Kết nối ${session.targetAddress}` : null, sizeLabel, session.speed ? `Tốc độ ${session.speed}` : null, session.eta ? `ETA ${session.eta}` : null].filter(Boolean);
+  const sizeLabel = hasRatio ? t('transfer.progress.info.sizeRatio', { transferred: session.sizeTransferred, total: session.sizeTotal }) : session.sizeTotal ? t('transfer.progress.info.sizeTotal', { total: session.sizeTotal }) : null;
+  const infoItems =
+    phase === 'waiting'
+      ? []
+      : [
+          session.targetAddress ? t('transfer.progress.info.connection', { address: session.targetAddress }) : null,
+          sizeLabel,
+          session.speed ? t('transfer.progress.info.speed', { speed: session.speed }) : null,
+          session.eta ? t('transfer.progress.info.eta', { eta: session.eta }) : null
+        ].filter(Boolean);
 
   return (
     <section className="flex flex-col gap-4 rounded-xl border border-border/80 bg-background/80 p-5 shadow-sm">
@@ -166,25 +176,25 @@ export function TransferProgressPanel() {
         <div className="flex items-center gap-2">
           <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${PHASE_COLORS[phase]}`}>
             {STATUS_ICON[phase]}
-            {PHASE_LABELS[phase]}
+            {t(PHASE_LABEL_KEYS[phase])}
           </span>
         </div>
         {canCancel ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="outline" size="sm" disabled={cancelingId === session.id}>
-                Hủy phiên
+                {t('transfer.progress.cancel.button')}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Hủy phiên hiện tại?</AlertDialogTitle>
-                <AlertDialogDescription>Việc hủy sẽ dừng quá trình truyền tải. Bạn có thể bắt đầu lại sau nếu cần.</AlertDialogDescription>
+                <AlertDialogTitle>{t('transfer.progress.cancel.confirmTitle')}</AlertDialogTitle>
+                <AlertDialogDescription>{t('transfer.progress.cancel.confirmDescription')}</AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Đóng</AlertDialogCancel>
+                <AlertDialogCancel>{t('common.actions.cancel')}</AlertDialogCancel>
                 <AlertDialogAction onClick={() => void handleCancel()} disabled={cancelingId === session.id}>
-                  Xác nhận hủy
+                  {t('transfer.progress.cancel.confirm')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -200,7 +210,7 @@ export function TransferProgressPanel() {
         <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
           {isIndeterminate ? (
             <div className="animate-progress-indeterminate h-full w-full rounded-full bg-primary/30">
-              <span className="sr-only">Đang chờ người nhận kết nối</span>
+              <span className="sr-only">{t('transfer.progress.progressbar.srWaiting')}</span>
             </div>
           ) : (
             <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
@@ -213,7 +223,7 @@ export function TransferProgressPanel() {
         <div className="space-y-2">
           <Separator />
           <div className="flex items-center justify-between gap-2 text-sm font-medium">
-            <span>Nhật ký gần nhất</span>
+            <span>{t('transfer.progress.logs.title')}</span>
           </div>
           <div className="max-h-48 overflow-y-auto rounded-md border border-border/60 bg-muted/20 p-2 text-xs font-mono">
             <ul className="space-y-1">

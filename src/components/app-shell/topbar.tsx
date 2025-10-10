@@ -1,5 +1,5 @@
-import { type ComponentProps, type ReactNode, useEffect } from 'react';
-import { Globe, History, Minus, Settings, Square, X } from 'lucide-react';
+import { type ComponentProps, type ReactNode, useEffect, useMemo } from 'react';
+import { Check, Globe, History, Minus, Settings, Square, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -11,6 +11,9 @@ import type { SettingsState } from '@/types/settings';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { getWindowApi } from '@/lib/window-api';
+import { useTranslation } from 'react-i18next';
+import type { SupportedLanguage } from '@/lib/i18n';
+import i18next from '@/lib/i18n';
 
 const selectSettings = (state: SettingsStoreState) => ({
   status: state.status,
@@ -19,15 +22,19 @@ const selectSettings = (state: SettingsStoreState) => ({
   patch: state.patch
 });
 
-const LANGUAGE_LABELS: Record<NonNullable<SettingsState['general']['language']>, string> = {
-  vi: 'Tiếng Việt',
-  en: 'English'
-};
-
 export function AppShellTopbar() {
   const openHistory = useUiStore((state: UiStore) => state.openHistory);
   const openSettings = useUiStore((state: UiStore) => state.openSettings);
   const { status, settings, load, patch } = useSettingsStore(selectSettings);
+  const { t } = useTranslation();
+
+  const languageOptions = useMemo(
+    () => ({
+      vi: t('topbar.language.options.vi'),
+      en: t('topbar.language.options.en')
+    }),
+    [t]
+  );
 
   useEffect(() => {
     if (status === 'idle') {
@@ -35,7 +42,12 @@ export function AppShellTopbar() {
     }
   }, [status, load]);
 
-  const language = settings?.general.language ?? 'vi';
+  const language = (settings?.general.language ?? 'vi') as SupportedLanguage;
+  const currentLanguageLabel = languageOptions[language];
+
+  useEffect(() => {
+    void i18next.changeLanguage(language);
+  }, [language]);
 
   const handleLanguageChange = (value: string) => {
     if (!settings) return;
@@ -77,7 +89,7 @@ export function AppShellTopbar() {
     <header
       className={cn('flex h-14 shrink-0 items-center gap-2 border-b border-border/80 bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60', 'app-region-drag')}
       style={{ WebkitAppRegion: 'drag' }}
-      aria-label="Thanh tiêu đề ứng dụng"
+      aria-label={t('topbar.ariaLabel')}
     >
       <div className="flex items-center gap-3 text-sm font-medium uppercase tracking-wide text-muted-foreground">
         <img src="/crock.svg" alt="Crock logo" className="size-14" style={{ WebkitAppRegion: 'no-drag' }} />
@@ -86,43 +98,61 @@ export function AppShellTopbar() {
         </span>
       </div>
       <div className="ml-auto flex items-center gap-2" style={{ WebkitAppRegion: 'no-drag' }}>
-        <HeaderActionButton icon={<History className="size-4" aria-hidden />} label="Lịch sử" tooltip="Xem lịch sử truyền tải (Ctrl+H)" onClick={openHistory} ariaLabel="Mở lịch sử truyền tải" />
-        <HeaderActionButton icon={<Settings className="size-4" aria-hidden />} label="Cài đặt" tooltip="Mở cài đặt (Ctrl+,)" onClick={openSettings} ariaLabel="Mở cài đặt" />
+        <HeaderActionButton icon={<History className="size-4" aria-hidden />} label={t('topbar.history.label')} tooltip={t('topbar.history.tooltip')} onClick={openHistory} ariaLabel={t('topbar.history.ariaLabel')} />
+        <HeaderActionButton icon={<Settings className="size-4" aria-hidden />} label={t('topbar.settings.label')} tooltip={t('topbar.settings.tooltip')} onClick={openSettings} ariaLabel={t('topbar.settings.ariaLabel')} />
         <DropdownMenu>
           <Tooltip>
             <TooltipTrigger asChild>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="size-9 text-muted-foreground hover:text-foreground" aria-label={`Đổi ngôn ngữ (hiện tại: ${LANGUAGE_LABELS[language]})`} disabled={!settings || status === 'loading'}>
+                <Button variant="outline" size="icon" className="size-9 text-muted-foreground hover:text-foreground" aria-label={t('topbar.language.buttonAria', { language: currentLanguageLabel })} disabled={!settings || status === 'loading'}>
                   <Globe className="size-4" aria-hidden />
                 </Button>
               </DropdownMenuTrigger>
             </TooltipTrigger>
-            <TooltipContent side="bottom">Ngôn ngữ: {LANGUAGE_LABELS[language]}</TooltipContent>
+            <TooltipContent side="bottom">{t('topbar.language.tooltip', { language: currentLanguageLabel })}</TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="end" sideOffset={8} className="min-w-[160px]">
-            <DropdownMenuItem onSelect={() => handleLanguageChange('vi')}>Tiếng Việt {language === 'vi' ? '✓' : ''}</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => handleLanguageChange('en')}>English {language === 'en' ? '✓' : ''}</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => handleLanguageChange('vi')}>
+              <div className="flex w-full items-center justify-between">
+                <span>{languageOptions.vi}</span>
+                {language === 'vi' ? <Check className="size-4" aria-hidden /> : null}
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => handleLanguageChange('en')}>
+              <div className="flex w-full items-center justify-between">
+                <span>{languageOptions.en}</span>
+                {language === 'en' ? <Check className="size-4" aria-hidden /> : null}
+              </div>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <ModeToggle />
         <Separator orientation="vertical" className="mx-1 h-6" />
         <div className="flex items-center gap-1">
-          <HeaderActionButton icon={<Minus className="size-4" aria-hidden />} label="Thu nhỏ" tooltip="Thu nhỏ cửa sổ" onClick={handleMinimize} ariaLabel="Thu nhỏ cửa sổ" variant="ghost" className="hover:bg-muted" />
+          <HeaderActionButton
+            icon={<Minus className="size-4" aria-hidden />}
+            label={t('topbar.window.minimize.label')}
+            tooltip={t('topbar.window.minimize.tooltip')}
+            onClick={handleMinimize}
+            ariaLabel={t('topbar.window.minimize.ariaLabel')}
+            variant="ghost"
+            className="hover:bg-muted"
+          />
           <HeaderActionButton
             icon={<Square className="size-3.5" aria-hidden />}
-            label="Phóng to"
-            tooltip="Phóng to hoặc khôi phục"
+            label={t('topbar.window.maximize.label')}
+            tooltip={t('topbar.window.maximize.tooltip')}
             onClick={handleToggleMaximize}
-            ariaLabel="Phóng to hoặc khôi phục cửa sổ"
+            ariaLabel={t('topbar.window.maximize.ariaLabel')}
             variant="ghost"
             className="hover:bg-muted"
           />
           <HeaderActionButton
             icon={<X className="size-4" aria-hidden />}
-            label="Đóng"
-            tooltip="Đóng ứng dụng"
+            label={t('topbar.window.close.label')}
+            tooltip={t('topbar.window.close.tooltip')}
             onClick={handleClose}
-            ariaLabel="Đóng ứng dụng"
+            ariaLabel={t('topbar.window.close.ariaLabel')}
             variant="ghost"
             className="hover:bg-destructive hover:text-destructive-foreground focus-visible:bg-destructive/90"
           />

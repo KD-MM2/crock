@@ -69,7 +69,11 @@ export interface RunnerEnv {
 export class CrocProcessRunner extends EventEmitter {
   private readonly sessions = new Map<string, RunnerSession>();
 
-  constructor(private binaryPath: string, private readonly window: BrowserWindow, private readonly commandBuilder: CrocCommandBuilder) {
+  constructor(
+    private binaryPath: string,
+    private readonly window: BrowserWindow,
+    private readonly commandBuilder: CrocCommandBuilder
+  ) {
     super();
   }
 

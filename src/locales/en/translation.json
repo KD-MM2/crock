@@ -1,0 +1,583 @@
+{
+    "common": {
+        "appName": "crock",
+        "loading": "Loading…",
+        "loadingShort": "Loading…",
+        "actions": {
+            "reset": "Reset",
+            "saveChanges": "Save changes",
+            "cancel": "Cancel",
+            "close": "Close",
+            "copy": "Copy",
+            "delete": "Delete",
+            "refresh": "Refresh"
+        },
+        "status": {
+            "online": "Online",
+            "offline": "Offline",
+            "on": "ON",
+            "off": "OFF",
+            "unknown": "Unknown",
+            "notAvailable": "N/A",
+            "notConfigured": "Not configured"
+        }
+    },
+    "settings": {
+        "dialog": {
+            "title": "Settings",
+            "description": "Modify application behavior, transfer defaults, and croc connection configuration.",
+            "loading": "Loading settings…",
+            "footer": {
+                "note": "Changes are stored locally and synced with the main process via IPC."
+            }
+        },
+        "tabs": {
+            "general": "General",
+            "advanced": "Advanced",
+            "misc": "Miscellaneous",
+            "about": "About"
+        },
+        "general": {
+            "download": {
+                "title": "Default download directory",
+                "description": "Choose where received files are saved.",
+                "selectFolder": "Browse…"
+            },
+            "behavior": {
+                "title": "Send/receive behavior",
+                "description": "Automations that run after a session finishes.",
+                "autoOpen": {
+                    "label": "Open folder automatically",
+                    "description": "Applies to receive sessions."
+                },
+                "autoCopy": {
+                    "label": "Copy code phrase automatically",
+                    "description": "Copies to clipboard when sending starts."
+                }
+            },
+            "sendDefaults": {
+                "title": "Send defaults",
+                "description": "Baseline croc send configuration.",
+                "noCompress": {
+                    "label": "Disable compression (--no-compress)",
+                    "description": "Keep original sizes when sending."
+                },
+                "exclude": {
+                    "label": "Exclude patterns",
+                    "placeholder": "Example: *.tmp\nThumbs.db",
+                    "help": "Each line becomes one --exclude."
+                }
+            },
+            "receiveDefaults": {
+                "title": "Receive defaults",
+                "description": "Applied to croc receive.",
+                "overwrite": {
+                    "label": "Overwrite files (--overwrite)",
+                    "description": "Replace existing files automatically."
+                },
+                "yes": {
+                    "label": "Auto confirm (--yes)",
+                    "description": "Skip the confirmation prompt when receiving."
+                },
+                "defaultDir": "Default directory"
+            }
+        },
+        "advanced": {
+            "labels": {
+                "relay": "Relay"
+            },
+            "toast": {
+                "relayTestFailure": "Unable to test relay.",
+                "relayOnline": "{{host}} responding (latency {{latency}} ms).",
+                "relayOffline": "{{host}} is offline or not responding.",
+                "proxyTestFailure": "Unable to test proxy.",
+                "proxyOnline": "Proxy responding (HTTP {{http}} • HTTPS {{https}}).",
+                "proxyOffline": "Proxy is disabled or not responding."
+            },
+            "defaultRelay": {
+                "title": "Default relay",
+                "description": "Preferred host:port and password.",
+                "fields": {
+                    "host": "Host:Port",
+                    "hostPlaceholder": "croc.schollz.com:9009",
+                    "pass": "Password"
+                },
+                "actions": {
+                    "testRelay": "Test relay",
+                    "testProxy": "Test proxy"
+                },
+                "info": {
+                    "title": "Relay: {{host}}",
+                    "description": "Latency {{latency}} ms • {{checkedAt}}"
+                }
+            },
+            "favorites": {
+                "title": "Favorite relays",
+                "description": "Store multiple relays for quick switching.",
+                "empty": "No favorite relays yet.",
+                "passLabel": "Pass: {{value}}",
+                "passMasked": "••••••",
+                "passMissing": "None",
+                "actions": {
+                    "setDefault": "Set as default"
+                },
+                "add": {
+                    "fields": {
+                        "host": "Host:Port",
+                        "hostPlaceholder": "relay.example.com:9009",
+                        "pass": "Password",
+                        "passPlaceholder": "Optional"
+                    },
+                    "button": "Add relay"
+                }
+            },
+            "proxy": {
+                "title": "Proxy",
+                "description": "Configure HTTP(S) proxy for sessions.",
+                "fields": {
+                    "http": "HTTP proxy",
+                    "httpPlaceholder": "http://127.0.0.1:8080",
+                    "https": "HTTPS proxy",
+                    "httpsPlaceholder": "https://127.0.0.1:8080"
+                },
+                "info": {
+                    "title": "Proxy status",
+                    "description": "HTTP: {{http}} • HTTPS: {{https}}"
+                }
+            },
+            "security": {
+                "title": "Security",
+                "description": "Choose the curve to match your relay.",
+                "fields": {
+                    "curve": "Curve"
+                },
+                "note": "Options depend on the installed croc version."
+            },
+            "connectionStatus": {
+                "title": "Connection status",
+                "description": "Check relay, proxy, and croc version.",
+                "cards": {
+                    "relay": {
+                        "title": "Relay: {{host}}",
+                        "description": "Latency: {{latency}} ms"
+                    },
+                    "proxy": {
+                        "title": "Proxy",
+                        "description": "HTTP {{http}} • HTTPS {{https}}"
+                    },
+                    "croc": {
+                        "title": "croc",
+                        "description": "Version: {{version}}"
+                    }
+                }
+            }
+        },
+        "misc": {
+            "logging": {
+                "title": "Logging & history",
+                "description": "Adjust log tails and retention.",
+                "fields": {
+                    "logTail": "Log tail lines",
+                    "historyRetention": "History retention (days)"
+                },
+                "showLogs": {
+                    "label": "Show log panel",
+                    "description": "Toggle detailed logs in the progress view."
+                }
+            },
+            "security": {
+                "title": "Security options",
+                "description": "Adjust code validation and flags.",
+                "deepLink": {
+                    "label": "Enable deep links",
+                    "description": "Allow croc-ui://receive?code=…"
+                },
+                "verbose": {
+                    "label": "Verbose logs",
+                    "description": "Capture extra stderr/stdout."
+                },
+                "validate": {
+                    "label": "Validate code phrase",
+                    "description": "Check format before running."
+                }
+            },
+            "extraFlags": {
+                "label": "Extra flags",
+                "placeholder": "Example: --max-retries 3",
+                "help": "Additional flags will be appended to the croc command. Use with care!"
+            }
+        },
+        "about": {
+            "app": {
+                "title": "crock UI",
+                "description": "Desktop interface for croc.",
+                "uiVersion": "UI version: {{version}}",
+                "basedOn": "Based on <crocLink>croc</crocLink> (MIT). Source code: <repoLink>GitHub</repoLink>.",
+                "feedback": "Feedback & issues: please open an issue on <repoLink>GitHub</repoLink>."
+            },
+            "binary": {
+                "title": "croc binary",
+                "description": "Version information and binary location.",
+                "fields": {
+                    "version": "VERSION",
+                    "versionAria": "Select croc version",
+                    "versionPlaceholder": "Select version",
+                    "versionEmpty": "No releases",
+                    "path": "Path"
+                },
+                "current": "Current version: {{version}}",
+                "labels": {
+                    "releaseTitle": "{{version}}{{status}}",
+                    "preRelease": "pre-release",
+                    "immutable": "immutable",
+                    "publishedAt": "Published {{date}}",
+                    "notInstalled": "not-installed"
+                },
+                "actions": {
+                    "change": "Change version",
+                    "download": "Download",
+                    "installing": "Installing…",
+                    "checkVersion": "Check version",
+                    "openFolder": "Open containing folder"
+                },
+                "notes": {
+                    "current": "You are running this version.",
+                    "manualUpdate": "Check croc updates manually or via scripts."
+                }
+            },
+            "toast": {
+                "loadVersionsFailure": "Unable to fetch croc releases from GitHub.",
+                "checkVersionFailure": "Unable to check croc version.",
+                "installSuccess": "Installed croc {{version}}.",
+                "installFailure": "Unable to download the selected croc version."
+            }
+        }
+    },
+    "topbar": {
+        "ariaLabel": "Application title bar",
+        "history": {
+            "label": "History",
+            "tooltip": "View transfer history (Ctrl+H)",
+            "ariaLabel": "Open transfer history"
+        },
+        "settings": {
+            "label": "Settings",
+            "tooltip": "Open settings (Ctrl+,)",
+            "ariaLabel": "Open settings"
+        },
+        "language": {
+            "buttonAria": "Change language (current: {{language}})",
+            "tooltip": "Language: {{language}}",
+            "options": {
+                "vi": "Vietnamese",
+                "en": "English"
+            }
+        },
+        "theme": {
+            "tooltip": "Toggle theme",
+            "ariaLabel": "Toggle theme",
+            "options": {
+                "light": "Light",
+                "dark": "Dark",
+                "system": "System"
+            }
+        },
+        "window": {
+            "minimize": {
+                "label": "Minimize",
+                "tooltip": "Minimize window",
+                "ariaLabel": "Minimize window"
+            },
+            "maximize": {
+                "label": "Maximize",
+                "tooltip": "Maximize or restore",
+                "ariaLabel": "Maximize or restore window"
+            },
+            "close": {
+                "label": "Close",
+                "tooltip": "Close app",
+                "ariaLabel": "Close app"
+            }
+        }
+    },
+    "history": {
+        "dialog": {
+            "title": "Transfer history",
+            "description": "Review past send/receive sessions. Select a record to view details.",
+            "filters": {
+                "type": {
+                    "label": "Type",
+                    "options": {
+                        "all": "All"
+                    }
+                },
+                "status": {
+                    "label": "Status",
+                    "options": {
+                        "all": "All"
+                    }
+                },
+                "search": {
+                    "label": "Search",
+                    "placeholder": "Code, relay, filename…"
+                }
+            },
+            "actions": {
+                "refresh": "Refresh",
+                "resetFilters": "Reset filters",
+                "clearAll": "Clear all",
+                "exportJson": "Export JSON"
+            },
+            "table": {
+                "headers": {
+                    "type": "Type",
+                    "time": "Time",
+                    "size": "Size",
+                    "relay": "Relay",
+                    "code": "Code",
+                    "status": "Status"
+                }
+            },
+            "loading": "Loading history…",
+            "empty": "No transfer sessions yet. Start sending or receiving to log history.",
+            "selection": {
+                "promptTitle": "Select a record",
+                "promptDescription": "View detailed information about the session."
+            },
+            "clearConfirm": {
+                "title": "Clear entire history?",
+                "description": "This will permanently delete all stored send/receive records. This action can’t be undone.",
+                "confirm": "Delete"
+            }
+        },
+        "toast": {
+            "clearAllSuccess": "History cleared.",
+            "clearAllFailure": "Unable to clear history."
+        },
+        "statuses": {
+            "in-progress": "IN PROGRESS",
+            "connecting": "CONNECTING",
+            "sending": "SENDING",
+            "receiving": "RECEIVING",
+            "done": "DONE",
+            "failed": "FAILED",
+            "canceled": "CANCELED"
+        },
+        "types": {
+            "send": "Send",
+            "receive": "Receive"
+        },
+        "detail": {
+            "sessionLabel": "{{type}} session",
+            "fields": {
+                "code": "Code",
+                "relay": "Relay",
+                "status": "Status",
+                "totalSize": "Total size",
+                "duration": "Duration"
+            },
+            "files": {
+                "title": "Files"
+            },
+            "log": {
+                "title": "Log"
+            },
+            "actions": {
+                "resend": "Resend with previous settings",
+                "openDestination": "Open destination folder"
+            }
+        }
+    },
+    "transfer": {
+        "tabs": {
+            "send": "Send",
+            "receive": "Receive"
+        },
+        "common": {
+            "cliEquivalent": "CLI equivalent:",
+            "cliPlaceholder": {
+                "send": "croc send <paths>",
+                "receive": "croc <code>"
+            },
+            "sessionOptions": {
+                "show": "Session overrides",
+                "hide": "Hide session overrides",
+                "relay": {
+                    "label": "Temporary relay (host:port)",
+                    "placeholder": "Example: relay.example.com:9009"
+                },
+                "pass": {
+                    "label": "Temporary password",
+                    "placeholder": "Leave empty to use default"
+                },
+                "exclude": {
+                    "label": "Temporary exclude",
+                    "placeholder": "Example:\n*.tmp\nThumbs.db",
+                    "help": "Each line corresponds to one --exclude"
+                },
+                "autoConfirm": {
+                    "label": "Auto confirm (--yes)"
+                },
+                "reset": "Reset session overrides"
+            },
+            "dialogs": {
+                "close": "Close"
+            },
+            "toast": {
+                "clipboardReadFailed": "Unable to read clipboard.",
+                "copySuccess": "Code copied.",
+                "copyFailure": "Unable to copy code.",
+                "settingsNotLoaded": "Settings haven’t finished loading."
+            }
+        },
+        "send": {
+            "title": "Send",
+            "subtitle": "Select files or enter text to send via croc.",
+            "openAdvanced": "Open advanced settings…",
+            "modes": {
+                "files": {
+                    "label": "Files / Folders",
+                    "description": "Drag and drop or select files to send."
+                },
+                "text": {
+                    "label": "Quick text",
+                    "description": "Send a short snippet via croc --text."
+                }
+            },
+            "dropzone": {
+                "title": "Click to choose files or drop them here",
+                "description": "Supports drag-and-drop directly from Explorer/Finder (files only).",
+                "error": "Unable to add files."
+            },
+            "items": {
+                "count_one": "{{count}} item",
+                "count_other": "{{count}} items",
+                "total": "Total size: {{size}}",
+                "clear": "Clear list"
+            },
+            "textMode": {
+                "placeholder": "Paste or type the content to send",
+                "counter": "{{current}} / {{max}} characters",
+                "paste": "Paste from clipboard"
+            },
+            "code": {
+                "label": "Code phrase",
+                "placeholder": "Leave empty to let croc generate one",
+                "randomAria": "Generate random code",
+                "copyAria": "Copy code",
+                "qrAria": "Show QR code",
+                "dialog": {
+                    "title": "QR code for send session",
+                    "copy": "Copy code",
+                    "save": "Save QR (SVG)"
+                },
+                "noCode": "No code to copy.",
+                "noCodeForQr": "No code to display as QR."
+            },
+            "sessionOptions": {
+                "autoConfirmDescription": "Skip confirmation prompt when sending."
+            },
+            "history": {
+                "wrongType": "Only send sessions can be resent.",
+                "loaded": "Session options restored from history. Review before sending.",
+                "missingFiles": "Unable to determine file list from history. Please reselect manually."
+            },
+            "cliPlaceholder": "croc send <paths>",
+            "actions": {
+                "start": "Start sending"
+            },
+            "toast": {
+                "noItems": "Select at least one file or folder.",
+                "noText": "Enter text to send.",
+                "missingPaths": "Some items are missing actual paths. Please reselect them with the “Browse…” button.",
+                "started": "Send session started.",
+                "startFailed": "Unable to start sending.",
+                "autoCopySuccess": "Code copied to clipboard.",
+                "noCodeToSave": "No code to save.",
+                "qrNoBrowser": "Cannot save QR code in this environment.",
+                "qrNotFound": "QR code element not found.",
+                "qrSaved": "QR code saved (SVG).",
+                "qrSaveFailed": "Unable to save QR code."
+            }
+        },
+        "receive": {
+            "title": "Receive",
+            "subtitle": "Enter the code you got from the sender to download.",
+            "openSettings": "Receive settings…",
+            "code": {
+                "label": "Code phrase",
+                "placeholder": "Example: downtown-almond-dynamo",
+                "ariaLabel": "Code phrase to receive files"
+            },
+            "sessionOptions": {
+                "autoConfirmDescription": "Skip confirmation prompt when receiving.",
+                "autoPaste": {
+                    "label": "Auto paste (clipboard)",
+                    "description": "Try reading the clipboard and paste the code if available."
+                },
+                "overwrite": {
+                    "label": "Overwrite files (--overwrite)",
+                    "description": "Allow replacing files with the same name in the download directory."
+                }
+            },
+            "actions": {
+                "receive": "Receive files",
+                "receiving": "Preparing…",
+                "paste": "Paste from clipboard"
+            },
+            "cliPlaceholder": "croc <code>",
+            "toast": {
+                "missingCode": "Enter a code phrase to receive.",
+                "started": "Waiting for incoming files…",
+                "startFailed": "Unable to start receiving."
+            }
+        },
+        "progress": {
+            "empty": {
+                "title": "No active transfer sessions.",
+                "description": "Once you start sending or receiving, progress will appear here."
+            },
+            "phases": {
+                "idle": "READY",
+                "connecting": "CONNECTING",
+                "hashing": "HASHING",
+                "waiting": "WAITING FOR PEER",
+                "sending": "SENDING",
+                "receiving": "RECEIVING",
+                "done": "DONE",
+                "failed": "FAILED",
+                "canceled": "CANCELED"
+            },
+            "status": {
+                "done": "Completed",
+                "waiting": "Waiting for peer",
+                "processing": "Processing"
+            },
+            "info": {
+                "connection": "Connection {{address}}",
+                "sizeRatio": "Size {{transferred}}/{{total}}",
+                "sizeTotal": "Size {{total}}",
+                "speed": "Speed {{speed}}",
+                "eta": "ETA {{eta}}"
+            },
+            "logs": {
+                "title": "Recent logs"
+            },
+            "cancel": {
+                "button": "Cancel session",
+                "confirmTitle": "Cancel current session?",
+                "confirmDescription": "Canceling will stop the transfer. You can start again later if needed.",
+                "confirm": "Confirm cancel"
+            },
+            "progressbar": {
+                "srWaiting": "Waiting for receiver to connect"
+            },
+            "toast": {
+                "canceled": "Transfer session was canceled.",
+                "completed": "Transfer session completed.",
+                "canceling": "Requesting session cancel…",
+                "cancelFailed": "Unable to cancel session."
+            }
+        }
+    }
+}

@@ -16,12 +16,13 @@ import type { ReleaseInfo } from '@/types/release';
 import { getWindowApi } from '@/lib/window-api';
 import { cn } from '@/lib/utils';
 import { Spinner } from '@/components/ui/spinner';
+import { Trans, useTranslation } from 'react-i18next';
 
 const TAB_ITEMS = [
-  { value: 'general', label: 'General', icon: Info },
-  { value: 'advanced', label: 'Advanced', icon: Globe },
-  { value: 'misc', label: 'Miscellaneous', icon: Cpu },
-  { value: 'about', label: 'About', icon: FileCode2 }
+  { value: 'general', labelKey: 'settings.tabs.general', icon: Info },
+  { value: 'advanced', labelKey: 'settings.tabs.advanced', icon: Globe },
+  { value: 'misc', labelKey: 'settings.tabs.misc', icon: Cpu },
+  { value: 'about', labelKey: 'settings.tabs.about', icon: FileCode2 }
 ] as const;
 
 type UpdateDraft = (updater: (draft: SettingsState) => void) => void;
@@ -46,6 +47,7 @@ export function SettingsDialog() {
   const open = useUiStore((state: UiStore) => state.dialogs.settingsOpen);
   const closeSettings = useUiStore((state: UiStore) => state.closeSettings);
   const { status, draft, settings, setDraft, save, resetDraft, refreshConnectionStatus, connectionStatus, loadingConnection, load, updateRelayStatus } = useSettingsStore(selectSettingsStore);
+  const { t } = useTranslation();
 
   const [activeTab, setActiveTab] = useState<(typeof TAB_ITEMS)[number]['value']>('general');
 
@@ -106,21 +108,21 @@ export function SettingsDialog() {
       <DialogContent className="flex h-[80vh] w-full flex-col overflow-hidden sm:min-w-[720px] sm:max-w-6xl">
         <DialogHeader className="shrink-0 text-left">
           <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
-            <SettingsIcon /> Cài đặt
+            <SettingsIcon /> {t('settings.dialog.title')}
           </DialogTitle>
-          <DialogDescription>Tùy chỉnh hành vi ứng dụng, mặc định truyền tải và cấu hình kết nối cho croc.</DialogDescription>
+          <DialogDescription>{t('settings.dialog.description')}</DialogDescription>
         </DialogHeader>
 
         {!draft ? (
-          <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Đang tải thiết lập...</div>
+          <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">{t('settings.dialog.loading')}</div>
         ) : (
           <div className="flex flex-1 flex-col gap-4 overflow-hidden">
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="flex flex-1 flex-col overflow-hidden">
               <TabsList className="sticky top-0 z-10 flex flex-wrap items-center justify-start gap-2 bg-background/80 p-1 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                {TAB_ITEMS.map(({ value, label, icon: Icon }) => (
+                {TAB_ITEMS.map(({ value, labelKey, icon: Icon }) => (
                   <TabsTrigger key={value} value={value} className="gap-2">
                     <Icon className="size-4" aria-hidden />
-                    {label}
+                    {t(labelKey)}
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -143,13 +145,13 @@ export function SettingsDialog() {
         )}
 
         <DialogFooter className="mt-4 flex-col gap-2 border-t border-border/60 pt-4 sm:flex-row sm:justify-between">
-          <div className="text-xs text-muted-foreground">Thay đổi được lưu cục bộ và đồng bộ với tiến trình chính thông qua IPC.</div>
+          <div className="text-xs text-muted-foreground">{t('settings.dialog.footer.note')}</div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <Button variant="ghost" size="sm" onClick={() => resetDraft()} disabled={!isDirty || isSaving}>
-              Khôi phục
+              {t('common.actions.reset')}
             </Button>
             <Button size="sm" onClick={() => void save()} disabled={!isDirty || isSaving}>
-              <Save className="mr-2 size-4" aria-hidden /> Lưu thay đổi
+              <Save className="mr-2 size-4" aria-hidden /> {t('common.actions.saveChanges')}
             </Button>
           </div>
         </DialogFooter>
@@ -161,6 +163,7 @@ export function SettingsDialog() {
 function GeneralTab({ settings, updateDraft }: { settings: SettingsState; updateDraft: UpdateDraft }) {
   const api = getWindowApi();
   const excludeText = settings.transferDefaults.send.exclude.join('\n');
+  const { t } = useTranslation();
 
   const handleSelectFolder = async () => {
     const folder = await api.app.selectFolder();
@@ -178,24 +181,24 @@ function GeneralTab({ settings, updateDraft }: { settings: SettingsState; update
   return (
     <div className="space-y-8">
       <div className="space-y-6">
-        <SectionHeading icon={FolderOpen} title="Thư mục tải về mặc định" description="Chọn thư mục lưu khi nhận file." />
+        <SectionHeading icon={FolderOpen} title={t('settings.general.download.title')} description={t('settings.general.download.description')} />
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
           <Input value={settings.general.downloadDir} readOnly className="font-mono" />
           <Button variant="outline" size="sm" onClick={() => void handleSelectFolder()}>
-            <FolderOpen className="mr-2 size-4" aria-hidden /> Chọn…
+            <FolderOpen className="mr-2 size-4" aria-hidden /> {t('settings.general.download.selectFolder')}
           </Button>
           <Button variant="ghost" size="sm" onClick={() => void handleCopyDownloadPath()}>
-            <ClipboardCopy className="mr-2 size-4" aria-hidden /> Sao chép
+            <ClipboardCopy className="mr-2 size-4" aria-hidden /> {t('common.actions.copy')}
           </Button>
         </div>
       </div>
 
       <div className="space-y-4">
-        <SectionHeading icon={Waypoints} title="Hành vi nhận/gửi" description="Tự động hóa khi hoàn tất phiên." />
+        <SectionHeading icon={Waypoints} title={t('settings.general.behavior.title')} description={t('settings.general.behavior.description')} />
         <div className="grid gap-4 sm:grid-cols-2">
           <ToggleField
-            label="Tự động mở thư mục khi nhận xong"
-            description="Áp dụng cho phiên Receive."
+            label={t('settings.general.behavior.autoOpen.label')}
+            description={t('settings.general.behavior.autoOpen.description')}
             checked={settings.general.autoOpenOnDone}
             onCheckedChange={(checked) =>
               updateDraft((draft) => {
@@ -204,8 +207,8 @@ function GeneralTab({ settings, updateDraft }: { settings: SettingsState; update
             }
           />
           <ToggleField
-            label="Tự động copy code-phrase"
-            description="Copy vào clipboard khi bắt đầu gửi."
+            label={t('settings.general.behavior.autoCopy.label')}
+            description={t('settings.general.behavior.autoCopy.description')}
             checked={settings.general.autoCopyCodeOnSend}
             onCheckedChange={(checked) =>
               updateDraft((draft) => {
@@ -217,11 +220,11 @@ function GeneralTab({ settings, updateDraft }: { settings: SettingsState; update
       </div>
 
       <div className="space-y-4">
-        <SectionHeading icon={Download} title="Defaults khi Gửi" description="Thiết lập mặc định cho croc send." />
+        <SectionHeading icon={Download} title={t('settings.general.sendDefaults.title')} description={t('settings.general.sendDefaults.description')} />
         <div className="grid gap-4 sm:grid-cols-2">
           <ToggleField
-            label="Không nén (no-compress)"
-            description="Giữ nguyên kích thước gốc khi gửi."
+            label={t('settings.general.sendDefaults.noCompress.label')}
+            description={t('settings.general.sendDefaults.noCompress.description')}
             checked={settings.transferDefaults.send.noCompress}
             onCheckedChange={(checked) =>
               updateDraft((draft) => {
@@ -230,10 +233,10 @@ function GeneralTab({ settings, updateDraft }: { settings: SettingsState; update
             }
           />
         </div>
-        <Field label="Exclude patterns">
+        <Field label={t('settings.general.sendDefaults.exclude.label')}>
           <Textarea
             value={excludeText}
-            placeholder="Ví dụ: *.tmp\nThumbs.db"
+            placeholder={t('settings.general.sendDefaults.exclude.placeholder')}
             rows={4}
             onChange={(event) =>
               updateDraft((draft) => {
@@ -245,16 +248,16 @@ function GeneralTab({ settings, updateDraft }: { settings: SettingsState; update
               })
             }
           />
-          <p className="mt-1 text-xs text-muted-foreground">Mỗi dòng tương ứng một --exclude.</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t('settings.general.sendDefaults.exclude.help')}</p>
         </Field>
       </div>
 
       <div className="space-y-4">
-        <SectionHeading icon={Download} title="Defaults khi Nhận" description="Áp dụng cho croc receive." />
+        <SectionHeading icon={Download} title={t('settings.general.receiveDefaults.title')} description={t('settings.general.receiveDefaults.description')} />
         <div className="grid gap-4 sm:grid-cols-2">
           <ToggleField
-            label="Ghi đè tệp (overwrite)"
-            description="Tự động ghi đè tệp trùng tên."
+            label={t('settings.general.receiveDefaults.overwrite.label')}
+            description={t('settings.general.receiveDefaults.overwrite.description')}
             checked={settings.transferDefaults.receive.overwrite}
             onCheckedChange={(checked) =>
               updateDraft((draft) => {
@@ -263,8 +266,8 @@ function GeneralTab({ settings, updateDraft }: { settings: SettingsState; update
             }
           />
           <ToggleField
-            label="Tự xác nhận (yes)"
-            description="Bỏ qua bước xác nhận khi nhận."
+            label={t('settings.general.receiveDefaults.yes.label')}
+            description={t('settings.general.receiveDefaults.yes.description')}
             checked={settings.transferDefaults.receive.yes}
             onCheckedChange={(checked) =>
               updateDraft((draft) => {
@@ -272,7 +275,7 @@ function GeneralTab({ settings, updateDraft }: { settings: SettingsState; update
               })
             }
           />
-          <Field label="Thư mục mặc định">
+          <Field label={t('settings.general.receiveDefaults.defaultDir')}>
             <Input value={settings.general.downloadDir} readOnly className="font-mono" />
           </Field>
         </div>
@@ -296,6 +299,7 @@ function AdvancedTab({
 }) {
   const [newRelayHost, setNewRelayHost] = useState('');
   const [newRelayPass, setNewRelayPass] = useState('');
+  const { t } = useTranslation();
 
   const addRelay = () => {
     if (!newRelayHost.trim()) return;
@@ -309,39 +313,44 @@ function AdvancedTab({
   const handleTestRelay = async () => {
     const status = await onRefreshStatus();
     if (!status?.relay) {
-      toast.error('Không thể kiểm tra relay.');
+      toast.error(t('settings.advanced.toast.relayTestFailure'));
       return;
     }
 
-    const hostLabel = status.relay.host ?? 'Relay';
+    const hostLabel = status.relay.host ?? t('settings.advanced.labels.relay') ?? 'Relay';
     if (status.relay.online) {
-      toast.success(`${hostLabel} hoạt động (latency ${status.relay.latencyMs ?? '—'} ms).`);
+      toast.success(t('settings.advanced.toast.relayOnline', { host: hostLabel, latency: status.relay.latencyMs ?? '—' }));
     } else {
-      toast.warning(`${hostLabel} không phản hồi hoặc ngoại tuyến.`);
+      toast.warning(t('settings.advanced.toast.relayOffline', { host: hostLabel }));
     }
   };
 
   const handleTestProxy = async () => {
     const status = await onRefreshStatus();
     if (!status) {
-      toast.error('Không thể kiểm tra proxy.');
+      toast.error(t('settings.advanced.toast.proxyTestFailure'));
       return;
     }
 
     const proxy = status.proxy;
     if (proxy?.http || proxy?.https) {
-      toast.success(`Proxy hoạt động (HTTP ${proxy.http ? 'ON' : 'OFF'} • HTTPS ${proxy.https ? 'ON' : 'OFF'}).`);
+      toast.success(
+        t('settings.advanced.toast.proxyOnline', {
+          http: proxy.http ? t('common.status.on') : t('common.status.off'),
+          https: proxy.https ? t('common.status.on') : t('common.status.off')
+        })
+      );
     } else {
-      toast.warning('Proxy chưa bật hoặc không phản hồi.');
+      toast.warning(t('settings.advanced.toast.proxyOffline'));
     }
   };
 
   return (
     <div className="space-y-8">
       <div className="space-y-6">
-        <SectionHeading icon={Link2} title="Relay mặc định" description="Host:Port và mật khẩu cho relay ưu tiên." />
+        <SectionHeading icon={Link2} title={t('settings.advanced.defaultRelay.title')} description={t('settings.advanced.defaultRelay.description')} />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Host:Port">
+          <Field label={t('settings.advanced.defaultRelay.fields.host')}>
             <Input
               value={settings.relayProxy.defaultRelay.host}
               onChange={(event) =>
@@ -349,10 +358,10 @@ function AdvancedTab({
                   draft.relayProxy.defaultRelay.host = event.target.value;
                 })
               }
-              placeholder="croc.schollz.com:9009"
+              placeholder={t('settings.advanced.defaultRelay.fields.hostPlaceholder')}
             />
           </Field>
-          <Field label="Mật khẩu">
+          <Field label={t('settings.advanced.defaultRelay.fields.pass')}>
             <Input
               type="password"
               value={settings.relayProxy.defaultRelay.pass ?? ''}
@@ -366,33 +375,42 @@ function AdvancedTab({
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => void handleTestRelay()} disabled={loadingConnection}>
-            <RefreshCw className={cn('mr-2 size-4', loadingConnection && 'animate-spin')} aria-hidden /> Kiểm tra relay
+            <RefreshCw className={cn('mr-2 size-4', loadingConnection && 'animate-spin')} aria-hidden /> {t('settings.advanced.defaultRelay.actions.testRelay')}
           </Button>
           <Button variant="outline" size="sm" onClick={() => void handleTestProxy()} disabled={loadingConnection}>
-            <RefreshCw className={cn('mr-2 size-4', loadingConnection && 'animate-spin')} aria-hidden /> Kiểm tra proxy
+            <RefreshCw className={cn('mr-2 size-4', loadingConnection && 'animate-spin')} aria-hidden /> {t('settings.advanced.defaultRelay.actions.testProxy')}
           </Button>
         </div>
 
         {connectionStatus?.relay && (
           <InfoCard
-            title={`Relay: ${connectionStatus.relay.host ?? 'N/A'}`}
+            title={t('settings.advanced.defaultRelay.info.title', {
+              host: connectionStatus.relay.host ?? t('common.status.notAvailable')
+            })}
             status={connectionStatus.relay.online ? 'online' : 'offline'}
-            description={`Latency ${connectionStatus.relay.latencyMs ?? '—'} ms • ${connectionStatus.relay.checkedAt ? new Date(connectionStatus.relay.checkedAt).toLocaleTimeString() : '-'}`}
+            description={t('settings.advanced.defaultRelay.info.description', {
+              latency: connectionStatus.relay.latencyMs ?? '—',
+              checkedAt: connectionStatus.relay.checkedAt ? new Date(connectionStatus.relay.checkedAt).toLocaleTimeString() : t('common.status.unknown')
+            })}
           />
         )}
       </div>
 
       <div className="space-y-3">
-        <SectionHeading icon={Link2} title="Danh sách relay ưa thích" description="Lưu nhiều relay để chuyển đổi nhanh." />
+        <SectionHeading icon={Link2} title={t('settings.advanced.favorites.title')} description={t('settings.advanced.favorites.description')} />
         {settings.relayProxy.favorites.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Chưa có relay ưa thích.</p>
+          <p className="text-sm text-muted-foreground">{t('settings.advanced.favorites.empty')}</p>
         ) : (
           <div className="space-y-2">
             {settings.relayProxy.favorites.map((relay, index) => (
               <div key={`${relay.host}-${index}`} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 p-3">
                 <div>
                   <p className="font-medium">{relay.host}</p>
-                  <p className="text-xs text-muted-foreground">Pass: {relay.pass ? '••••••' : 'Không'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t('settings.advanced.favorites.passLabel', {
+                      value: relay.pass ? t('settings.advanced.favorites.passMasked') : t('settings.advanced.favorites.passMissing')
+                    })}
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   <Button
@@ -404,7 +422,7 @@ function AdvancedTab({
                       })
                     }
                   >
-                    Đặt mặc định
+                    {t('settings.advanced.favorites.actions.setDefault')}
                   </Button>
                   <Button
                     variant="ghost"
@@ -415,7 +433,7 @@ function AdvancedTab({
                       })
                     }
                   >
-                    Xóa
+                    {t('common.actions.delete')}
                   </Button>
                 </div>
               </div>
@@ -423,22 +441,22 @@ function AdvancedTab({
           </div>
         )}
         <div className="grid gap-3 rounded-lg border border-dashed border-border/60 p-3">
-          <Field label="Host:Port">
-            <Input value={newRelayHost} onChange={(event) => setNewRelayHost(event.target.value)} placeholder="relay.example.com:9009" />
+          <Field label={t('settings.advanced.favorites.add.fields.host')}>
+            <Input value={newRelayHost} onChange={(event) => setNewRelayHost(event.target.value)} placeholder={t('settings.advanced.favorites.add.fields.hostPlaceholder')} />
           </Field>
-          <Field label="Pass">
-            <Input value={newRelayPass} onChange={(event) => setNewRelayPass(event.target.value)} placeholder="Tùy chọn" />
+          <Field label={t('settings.advanced.favorites.add.fields.pass')}>
+            <Input value={newRelayPass} onChange={(event) => setNewRelayPass(event.target.value)} placeholder={t('settings.advanced.favorites.add.fields.passPlaceholder')} />
           </Field>
           <Button variant="secondary" size="sm" onClick={addRelay}>
-            Thêm relay
+            {t('settings.advanced.favorites.add.button')}
           </Button>
         </div>
       </div>
 
       <div className="space-y-4">
-        <SectionHeading icon={Globe} title="Proxy" description="Cấu hình HTTP(S) proxy cho phiên gửi/nhận." />
+        <SectionHeading icon={Globe} title={t('settings.advanced.proxy.title')} description={t('settings.advanced.proxy.description')} />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="HTTP Proxy">
+          <Field label={t('settings.advanced.proxy.fields.http')}>
             <Input
               value={settings.relayProxy.proxy?.http ?? ''}
               onChange={(event) =>
@@ -449,10 +467,10 @@ function AdvancedTab({
                   };
                 })
               }
-              placeholder="http://127.0.0.1:8080"
+              placeholder={t('settings.advanced.proxy.fields.httpPlaceholder')}
             />
           </Field>
-          <Field label="HTTPS Proxy">
+          <Field label={t('settings.advanced.proxy.fields.https')}>
             <Input
               value={settings.relayProxy.proxy?.https ?? ''}
               onChange={(event) =>
@@ -463,25 +481,28 @@ function AdvancedTab({
                   };
                 })
               }
-              placeholder="https://127.0.0.1:8080"
+              placeholder={t('settings.advanced.proxy.fields.httpsPlaceholder')}
             />
           </Field>
         </div>
         {connectionStatus?.proxy && (
           <div className="grid gap-2">
             <InfoCard
-              title="Proxy trạng thái"
+              title={t('settings.advanced.proxy.info.title')}
               status={connectionStatus.proxy.http || connectionStatus.proxy.https ? 'online' : 'offline'}
-              description={`HTTP: ${connectionStatus.proxy.http ? 'On' : 'Off'} • HTTPS: ${connectionStatus.proxy.https ? 'On' : 'Off'}`}
+              description={t('settings.advanced.proxy.info.description', {
+                http: connectionStatus.proxy.http ? t('common.status.on') : t('common.status.off'),
+                https: connectionStatus.proxy.https ? t('common.status.on') : t('common.status.off')
+              })}
             />
           </div>
         )}
       </div>
 
       <div className="space-y-4">
-        <SectionHeading icon={ShieldCheck} title="Thuật toán" description="Lựa chọn curve phù hợp với relay." />
+        <SectionHeading icon={ShieldCheck} title={t('settings.advanced.security.title')} description={t('settings.advanced.security.description')} />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Curve">
+          <Field label={t('settings.advanced.security.fields.curve')}>
             <Select
               value={settings.security.curve ?? 'p256'}
               onValueChange={(value) =>
@@ -501,24 +522,41 @@ function AdvancedTab({
             </Select>
           </Field>
         </div>
-        <AlertNote icon={ShieldQuestion} text="Các lựa chọn phụ thuộc phiên bản croc hiện tại." />
+        <AlertNote icon={ShieldQuestion} text={t('settings.advanced.security.note')} />
       </div>
 
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-2">
-          <SectionHeading icon={Network} title="Trạng thái kết nối" description="Kiểm tra relay, proxy và phiên bản croc." />
+          <SectionHeading icon={Network} title={t('settings.advanced.connectionStatus.title')} description={t('settings.advanced.connectionStatus.description')} />
           <Button variant="outline" size="sm" onClick={() => void onRefreshStatus()} disabled={loadingConnection}>
-            <RefreshCw className={cn('mr-2 size-4', loadingConnection && 'animate-spin')} aria-hidden /> Làm mới
+            <RefreshCw className={cn('mr-2 size-4', loadingConnection && 'animate-spin')} aria-hidden /> {t('common.actions.refresh')}
           </Button>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <InfoCard title={`Relay: ${connectionStatus?.relay?.host ?? 'Không thiết lập'}`} status={connectionStatus?.relay?.online ? 'online' : 'offline'} description={`Latency: ${connectionStatus?.relay?.latencyMs ?? '—'}ms`} />
           <InfoCard
-            title="Proxy"
-            status={connectionStatus?.proxy?.http || connectionStatus?.proxy?.https ? 'online' : 'offline'}
-            description={`HTTP ${connectionStatus?.proxy?.http ? 'ON' : 'OFF'} • HTTPS ${connectionStatus?.proxy?.https ? 'ON' : 'OFF'}`}
+            title={t('settings.advanced.connectionStatus.cards.relay.title', {
+              host: connectionStatus?.relay?.host ?? t('common.status.notConfigured')
+            })}
+            status={connectionStatus?.relay?.online ? 'online' : 'offline'}
+            description={t('settings.advanced.connectionStatus.cards.relay.description', {
+              latency: connectionStatus?.relay?.latencyMs ?? '—'
+            })}
           />
-          <InfoCard title="Croc" status={connectionStatus?.croc?.installed ? 'online' : 'offline'} description={`Version: ${connectionStatus?.croc?.version ?? 'unknown'}`} />
+          <InfoCard
+            title={t('settings.advanced.connectionStatus.cards.proxy.title')}
+            status={connectionStatus?.proxy?.http || connectionStatus?.proxy?.https ? 'online' : 'offline'}
+            description={t('settings.advanced.connectionStatus.cards.proxy.description', {
+              http: connectionStatus?.proxy?.http ? t('common.status.on') : t('common.status.off'),
+              https: connectionStatus?.proxy?.https ? t('common.status.on') : t('common.status.off')
+            })}
+          />
+          <InfoCard
+            title={t('settings.advanced.connectionStatus.cards.croc.title')}
+            status={connectionStatus?.croc?.installed ? 'online' : 'offline'}
+            description={t('settings.advanced.connectionStatus.cards.croc.description', {
+              version: connectionStatus?.croc?.version ?? t('common.status.unknown')
+            })}
+          />
         </div>
       </div>
     </div>
@@ -526,11 +564,12 @@ function AdvancedTab({
 }
 
 function MiscTab({ settings, updateDraft }: { settings: SettingsState; updateDraft: UpdateDraft }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-8">
-      <SectionHeading icon={Cpu} title="Logging & History" description="Điều chỉnh log tail và giữ lịch sử." />
+      <SectionHeading icon={Cpu} title={t('settings.misc.logging.title')} description={t('settings.misc.logging.description')} />
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Số dòng log tail">
+        <Field label={t('settings.misc.logging.fields.logTail')}>
           <Input
             type="number"
             min={10}
@@ -542,7 +581,7 @@ function MiscTab({ settings, updateDraft }: { settings: SettingsState; updateDra
             }
           />
         </Field>
-        <Field label="Giữ lịch sử (ngày)">
+        <Field label={t('settings.misc.logging.fields.historyRetention')}>
           <Input
             type="number"
             min={1}
@@ -556,8 +595,8 @@ function MiscTab({ settings, updateDraft }: { settings: SettingsState; updateDra
         </Field>
         <div className="sm:col-span-2">
           <ToggleField
-            label="Hiển thị khung nhật ký"
-            description="Ẩn/hiện log chi tiết trong bảng tiến trình."
+            label={t('settings.misc.logging.showLogs.label')}
+            description={t('settings.misc.logging.showLogs.description')}
             checked={settings.advanced.showTransferLogs ?? true}
             onCheckedChange={(checked) =>
               updateDraft((draft) => {
@@ -568,11 +607,11 @@ function MiscTab({ settings, updateDraft }: { settings: SettingsState; updateDra
         </div>
       </div>
 
-      <SectionHeading icon={ShieldAlert} title="Tùy chọn bảo mật" description="Điều chỉnh xác thực code và flags." />
+      <SectionHeading icon={ShieldAlert} title={t('settings.misc.security.title')} description={t('settings.misc.security.description')} />
       <div className="grid gap-4 sm:grid-cols-2">
         <ToggleField
-          label="Bật deep links"
-          description="Cho phép croc-ui://receive?code=…"
+          label={t('settings.misc.security.deepLink.label')}
+          description={t('settings.misc.security.deepLink.description')}
           checked={settings.advanced.deepLink ?? false}
           onCheckedChange={(checked) =>
             updateDraft((draft) => {
@@ -581,8 +620,8 @@ function MiscTab({ settings, updateDraft }: { settings: SettingsState; updateDra
           }
         />
         <ToggleField
-          label="Verbose logs"
-          description="Ghi thêm stderr/stdout"
+          label={t('settings.misc.security.verbose.label')}
+          description={t('settings.misc.security.verbose.description')}
           checked={settings.advanced.verboseLogs ?? false}
           onCheckedChange={(checked) =>
             updateDraft((draft) => {
@@ -591,8 +630,8 @@ function MiscTab({ settings, updateDraft }: { settings: SettingsState; updateDra
           }
         />
         <ToggleField
-          label="Validate code-phrase"
-          description="Kiểm tra định dạng trước khi chạy"
+          label={t('settings.misc.security.validate.label')}
+          description={t('settings.misc.security.validate.description')}
           checked={settings.advanced.allowCodeFormatValidation ?? false}
           onCheckedChange={(checked) =>
             updateDraft((draft) => {
@@ -602,10 +641,10 @@ function MiscTab({ settings, updateDraft }: { settings: SettingsState; updateDra
         />
       </div>
 
-      <Field label="Extra flags">
+      <Field label={t('settings.misc.extraFlags.label')}>
         <Textarea
           rows={4}
-          placeholder="Ví dụ: --max-retries 3"
+          placeholder={t('settings.misc.extraFlags.placeholder')}
           value={settings.advanced.extraFlags ?? ''}
           onChange={(event) =>
             updateDraft((draft) => {
@@ -613,7 +652,7 @@ function MiscTab({ settings, updateDraft }: { settings: SettingsState; updateDra
             })
           }
         />
-        <p className="mt-1 text-xs text-muted-foreground">Các cờ bổ sung sẽ được nối vào lệnh croc. Hãy cẩn trọng!</p>
+        <p className="mt-1 text-xs text-muted-foreground">{t('settings.misc.extraFlags.help')}</p>
       </Field>
     </div>
   );
@@ -626,6 +665,7 @@ function AboutTab({ settings }: { settings: SettingsState }) {
   const [loadingVersions, setLoadingVersions] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [selectedVersion, setSelectedVersion] = useState<string | undefined>(() => installedVersion);
+  const { t } = useTranslation();
 
   const selectableVersions = useMemo(() => versions.filter((release) => !release.draft), [versions]);
   const versionItems = useMemo(() => {
@@ -646,7 +686,7 @@ function AboutTab({ settings }: { settings: SettingsState }) {
   }, [selectableVersions, selectedVersion]);
 
   const isSameAsInstalled = Boolean(selectedVersion && installedVersion && selectedVersion === installedVersion && hasBinary);
-  const actionLabel = hasBinary ? 'Change version' : 'Download';
+  const actionLabel = hasBinary ? t('settings.about.binary.actions.change') : t('settings.about.binary.actions.download');
   const selectValue = selectedVersion ?? '';
 
   useEffect(() => {
@@ -667,7 +707,7 @@ function AboutTab({ settings }: { settings: SettingsState }) {
       } catch (error) {
         if (!canceled) {
           console.error('[settings] failed to load croc releases', error);
-          toast.error('Không thể tải danh sách phiên bản croc từ GitHub.');
+          toast.error(t('settings.about.toast.loadVersionsFailure'));
         }
       } finally {
         if (!canceled) {
@@ -681,7 +721,7 @@ function AboutTab({ settings }: { settings: SettingsState }) {
     return () => {
       canceled = true;
     };
-  }, [installedVersion]);
+  }, [installedVersion, t]);
 
   const handleRefreshVersion = async () => {
     try {
@@ -707,7 +747,7 @@ function AboutTab({ settings }: { settings: SettingsState }) {
       setSelectedVersion((current) => current ?? (version.startsWith('v') ? version : current));
     } catch (error) {
       console.error('[settings] failed to refresh croc version', error);
-      toast.error('Không thể kiểm tra phiên bản croc.');
+      toast.error(t('settings.about.toast.checkVersionFailure'));
     }
   };
 
@@ -718,10 +758,10 @@ function AboutTab({ settings }: { settings: SettingsState }) {
       const result = await getWindowApi().croc.installVersion(selectedVersion);
       useSettingsStore.setState({ settings: result.settings, draft: result.settings, status: 'ready' });
       setSelectedVersion(result.version);
-      toast.success(`Đã cài đặt croc ${result.version}.`);
+      toast.success(t('settings.about.toast.installSuccess', { version: result.version }));
     } catch (error) {
       console.error('[settings] failed to install croc', error);
-      toast.error('Không thể tải phiên bản croc được chọn.');
+      toast.error(t('settings.about.toast.installFailure'));
     } finally {
       setInstalling(false);
     }
@@ -740,73 +780,96 @@ function AboutTab({ settings }: { settings: SettingsState }) {
   return (
     <div className="space-y-8 text-sm">
       <div className="space-y-4">
-        <SectionHeading icon={Info} title="crock UI" description="Giao diện croc dành cho desktop." />
+        <SectionHeading icon={Info} title={t('settings.about.app.title')} description={t('settings.about.app.description')} />
+        <p>{t('settings.about.app.uiVersion', { version: '0.1.0' })}</p>
         <p>
-          Phiên bản UI: <span className="font-medium">0.1.0</span>
+          <Trans
+            t={t}
+            i18nKey="settings.about.app.basedOn"
+            components={{
+              crocLink: (
+                <a className="underline" href="https://github.com/schollz/croc" target="_blank" rel="noreferrer">
+                  croc
+                </a>
+              ),
+              repoLink: (
+                <a className="underline" href="https://github.com/your-org/crock-ui" target="_blank" rel="noreferrer">
+                  GitHub
+                </a>
+              )
+            }}
+          />
         </p>
         <p>
-          Dựa trên{' '}
-          <a className="underline" href="https://github.com/schollz/croc" target="_blank" rel="noreferrer">
-            croc
-          </a>{' '}
-          (MIT). Mã nguồn:{' '}
-          <a className="underline" href="https://github.com/your-org/crock-ui" target="_blank" rel="noreferrer">
-            GitHub
-          </a>
-          .
+          <Trans
+            t={t}
+            i18nKey="settings.about.app.feedback"
+            components={{
+              repoLink: (
+                <a className="underline" href="https://github.com/your-org/crock-ui" target="_blank" rel="noreferrer">
+                  GitHub
+                </a>
+              )
+            }}
+          />
         </p>
-        <p>Feedback & issues: vui lòng mở issue trên repository.</p>
       </div>
 
       <div className="space-y-6">
-        <SectionHeading icon={FileCode2} title="Croc binary" description="Thông tin phiên bản và vị trí binary." />
+        <SectionHeading icon={FileCode2} title={t('settings.about.binary.title')} description={t('settings.about.binary.description')} />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="PHIÊN BẢN">
+          <Field label={t('settings.about.binary.fields.version')}>
             <Select value={selectValue} onValueChange={handleSelectVersion} disabled={loadingVersions || installing}>
-              <SelectTrigger className="w-full" aria-label="Chọn phiên bản croc">
-                <SelectValue placeholder={loadingVersions ? 'Đang tải…' : 'Chọn phiên bản'} />
+              <SelectTrigger className="w-full" aria-label={t('settings.about.binary.fields.versionAria')}>
+                <SelectValue placeholder={loadingVersions ? t('common.loadingShort') : t('settings.about.binary.fields.versionPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {versionItems.length === 0 ? (
                   <SelectItem value="__empty" disabled>
-                    {loadingVersions ? 'Đang tải…' : 'Không có phiên bản'}
+                    {loadingVersions ? t('common.loadingShort') : t('settings.about.binary.fields.versionEmpty')}
                   </SelectItem>
                 ) : (
-                  versionItems.map((release) => (
-                    <SelectItem key={release.tagName} value={release.tagName} className="flex flex-col items-start text-left">
-                      <span className="text-sm font-medium">
-                        {release.tagName}
-                        {release.prerelease ? ' (pre-release)' : ''}
-                        {release.immutable ? ' • immutable' : ''}
-                      </span>
-                      {release.publishedAt ? <span className="text-xs text-muted-foreground">{new Date(release.publishedAt).toLocaleDateString()}</span> : null}
-                    </SelectItem>
-                  ))
+                  versionItems.map((release) => {
+                    const statusLabels: string[] = [];
+                    if (release.prerelease) statusLabels.push(t('settings.about.binary.labels.preRelease'));
+                    if (release.immutable) statusLabels.push(t('settings.about.binary.labels.immutable'));
+                    const statusSuffix = statusLabels.length > 0 ? ` (${statusLabels.join(' • ')})` : '';
+
+                    return (
+                      <SelectItem key={release.tagName} value={release.tagName} className="flex flex-col items-start text-left">
+                        <span className="text-sm font-medium">
+                          {t('settings.about.binary.labels.releaseTitle', {
+                            version: release.tagName,
+                            status: statusSuffix
+                          })}
+                        </span>
+                        {release.publishedAt ? <span className="text-xs text-muted-foreground">{t('settings.about.binary.labels.publishedAt', { date: new Date(release.publishedAt).toLocaleDateString() })}</span> : null}
+                      </SelectItem>
+                    );
+                  })
                 )}
               </SelectContent>
             </Select>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Phiên bản hiện tại: <span className="font-medium">{settings.binary.crocVersion ?? 'not-installed'}</span>
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">{t('settings.about.binary.current', { version: settings.binary.crocVersion ?? t('settings.about.binary.labels.notInstalled') })}</p>
           </Field>
-          <Field label="Đường dẫn">
+          <Field label={t('settings.about.binary.fields.path')}>
             <Input value={settings.binary.crocPath ?? ''} readOnly className="font-mono" />
           </Field>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button size="sm" onClick={() => void handleInstallVersion()} disabled={!selectedVersion || installing || loadingVersions || isSameAsInstalled}>
             {installing ? <Spinner className="mr-2 size-4 animate-spin" aria-hidden /> : <Download className="mr-2 size-4" aria-hidden />}
-            {installing ? 'Đang cài đặt…' : actionLabel}
+            {installing ? t('settings.about.binary.actions.installing') : actionLabel}
           </Button>
           <Button variant="outline" size="sm" onClick={() => void handleRefreshVersion()} disabled={installing}>
-            <RefreshCw className="mr-2 size-4" aria-hidden /> Kiểm tra phiên bản
+            <RefreshCw className="mr-2 size-4" aria-hidden /> {t('settings.about.binary.actions.checkVersion')}
           </Button>
           <Button variant="ghost" size="sm" onClick={() => void handleOpenBinaryFolder()} disabled={!settings.binary.crocPath}>
-            <FolderOpen className="mr-2 size-4" aria-hidden /> Mở thư mục chứa
+            <FolderOpen className="mr-2 size-4" aria-hidden /> {t('settings.about.binary.actions.openFolder')}
           </Button>
         </div>
-        {isSameAsInstalled ? <AlertNote icon={ShieldCheck} text="Đang sử dụng phiên bản này." /> : null}
-        <AlertNote icon={AlertTriangle} text="Kiểm tra cập nhật croc bằng tay hoặc script tự động." />
+        {isSameAsInstalled ? <AlertNote icon={ShieldCheck} text={t('settings.about.binary.notes.current')} /> : null}
+        <AlertNote icon={AlertTriangle} text={t('settings.about.binary.notes.manualUpdate')} />
       </div>
     </div>
   );
@@ -846,11 +909,14 @@ function SectionHeading({ icon: Icon, title, description }: { icon: ComponentTyp
 }
 
 function InfoCard({ title, description, status }: { title: string; description: string; status: 'online' | 'offline' }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-lg border border-border/60 bg-background/40 p-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium">{title}</p>
-        <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold', status === 'online' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500')}>{status === 'online' ? 'Online' : 'Offline'}</span>
+        <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold', status === 'online' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500')}>
+          {status === 'online' ? t('common.status.online') : t('common.status.offline')}
+        </span>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">{description}</p>
     </div>
