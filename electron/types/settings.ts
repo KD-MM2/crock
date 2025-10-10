@@ -5,7 +5,7 @@ export type Settings = {
     downloadDir: string;
     autoOpenOnDone: boolean;
     autoCopyCodeOnSend: boolean;
-    language?: 'vi' | 'en';
+    language?: 'vi' | 'en' | 'ja';
     theme?: 'system' | 'light' | 'dark';
   };
   transferDefaults: {

@@ -7,29 +7,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { useSettingsStore, type SettingsStoreState } from '@/stores/settings';
-import { useTransferStore, type TransferStoreState } from '@/stores/transfer';
-import { useUiStore, type UiStore } from '@/stores/ui';
+import { useSettingsStore } from '@/stores/settings';
+import { useTransferStore } from '@/stores/transfer';
+import { useUiStore } from '@/stores/ui';
 import type { ReceiveFormState } from '@/types/transfer-ui';
 import type { SettingsState, CurveName } from '@/types/settings';
 import { getWindowApi } from '@/lib/window-api';
 import { DEFAULT_CURVE, DEFAULT_RELAY_HOST, normalizeRelayHost } from '@/lib/croc';
 
-const selectSettings = (state: SettingsStoreState) => ({
-  settings: state.settings,
-  load: state.load,
-  status: state.status
-});
-
-const selectUpsertSession = (state: TransferStoreState) => state.upsertSession;
-
-const selectOpenSettings = (state: UiStore) => state.openSettings;
-
 export function ReceivePanel() {
   const { t } = useTranslation();
-  const { settings, load, status } = useSettingsStore(selectSettings);
-  const upsertSession = useTransferStore(selectUpsertSession);
-  const openSettings = useUiStore(selectOpenSettings);
+  const settings = useSettingsStore((state) => state.settings);
+  const load = useSettingsStore((state) => state.load);
+  const status = useSettingsStore((state) => state.status);
+  const upsertSession = useTransferStore((state) => state.upsertSession);
+  const openSettings = useUiStore((state) => state.openSettings);
 
   const [form, setForm] = useState<ReceiveFormState>(() => buildInitialReceiveForm(settings));
   const [isReceiving, setIsReceiving] = useState(false);

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ModeToggle } from '@/components/mode-toggle';
 import { useUiStore, type UiStore } from '@/stores/ui';
-import { useSettingsStore, type SettingsStoreState } from '@/stores/settings';
+import { useSettingsStore } from '@/stores/settings';
 import { cn } from '@/lib/utils';
 import type { SettingsState } from '@/types/settings';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -15,26 +15,14 @@ import { useTranslation } from 'react-i18next';
 import type { SupportedLanguage } from '@/lib/i18n';
 import i18next from '@/lib/i18n';
 
-const selectSettings = (state: SettingsStoreState) => ({
-  status: state.status,
-  settings: state.settings,
-  load: state.load,
-  patch: state.patch
-});
-
 export function AppShellTopbar() {
   const openHistory = useUiStore((state: UiStore) => state.openHistory);
   const openSettings = useUiStore((state: UiStore) => state.openSettings);
-  const { status, settings, load, patch } = useSettingsStore(selectSettings);
+  const status = useSettingsStore((state) => state.status);
+  const settings = useSettingsStore((state) => state.settings);
+  const load = useSettingsStore((state) => state.load);
+  const patch = useSettingsStore((state) => state.patch);
   const { t } = useTranslation();
-
-  const languageOptions = useMemo(
-    () => ({
-      vi: t('topbar.language.options.vi'),
-      en: t('topbar.language.options.en')
-    }),
-    [t]
-  );
 
   useEffect(() => {
     if (status === 'idle') {
@@ -43,6 +31,16 @@ export function AppShellTopbar() {
   }, [status, load]);
 
   const language = (settings?.general.language ?? 'vi') as SupportedLanguage;
+
+  const languageOptions = useMemo(
+    () => ({
+      vi: t('topbar.language.options.vi'),
+      en: t('topbar.language.options.en'),
+      ja: t('topbar.language.options.ja')
+    }),
+    [t]
+  );
+
   const currentLanguageLabel = languageOptions[language];
 
   useEffect(() => {
@@ -122,6 +120,12 @@ export function AppShellTopbar() {
               <div className="flex w-full items-center justify-between">
                 <span>{languageOptions.en}</span>
                 {language === 'en' ? <Check className="size-4" aria-hidden /> : null}
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => handleLanguageChange('ja')}>
+              <div className="flex w-full items-center justify-between">
+                <span>{languageOptions.ja}</span>
+                {language === 'ja' ? <Check className="size-4" aria-hidden /> : null}
               </div>
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -1,0 +1,584 @@
+{
+    "common": {
+        "appName": "crock",
+        "loading": "読み込み中…",
+        "loadingShort": "読み込み中…",
+        "actions": {
+            "reset": "リセット",
+            "saveChanges": "変更を保存",
+            "cancel": "キャンセル",
+            "close": "閉じる",
+            "copy": "コピー",
+            "delete": "削除",
+            "refresh": "再読み込み"
+        },
+        "status": {
+            "online": "オンライン",
+            "offline": "オフライン",
+            "on": "オン",
+            "off": "オフ",
+            "unknown": "不明",
+            "notAvailable": "利用不可",
+            "notConfigured": "未設定"
+        }
+    },
+    "settings": {
+        "dialog": {
+            "title": "設定",
+            "description": "アプリケーションの動作、転送の既定値、croc 接続設定を変更します。",
+            "loading": "設定を読み込み中…",
+            "footer": {
+                "note": "変更はローカルに保存され、IPC 経由でメインプロセスと同期されます。"
+            }
+        },
+        "tabs": {
+            "general": "一般",
+            "advanced": "高度",
+            "misc": "その他",
+            "about": "情報"
+        },
+        "general": {
+            "download": {
+                "title": "既定のダウンロード先",
+                "description": "受信したファイルの保存場所を選択します。",
+                "selectFolder": "参照…"
+            },
+            "behavior": {
+                "title": "送受信時の動作",
+                "description": "セッション終了後に自動で実行する処理。",
+                "autoOpen": {
+                    "label": "フォルダーを自動で開く",
+                    "description": "受信セッションに適用されます。"
+                },
+                "autoCopy": {
+                    "label": "コードフレーズを自動でコピー",
+                    "description": "送信開始時にクリップボードへコピーします。"
+                }
+            },
+            "sendDefaults": {
+                "title": "送信の既定設定",
+                "description": "croc 送信の基本設定。",
+                "noCompress": {
+                    "label": "圧縮を無効化 (--no-compress)",
+                    "description": "送信時に元のサイズを維持します。"
+                },
+                "exclude": {
+                    "label": "除外パターン",
+                    "placeholder": "例: *.tmp\nThumbs.db",
+                    "help": "各行が 1 つの --exclude になります。"
+                }
+            },
+            "receiveDefaults": {
+                "title": "受信の既定設定",
+                "description": "croc receive に適用されます。",
+                "overwrite": {
+                    "label": "ファイルを上書き (--overwrite)",
+                    "description": "既存のファイルを自動で置き換えます。"
+                },
+                "yes": {
+                    "label": "自動確認 (--yes)",
+                    "description": "受信時の確認プロンプトをスキップします。"
+                },
+                "defaultDir": "既定のディレクトリ"
+            }
+        },
+        "advanced": {
+            "labels": {
+                "relay": "リレー"
+            },
+            "toast": {
+                "relayTestFailure": "リレーをテストできませんでした。",
+                "relayOnline": "{{host}} が応答しています (レイテンシ {{latency}} ms)。",
+                "relayOffline": "{{host}} はオフラインか応答していません。",
+                "proxyTestFailure": "プロキシをテストできませんでした。",
+                "proxyOnline": "プロキシが応答しています (HTTP {{http}} • HTTPS {{https}})。",
+                "proxyOffline": "プロキシが無効、または応答していません。"
+            },
+            "defaultRelay": {
+                "title": "既定のリレー",
+                "description": "優先するホスト:ポートとパスワード。",
+                "fields": {
+                    "host": "ホスト:ポート",
+                    "hostPlaceholder": "croc.schollz.com:9009",
+                    "pass": "パスワード"
+                },
+                "actions": {
+                    "testRelay": "リレーをテスト",
+                    "testProxy": "プロキシをテスト"
+                },
+                "info": {
+                    "title": "リレー: {{host}}",
+                    "description": "レイテンシ {{latency}} ms • {{checkedAt}}"
+                }
+            },
+            "favorites": {
+                "title": "お気に入りリレー",
+                "description": "切り替え用に複数のリレーを保存します。",
+                "empty": "お気に入りのリレーはまだありません。",
+                "passLabel": "パス: {{value}}",
+                "passMasked": "••••••",
+                "passMissing": "なし",
+                "actions": {
+                    "setDefault": "既定に設定"
+                },
+                "add": {
+                    "fields": {
+                        "host": "ホスト:ポート",
+                        "hostPlaceholder": "relay.example.com:9009",
+                        "pass": "パスワード",
+                        "passPlaceholder": "任意"
+                    },
+                    "button": "リレーを追加"
+                }
+            },
+            "proxy": {
+                "title": "プロキシ",
+                "description": "セッション用の HTTP(S) プロキシを設定します。",
+                "fields": {
+                    "http": "HTTP プロキシ",
+                    "httpPlaceholder": "http://127.0.0.1:8080",
+                    "https": "HTTPS プロキシ",
+                    "httpsPlaceholder": "https://127.0.0.1:8080"
+                },
+                "info": {
+                    "title": "プロキシの状態",
+                    "description": "HTTP: {{http}} • HTTPS: {{https}}"
+                }
+            },
+            "security": {
+                "title": "セキュリティ",
+                "description": "リレーに合わせる曲線を選択します。",
+                "fields": {
+                    "curve": "曲線"
+                },
+                "note": "利用可能なオプションはインストール済みの croc バージョンに依存します。"
+            },
+            "connectionStatus": {
+                "title": "接続ステータス",
+                "description": "リレー、プロキシ、croc のバージョンを確認します。",
+                "cards": {
+                    "relay": {
+                        "title": "リレー: {{host}}",
+                        "description": "レイテンシ: {{latency}} ms"
+                    },
+                    "proxy": {
+                        "title": "プロキシ",
+                        "description": "HTTP {{http}} • HTTPS {{https}}"
+                    },
+                    "croc": {
+                        "title": "croc",
+                        "description": "バージョン: {{version}}"
+                    }
+                }
+            }
+        },
+        "misc": {
+            "logging": {
+                "title": "ログと履歴",
+                "description": "ログ末尾と保持期間を調整します。",
+                "fields": {
+                    "logTail": "ログの末尾行数",
+                    "historyRetention": "履歴の保持期間 (日)"
+                },
+                "showLogs": {
+                    "label": "ログパネルを表示",
+                    "description": "進行状況ビューで詳細ログを切り替えます。"
+                }
+            },
+            "security": {
+                "title": "セキュリティオプション",
+                "description": "コードの検証やフラグを調整します。",
+                "deepLink": {
+                    "label": "ディープリンクを有効化",
+                    "description": "croc-ui://receive?code=… を許可します。"
+                },
+                "verbose": {
+                    "label": "詳細ログ",
+                    "description": "追加の stderr/stdout を取得します。"
+                },
+                "validate": {
+                    "label": "コードフレーズを検証",
+                    "description": "実行前に形式を確認します。"
+                }
+            },
+            "extraFlags": {
+                "label": "追加フラグ",
+                "placeholder": "例: --max-retries 3",
+                "help": "追加フラグは croc コマンドの末尾に追加されます。利用時はご注意ください。"
+            }
+        },
+        "about": {
+            "app": {
+                "title": "crock UI",
+                "description": "croc のデスクトップインターフェース。",
+                "uiVersion": "UI バージョン: {{version}}",
+                "basedOn": "<crocLink>croc</crocLink> (MIT) を基にしています。ソースコード: <repoLink>GitHub</repoLink>。",
+                "feedback": "フィードバックと不具合報告は <repoLink>GitHub</repoLink> の issue でお願いします。"
+            },
+            "binary": {
+                "title": "croc バイナリ",
+                "description": "バージョン情報とバイナリの場所。",
+                "fields": {
+                    "version": "バージョン",
+                    "versionAria": "croc のバージョンを選択",
+                    "versionPlaceholder": "バージョンを選択",
+                    "versionEmpty": "リリースがありません",
+                    "path": "パス"
+                },
+                "current": "現在のバージョン: {{version}}",
+                "labels": {
+                    "releaseTitle": "{{version}}{{status}}",
+                    "preRelease": "プレリリース",
+                    "immutable": "変更不可",
+                    "publishedAt": "公開日 {{date}}",
+                    "notInstalled": "未インストール"
+                },
+                "actions": {
+                    "change": "バージョンを変更",
+                    "download": "ダウンロード",
+                    "installing": "インストール中…",
+                    "checkVersion": "バージョンを確認",
+                    "openFolder": "保存フォルダーを開く"
+                },
+                "notes": {
+                    "current": "このバージョンを使用中です。",
+                    "manualUpdate": "croc の更新は手動またはスクリプトで確認してください。"
+                }
+            },
+            "toast": {
+                "loadVersionsFailure": "GitHub から croc のリリースを取得できませんでした。",
+                "checkVersionFailure": "croc のバージョンを確認できませんでした。",
+                "installSuccess": "croc {{version}} をインストールしました。",
+                "installFailure": "選択した croc バージョンをダウンロードできませんでした。"
+            }
+        }
+    },
+    "topbar": {
+        "ariaLabel": "アプリケーションのタイトルバー",
+        "history": {
+            "label": "履歴",
+            "tooltip": "転送履歴を表示 (Ctrl+H)",
+            "ariaLabel": "転送履歴を開く"
+        },
+        "settings": {
+            "label": "設定",
+            "tooltip": "設定を開く (Ctrl+,)",
+            "ariaLabel": "設定を開く"
+        },
+        "language": {
+            "buttonAria": "言語を変更 (現在: {{language}})",
+            "tooltip": "言語: {{language}}",
+            "options": {
+                "vi": "ベトナム語",
+                "en": "英語",
+                "ja": "日本語"
+            }
+        },
+        "theme": {
+            "tooltip": "テーマを切り替え",
+            "ariaLabel": "テーマを切り替え",
+            "options": {
+                "light": "ライト",
+                "dark": "ダーク",
+                "system": "システム"
+            }
+        },
+        "window": {
+            "minimize": {
+                "label": "最小化",
+                "tooltip": "ウィンドウを最小化",
+                "ariaLabel": "ウィンドウを最小化"
+            },
+            "maximize": {
+                "label": "最大化",
+                "tooltip": "最大化または元に戻す",
+                "ariaLabel": "最大化または元に戻す"
+            },
+            "close": {
+                "label": "閉じる",
+                "tooltip": "アプリを終了",
+                "ariaLabel": "アプリを終了"
+            }
+        }
+    },
+    "history": {
+        "dialog": {
+            "title": "転送履歴",
+            "description": "過去の送受信セッションを確認します。レコードを選択すると詳細が表示されます。",
+            "filters": {
+                "type": {
+                    "label": "種別",
+                    "options": {
+                        "all": "すべて"
+                    }
+                },
+                "status": {
+                    "label": "ステータス",
+                    "options": {
+                        "all": "すべて"
+                    }
+                },
+                "search": {
+                    "label": "検索",
+                    "placeholder": "コード、リレー、ファイル名…"
+                }
+            },
+            "actions": {
+                "refresh": "再読み込み",
+                "resetFilters": "フィルターをリセット",
+                "clearAll": "すべて削除",
+                "exportJson": "JSON を書き出し"
+            },
+            "table": {
+                "headers": {
+                    "type": "種別",
+                    "time": "時刻",
+                    "size": "サイズ",
+                    "relay": "リレー",
+                    "code": "コード",
+                    "status": "ステータス"
+                }
+            },
+            "loading": "履歴を読み込み中…",
+            "empty": "転送セッションはまだありません。送受信を開始すると履歴が記録されます。",
+            "selection": {
+                "promptTitle": "レコードを選択",
+                "promptDescription": "セッションの詳細情報を表示します。"
+            },
+            "clearConfirm": {
+                "title": "履歴をすべて削除しますか？",
+                "description": "保存されている送受信記録をすべて削除します。この操作は元に戻せません。",
+                "confirm": "削除"
+            }
+        },
+        "toast": {
+            "clearAllSuccess": "履歴を削除しました。",
+            "clearAllFailure": "履歴を削除できませんでした。"
+        },
+        "statuses": {
+            "in-progress": "進行中",
+            "connecting": "接続中",
+            "sending": "送信中",
+            "receiving": "受信中",
+            "done": "完了",
+            "failed": "失敗",
+            "canceled": "キャンセル"
+        },
+        "types": {
+            "send": "送信",
+            "receive": "受信"
+        },
+        "detail": {
+            "sessionLabel": "{{type}} セッション",
+            "fields": {
+                "code": "コード",
+                "relay": "リレー",
+                "status": "ステータス",
+                "totalSize": "合計サイズ",
+                "duration": "所要時間"
+            },
+            "files": {
+                "title": "ファイル"
+            },
+            "log": {
+                "title": "ログ"
+            },
+            "actions": {
+                "resend": "以前の設定で再送信",
+                "openDestination": "保存先フォルダーを開く"
+            }
+        }
+    },
+    "transfer": {
+        "tabs": {
+            "send": "送信",
+            "receive": "受信"
+        },
+        "common": {
+            "cliEquivalent": "CLI 相当:",
+            "cliPlaceholder": {
+                "send": "croc send <paths>",
+                "receive": "croc <code>"
+            },
+            "sessionOptions": {
+                "show": "セッションの上書き設定を表示",
+                "hide": "セッションの上書き設定を隠す",
+                "relay": {
+                    "label": "一時リレー (ホスト:ポート)",
+                    "placeholder": "例: relay.example.com:9009"
+                },
+                "pass": {
+                    "label": "一時パスワード",
+                    "placeholder": "既定値を使用する場合は空のまま"
+                },
+                "exclude": {
+                    "label": "一時的な除外",
+                    "placeholder": "例:\n*.tmp\nThumbs.db",
+                    "help": "各行が 1 つの --exclude に対応します。"
+                },
+                "autoConfirm": {
+                    "label": "自動確認 (--yes)"
+                },
+                "reset": "セッションの上書きをリセット"
+            },
+            "dialogs": {
+                "close": "閉じる"
+            },
+            "toast": {
+                "clipboardReadFailed": "クリップボードを読み取れませんでした。",
+                "copySuccess": "コードをコピーしました。",
+                "copyFailure": "コードをコピーできませんでした。",
+                "settingsNotLoaded": "設定の読み込みが完了していません。"
+            }
+        },
+        "send": {
+            "title": "送信",
+            "subtitle": "croc で送信するファイルを選択するかテキストを入力します。",
+            "openAdvanced": "詳細設定を開く…",
+            "modes": {
+                "files": {
+                    "label": "ファイル / フォルダー",
+                    "description": "ドラッグ＆ドロップまたは選択して送信します。"
+                },
+                "text": {
+                    "label": "クイックテキスト",
+                    "description": "croc --text で短いスニペットを送信します。"
+                }
+            },
+            "dropzone": {
+                "title": "クリックしてファイルを選択するか、ここにドロップしてください",
+                "description": "エクスプローラー/Finder からのドラッグ＆ドロップに対応しています (ファイルのみ)。",
+                "error": "ファイルを追加できませんでした。"
+            },
+            "items": {
+                "count_one": "{{count}} 件",
+                "count_other": "{{count}} 件",
+                "total": "合計サイズ: {{size}}",
+                "clear": "一覧をクリア"
+            },
+            "textMode": {
+                "placeholder": "送信する内容を貼り付けるか入力してください",
+                "counter": "{{current}} / {{max}} 文字",
+                "paste": "クリップボードから貼り付け"
+            },
+            "code": {
+                "label": "コードフレーズ",
+                "placeholder": "空のままで croc に生成させる",
+                "randomAria": "ランダムコードを生成",
+                "copyAria": "コードをコピー",
+                "qrAria": "QR コードを表示",
+                "dialog": {
+                    "title": "送信セッションの QR コード",
+                    "copy": "コードをコピー",
+                    "save": "QR を保存 (SVG)"
+                },
+                "noCode": "コピーするコードがありません。",
+                "noCodeForQr": "QR 表示できるコードがありません。"
+            },
+            "sessionOptions": {
+                "autoConfirmDescription": "送信時の確認プロンプトをスキップします。"
+            },
+            "history": {
+                "wrongType": "再送できるのは送信セッションのみです。",
+                "loaded": "履歴からセッション設定を読み込みました。送信前に確認してください。",
+                "missingFiles": "履歴からファイル一覧を特定できませんでした。手動で再選択してください。"
+            },
+            "cliPlaceholder": "croc send <paths>",
+            "actions": {
+                "start": "送信を開始"
+            },
+            "toast": {
+                "noItems": "1 つ以上のファイルまたはフォルダーを選択してください。",
+                "noText": "送信するテキストを入力してください。",
+                "missingPaths": "一部の項目のパスが見つかりません。\"参照…\" ボタンで再選択してください。",
+                "started": "送信セッションを開始しました。",
+                "startFailed": "送信を開始できませんでした。",
+                "autoCopySuccess": "コードをクリップボードにコピーしました。",
+                "noCodeToSave": "保存できるコードがありません。",
+                "qrNoBrowser": "この環境では QR コードを保存できません。",
+                "qrNotFound": "QR コード要素が見つかりません。",
+                "qrSaved": "QR コードを保存しました (SVG)。",
+                "qrSaveFailed": "QR コードを保存できませんでした。"
+            }
+        },
+        "receive": {
+            "title": "受信",
+            "subtitle": "送信者から受け取ったコードを入力してダウンロードします。",
+            "openSettings": "受信設定…",
+            "code": {
+                "label": "コードフレーズ",
+                "placeholder": "例: downtown-almond-dynamo",
+                "ariaLabel": "ファイルを受信するためのコードフレーズ"
+            },
+            "sessionOptions": {
+                "autoConfirmDescription": "受信時の確認プロンプトをスキップします。",
+                "autoPaste": {
+                    "label": "自動貼り付け (クリップボード)",
+                    "description": "クリップボードを読み取ってコードがあれば貼り付けます。"
+                },
+                "overwrite": {
+                    "label": "ファイルを上書き (--overwrite)",
+                    "description": "ダウンロード先で同名ファイルを置き換えます。"
+                }
+            },
+            "actions": {
+                "receive": "ファイルを受信",
+                "receiving": "準備中…",
+                "paste": "クリップボードから貼り付け"
+            },
+            "cliPlaceholder": "croc <code>",
+            "toast": {
+                "missingCode": "受信用のコードフレーズを入力してください。",
+                "started": "受信待ちです…",
+                "startFailed": "受信を開始できませんでした。"
+            }
+        },
+        "progress": {
+            "empty": {
+                "title": "アクティブな転送セッションはありません。",
+                "description": "送信または受信を開始すると、ここに進行状況が表示されます。"
+            },
+            "phases": {
+                "idle": "待機中",
+                "connecting": "接続中",
+                "hashing": "ハッシュ計算中",
+                "waiting": "相手の接続待ち",
+                "sending": "送信中",
+                "receiving": "受信中",
+                "done": "完了",
+                "failed": "失敗",
+                "canceled": "キャンセル"
+            },
+            "status": {
+                "done": "完了",
+                "waiting": "相手の接続待ち",
+                "processing": "処理中"
+            },
+            "info": {
+                "connection": "接続 {{address}}",
+                "sizeRatio": "サイズ {{transferred}}/{{total}}",
+                "sizeTotal": "サイズ {{total}}",
+                "speed": "速度 {{speed}}",
+                "eta": "推定残り時間 {{eta}}"
+            },
+            "logs": {
+                "title": "最近のログ"
+            },
+            "cancel": {
+                "button": "セッションをキャンセル",
+                "confirmTitle": "現在のセッションをキャンセルしますか？",
+                "confirmDescription": "キャンセルすると転送が停止します。必要に応じて後から再開できます。",
+                "confirm": "キャンセルを確認"
+            },
+            "progressbar": {
+                "srWaiting": "受信者の接続を待機しています"
+            },
+            "toast": {
+                "canceled": "転送セッションはキャンセルされました。",
+                "completed": "転送セッションが完了しました。",
+                "canceling": "セッションのキャンセルを要求しています…",
+                "cancelFailed": "セッションをキャンセルできませんでした。"
+            }
+        }
+    }
+}

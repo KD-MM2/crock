@@ -270,7 +270,8 @@
             "tooltip": "Language: {{language}}",
             "options": {
                 "vi": "Vietnamese",
-                "en": "English"
+                "en": "English",
+                "ja": "Japanese"
             }
         },
         "theme": {

@@ -26,27 +26,22 @@ const TAB_ITEMS = [
 ] as const;
 
 type UpdateDraft = (updater: (draft: SettingsState) => void) => void;
-
 type SettingsDialogSelectors = Pick<SettingsStoreState, 'status' | 'draft' | 'settings' | 'setDraft' | 'save' | 'resetDraft' | 'refreshConnectionStatus' | 'connectionStatus' | 'loadingConnection' | 'load' | 'updateRelayStatus'>;
-
-const selectSettingsStore = (state: SettingsStoreState): SettingsDialogSelectors => ({
-  status: state.status,
-  draft: state.draft,
-  settings: state.settings,
-  setDraft: state.setDraft,
-  save: state.save,
-  resetDraft: state.resetDraft,
-  refreshConnectionStatus: state.refreshConnectionStatus,
-  connectionStatus: state.connectionStatus,
-  loadingConnection: state.loadingConnection,
-  load: state.load,
-  updateRelayStatus: state.updateRelayStatus
-});
 
 export function SettingsDialog() {
   const open = useUiStore((state: UiStore) => state.dialogs.settingsOpen);
   const closeSettings = useUiStore((state: UiStore) => state.closeSettings);
-  const { status, draft, settings, setDraft, save, resetDraft, refreshConnectionStatus, connectionStatus, loadingConnection, load, updateRelayStatus } = useSettingsStore(selectSettingsStore);
+  const status = useSettingsStore((state) => state.status);
+  const draft = useSettingsStore((state) => state.draft);
+  const settings = useSettingsStore((state) => state.settings);
+  const setDraft = useSettingsStore((state) => state.setDraft);
+  const save = useSettingsStore((state) => state.save);
+  const resetDraft = useSettingsStore((state) => state.resetDraft);
+  const refreshConnectionStatus = useSettingsStore((state) => state.refreshConnectionStatus);
+  const connectionStatus = useSettingsStore((state) => state.connectionStatus);
+  const loadingConnection = useSettingsStore((state) => state.loadingConnection);
+  const load = useSettingsStore((state) => state.load);
+  const updateRelayStatus = useSettingsStore((state) => state.updateRelayStatus);
   const { t } = useTranslation();
 
   const [activeTab, setActiveTab] = useState<(typeof TAB_ITEMS)[number]['value']>('general');

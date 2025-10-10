@@ -6,23 +6,12 @@ import { useTranslation } from 'react-i18next';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useTransferStore, type TransferStoreState } from '@/stores/transfer';
+import { useTransferStore } from '@/stores/transfer';
 import { useHistoryStore, type HistoryStoreState } from '@/stores/history';
-import { useSettingsStore, type SettingsStoreState } from '@/stores/settings';
+import { useSettingsStore } from '@/stores/settings';
 import { getWindowApi } from '@/lib/window-api';
 import { createLocalId } from '@/lib/id';
 import type { TransferLogEntry, TransferProgress, TransferSession, TransferDonePayload } from '@/types/transfer';
-
-const selectSessions = (state: TransferStoreState) => ({
-  activeId: state.activeTransferId,
-  sessions: state.sessions
-});
-
-const selectActions = (state: TransferStoreState) => ({
-  updateProgress: state.updateProgress,
-  finalizeSession: state.finalizeSession,
-  appendLog: state.appendLog
-});
 
 const PHASE_LABEL_KEYS: Record<TransferSession['phase'], string> = {
   idle: 'transfer.progress.phases.idle',
@@ -61,11 +50,14 @@ const STATUS_ICON: Record<TransferSession['phase'], ReactNode> = {
 };
 
 export function TransferProgressPanel() {
-  const { activeId, sessions } = useTransferStore(selectSessions);
-  const { updateProgress, finalizeSession, appendLog } = useTransferStore(selectActions);
+  const activeId = useTransferStore((state) => state.activeTransferId);
+  const sessions = useTransferStore((state) => state.sessions);
+  const updateProgress = useTransferStore((state) => state.updateProgress);
+  const finalizeSession = useTransferStore((state) => state.finalizeSession);
+  const appendLog = useTransferStore((state) => state.appendLog);
   const refreshHistory = useHistoryStore((state: HistoryStoreState) => state.refresh);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
-  const showLogs = useSettingsStore((state: SettingsStoreState) => state.settings?.advanced?.showTransferLogs ?? true);
+  const showLogs = useSettingsStore((state) => state.settings?.advanced?.showTransferLogs ?? true);
   const { t } = useTranslation();
 
   useEffect(() => {

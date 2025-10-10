@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { useUiStore, type UiStore } from '@/stores/ui';
-import { selectFilteredHistory, useHistoryStore, type HistoryStoreState } from '@/stores/history';
+import { useHistoryStore } from '@/stores/history';
 import type { HistoryRecord } from '@/types/history';
 import { formatBytes, formatDateTime, formatDuration, maskCode } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -36,15 +36,29 @@ export function HistoryDialog() {
   const closeHistory = useUiStore((state: UiStore) => state.closeHistory);
   const { t } = useTranslation();
 
-  const status = useHistoryStore((state: HistoryStoreState) => state.status);
-  const load = useHistoryStore((state: HistoryStoreState) => state.load);
-  const refresh = useHistoryStore((state: HistoryStoreState) => state.refresh);
-  const filters = useHistoryStore((state: HistoryStoreState) => state.filters);
-  const setFilters = useHistoryStore((state: HistoryStoreState) => state.setFilters);
-  const clearAll = useHistoryStore((state: HistoryStoreState) => state.clearAll);
-  const select = useHistoryStore((state: HistoryStoreState) => state.select);
-  const selectedId = useHistoryStore((state: HistoryStoreState) => state.selectedId);
-  const records = useHistoryStore((state: HistoryStoreState) => selectFilteredHistory(state));
+  const status = useHistoryStore((state) => state.status);
+  const load = useHistoryStore((state) => state.load);
+  const refresh = useHistoryStore((state) => state.refresh);
+  const allRecords = useHistoryStore((state) => state.records);
+  const filters = useHistoryStore((state) => state.filters);
+  const setFilters = useHistoryStore((state) => state.setFilters);
+  const clearAll = useHistoryStore((state) => state.clearAll);
+  const select = useHistoryStore((state) => state.select);
+  const selectedId = useHistoryStore((state) => state.selectedId);
+
+  const records = useMemo(() => {
+    return allRecords.filter((record) => {
+      if (filters.type !== 'all' && record.type !== filters.type) return false;
+      if (filters.status !== 'all' && record.status !== filters.status) return false;
+      if (filters.search) {
+        const keyword = filters.search.toLowerCase();
+        const haystack = [record.code, record.relay, record.files?.map((file) => file.name).join(' ')].filter(Boolean).join(' ').toLowerCase();
+        if (!haystack.includes(keyword)) return false;
+      }
+      return true;
+    });
+  }, [allRecords, filters]);
+
   const selectedRecord = useMemo<HistoryRecord | undefined>(() => records.find((record: HistoryRecord) => record.id === selectedId), [records, selectedId]);
 
   useEffect(() => {

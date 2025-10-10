@@ -12,8 +12,8 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Dropzone } from '@/components/ui/dropzone';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useSettingsStore, type SettingsStoreState } from '@/stores/settings';
-import { useTransferStore, type TransferStoreState } from '@/stores/transfer';
+import { useSettingsStore } from '@/stores/settings';
+import { useTransferStore } from '@/stores/transfer';
 import { useUiStore, type UiStore } from '@/stores/ui';
 import type { SettingsState, CurveName } from '@/types/settings';
 import type { SendFormState, SelectedPathItem, SendMode } from '@/types/transfer-ui';
@@ -26,12 +26,6 @@ import { formatBytes } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { DEFAULT_CURVE, DEFAULT_RELAY_HOST, normalizeRelayHost } from '@/lib/croc';
 
-const selectSettings = (state: SettingsStoreState) => ({
-  settings: state.settings,
-  load: state.load,
-  status: state.status
-});
-
 type ElectronFile = File & { path?: string };
 
 const MODE_OPTIONS: Array<{ value: SendMode; labelKey: string; descriptionKey: string }> = [
@@ -43,10 +37,12 @@ const MAX_TEXT_LENGTH = 1_000;
 
 export function SendPanel() {
   const { t } = useTranslation();
-  const { settings, load, status } = useSettingsStore(selectSettings);
+  const settings = useSettingsStore((state) => state.settings);
+  const load = useSettingsStore((state) => state.load);
+  const status = useSettingsStore((state) => state.status);
   const openSettings = useUiStore((state: UiStore) => state.openSettings);
-  const upsertSession = useTransferStore((state: TransferStoreState) => state.upsertSession);
-  const sessions = useTransferStore((state: TransferStoreState) => state.sessions);
+  const upsertSession = useTransferStore((state) => state.upsertSession);
+  const sessions = useTransferStore((state) => state.sessions);
 
   const [form, setForm] = useState<SendFormState>(() => buildInitialForm(settings));
   const [isSending, setIsSending] = useState(false);

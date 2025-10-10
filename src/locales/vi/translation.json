@@ -270,7 +270,8 @@
             "tooltip": "Ngôn ngữ: {{language}}",
             "options": {
                 "vi": "Tiếng Việt",
-                "en": "English"
+                "en": "English",
+                "ja": "日本語"
             }
         },
         "theme": {
