@@ -43,7 +43,6 @@
     ],
     artifactName: '${productName}-${version}-Windows-${arch}-Setup.${ext}',
     icon: 'public/crock.ico',
-    publisherName: 'KD-MM2 (Cao Thai Duong)',
     legalTrademarks: 'KD-MM2'
   },
   nsis: {
