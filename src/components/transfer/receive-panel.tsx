@@ -118,7 +118,7 @@ export function ReceivePanel() {
       if (text) {
         setForm((prev) => ({ ...prev, code: text.trim() }));
       }
-    } catch (error) {
+    } catch {
       toast.error(t('transfer.common.toast.clipboardReadFailed'));
     }
   };

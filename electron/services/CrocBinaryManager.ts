@@ -39,7 +39,7 @@ async function pathExists(target: string) {
   try {
     await stat(target);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -54,7 +54,7 @@ async function readJsonSafe<T>(filePath: string): Promise<T | null> {
   try {
     const content = await readFile(filePath, 'utf-8');
     return JSON.parse(content) as T;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -362,7 +362,7 @@ export class CrocBinaryManager {
         return binPath;
       }
       return binPath;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -447,7 +447,7 @@ export class CrocBinaryManager {
     try {
       await rm(currentLink, { force: true });
       await symlink(binaryPath, currentLink);
-    } catch (error) {
+    } catch {
       // Symlinks may fail on Windows; ignore.
     }
   }

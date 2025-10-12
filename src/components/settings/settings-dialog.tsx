@@ -55,12 +55,6 @@ export function SettingsDialog() {
   }, [open, load, refreshConnectionStatus]);
 
   useEffect(() => {
-    if (!open) {
-      setActiveTab('general');
-    }
-  }, [open]);
-
-  useEffect(() => {
     if (!open) return;
 
     const api = getWindowApi();
@@ -96,7 +90,10 @@ export function SettingsDialog() {
   }, [draft, settings]);
 
   const handleClose = (nextOpen: boolean) => {
-    if (!nextOpen) closeSettings();
+    if (!nextOpen) {
+      setActiveTab('general');
+      closeSettings();
+    }
   };
 
   return (

@@ -70,7 +70,7 @@ export class ConnectionDiagnostics {
       const binaryPath = await this.binaryManager.ensure();
       const version = await this.binaryManager.getVersion(binaryPath);
       crocStatus = { installed: true, path: binaryPath, version };
-    } catch (error) {
+    } catch {
       crocStatus = { installed: false, path: undefined, version: undefined };
     }
 

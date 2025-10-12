@@ -160,7 +160,7 @@ export function SendPanel() {
       if (text) {
         setForm((prev) => ({ ...prev, text: text.slice(0, MAX_TEXT_LENGTH) }));
       }
-    } catch (error) {
+    } catch {
       toast.error(t('transfer.common.toast.clipboardReadFailed'));
     }
   };
