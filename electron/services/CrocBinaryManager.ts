@@ -185,7 +185,9 @@ export class CrocBinaryManager {
 
   async getVersion(binaryPath: string): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      const child = spawn(binaryPath, ['--version']);
+      const child = spawn(binaryPath, ['--version'], {
+        stdio: ['ignore', 'pipe', 'pipe']
+      });
       let output = '';
       let err = '';
       child.stdout.on('data', (chunk) => {

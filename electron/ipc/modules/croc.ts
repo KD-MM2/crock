@@ -9,6 +9,7 @@ import type { ReceiveOptions, SendMode, SendOptions } from '../../types/croc';
 import type { Settings } from '../../types/settings';
 import type { ReleaseInfo } from '../../types/release';
 import { parseHostPort } from '../../utils/network';
+import { getCapabilities } from '../../services/CrocCapabilities';
 import type { AppIpcContext } from '../context';
 
 const CODE_REGEX = /^[a-z0-9-]{6,}$/i;
@@ -186,7 +187,7 @@ function formatDuration(durationMs?: number): string | undefined {
 }
 
 export function registerCrocHandlers(context: AppIpcContext) {
-  const { processRunner, historyStore, settingsStore, binaryManager, capabilityDetector, commandBuilder } = context;
+  const { processRunner, historyStore, settingsStore, binaryManager, commandBuilder } = context;
 
   processRunner.on('progress', (payload) => {
     if (payload.raw) {
@@ -245,8 +246,9 @@ export function registerCrocHandlers(context: AppIpcContext) {
     const version = await binaryManager.getVersion(binaryPath);
 
     processRunner.setBinaryPath(binaryPath);
-    capabilityDetector.setBinaryPath(binaryPath);
-    const capabilities = await capabilityDetector.getCapabilities();
+
+    // Use hard-coded capabilities (assuming all v10.x versions have same capabilities)
+    const capabilities = getCapabilities();
     commandBuilder.setCapabilities(capabilities);
 
     settingsStore.set({
