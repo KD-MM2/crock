@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useUiStore, type UiStore } from '@/stores/ui';
 import { useHistoryStore } from '@/stores/history';
 import type { HistoryRecord } from '@/types/history';
@@ -141,14 +142,6 @@ export function HistoryDialog() {
                 </div>
               </div>
               <div className="rounded-lg border border-border/60">
-                <div className="flex items-center justify-between border-b border-border/60 bg-muted/30 px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  <span className="w-12">{t('history.dialog.table.headers.type')}</span>
-                  <span className="flex-1">{t('history.dialog.table.headers.time')}</span>
-                  <span className="w-24 text-right">{t('history.dialog.table.headers.size')}</span>
-                  <span className="w-32 text-right">{t('history.dialog.table.headers.relay')}</span>
-                  <span className="w-32 text-right">{t('history.dialog.table.headers.code')}</span>
-                  <span className="w-24 text-right">{t('history.dialog.table.headers.status')}</span>
-                </div>
                 <div className="max-h-[320px] overflow-y-auto">
                   {status === 'loading' && (
                     <div className="flex items-center justify-center gap-2 px-4 py-6 text-muted-foreground">
@@ -156,26 +149,38 @@ export function HistoryDialog() {
                     </div>
                   )}
                   {status === 'ready' && records.length === 0 && <div className="px-4 py-6 text-sm text-muted-foreground">{t('history.dialog.empty')}</div>}
-                  {records.map((record: HistoryRecord) => (
-                    <button
-                      key={record.id}
-                      className={cn('flex w-full items-center gap-2 border-b border-border/40 px-4 py-3 text-sm transition-colors last:border-none hover:bg-muted/40', selectedId === record.id && 'bg-primary/10')}
-                      onClick={() => select(record.id)}
-                    >
-                      <span className="w-12 text-left font-medium text-muted-foreground">{t(typeLabelKeys[record.type] ?? 'history.types.unknown', { defaultValue: record.type })}</span>
-                      <span className="flex-1 text-left text-xs text-muted-foreground">{formatDateTime(record.createdAt)}</span>
-                      <span className="w-24 text-right font-medium">{formatBytes(record.totalSize)}</span>
-                      <span className="w-32 truncate text-right text-xs text-muted-foreground" title={record.relay ?? ''}>
-                        {record.relay ?? '—'}
-                      </span>
-                      <span className="w-32 truncate text-right font-mono text-xs text-muted-foreground" title={record.code ?? ''}>
-                        {maskCode(record.code)}
-                      </span>
-                      <span className="w-24 text-right">
-                        <StatusBadge status={record.status} />
-                      </span>
-                    </button>
-                  ))}
+                  {status === 'ready' && records.length > 0 && (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">{t('history.dialog.table.headers.type')}</TableHead>
+                          <TableHead>{t('history.dialog.table.headers.time')}</TableHead>
+                          <TableHead className="w-24 text-right">{t('history.dialog.table.headers.size')}</TableHead>
+                          <TableHead className="w-32 text-right">{t('history.dialog.table.headers.relay')}</TableHead>
+                          <TableHead className="w-32 text-right">{t('history.dialog.table.headers.code')}</TableHead>
+                          <TableHead className="w-24 text-right">{t('history.dialog.table.headers.status')}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {records.map((record: HistoryRecord) => (
+                          <TableRow key={record.id} className={cn('cursor-pointer', selectedId === record.id && 'bg-primary/10')} onClick={() => select(record.id)} data-state={selectedId === record.id ? 'selected' : undefined}>
+                            <TableCell className="font-medium text-muted-foreground">{t(typeLabelKeys[record.type] ?? 'history.types.unknown', { defaultValue: record.type })}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{formatDateTime(record.createdAt)}</TableCell>
+                            <TableCell className="text-right font-medium">{formatBytes(record.totalSize)}</TableCell>
+                            <TableCell className="truncate text-right text-xs text-muted-foreground" title={record.relay ?? ''}>
+                              {record.relay ?? '—'}
+                            </TableCell>
+                            <TableCell className="truncate text-right font-mono text-xs text-muted-foreground" title={record.code ?? ''}>
+                              {maskCode(record.code)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <StatusBadge status={record.status} />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
                 </div>
               </div>
             </div>
