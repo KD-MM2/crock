@@ -4,7 +4,7 @@ Giao diện desktop cho [croc](https://github.com/schollz/croc) được xây d�
 
 ## Mục lục
 
-- [Crock UI](#-crock-ui)
+- [🥐 Crock UI](#-crock-ui)
   - [Mục lục](#mục-lục)
   - [Tổng quan](#tổng-quan)
   - [Tính năng nổi bật](#tính-năng-nổi-bật)
@@ -19,11 +19,11 @@ Giao diện desktop cho [croc](https://github.com/schollz/croc) được xây d�
     - [Cài đặt phụ thuộc](#cài-đặt-phụ-thuộc)
     - [Chạy ứng dụng](#chạy-ứng-dụng)
   - [Các script khả dụng](#các-script-khả-dụng)
-  - [Quy trình build & đóng gói](#quy-trình-build--đóng-gói)
-  - [Cấu hình & lưu trữ dữ liệu](#cấu-hình--lưu-trữ-dữ-liệu)
+  - [Quy trình build \& đóng gói](#quy-trình-build--đóng-gói)
+  - [Cấu hình \& lưu trữ dữ liệu](#cấu-hình--lưu-trữ-dữ-liệu)
   - [Đa ngôn ngữ](#đa-ngôn-ngữ)
   - [Lộ trình phát triển](#lộ-trình-phát-triển)
-  - [Vấn đề đã biết & giới hạn](#vấn-đề-đã-biết--giới-hạn)
+  - [Vấn đề đã biết \& giới hạn](#vấn-đề-đã-biết--giới-hạn)
   - [Khắc phục sự cố](#khắc-phục-sự-cố)
   - [Đóng góp](#đóng-góp)
   - [Lời cảm ơn](#lời-cảm-ơn)
@@ -170,6 +170,7 @@ Bạn có thể chỉnh icon, app ID, kênh cập nhật hoặc ký số trong `
 - **Thiếu UI cho SOCKS5** — Backend hỗ trợ SOCKS5 (`electron/services/CrocCommandBuilder.ts`, `electron/services/SettingsStore.ts`) nhưng giao diện chỉ có trường HTTP/HTTPS nên chưa chỉnh được SOCKS5 mặc định.
 - **Renderer phụ thuộc bridge Electron** — `getWindowApi()` (`src/lib/window-api.ts`) sẽ throw nếu thiếu `window.api`. Khi chạy Vite đơn thuần không preload, mọi thao tác dùng bridge (cài đặt, chuyển file) sẽ lỗi ngay. Mock cho trình duyệt còn chưa hoàn thiện.
 - **Cột dung lượng lịch sử lỗi định dạng** — Bảng lịch sử đôi lúc thiếu hoặc hiển thị sai kích thước, khiến phiên dài không có tổng dung lượng chính xác.
+- **Drag-n-Drop**: Do các hạn chế về bảo mật của Electron, thao tác kéo-thả từ phía renderer không thể lấy được đường dẫn tuyệt đối trên ổ đĩa. Tôi sẽ cố gắng tìm cách khắc phục, nhưng không đảm bảo thành công.
 
 ## Khắc phục sự cố
 

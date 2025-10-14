@@ -29,6 +29,32 @@ export function registerAppHandlers(context: AppIpcContext) {
     return result.filePaths[0] ?? null;
   });
 
+  ipcMain.handle('app:getPathStats', async (_event, paths: string[]) => {
+    const results = await Promise.all(
+      paths.map(async (path) => {
+        try {
+          const stats = await fs.promises.stat(path);
+          return {
+            path,
+            size: stats.isDirectory() ? undefined : stats.size,
+            isDirectory: stats.isDirectory(),
+            isFile: stats.isFile()
+          };
+        } catch (error) {
+          console.error(`[app:getPathStats] Failed to stat ${path}:`, error);
+          return {
+            path,
+            size: undefined,
+            isDirectory: false,
+            isFile: false,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          };
+        }
+      })
+    );
+    return results;
+  });
+
   ipcMain.handle('app:clipboardRead', async () => clipboard.readText());
 
   ipcMain.handle('app:clipboardWrite', async (_event, text: string) => {

@@ -172,6 +172,7 @@ Adjust icons, app identifiers, update channels, and signing options inside `elec
 - **No SOCKS5 proxy UI** – The backend understands SOCKS5 (`electron/services/CrocCommandBuilder.ts`, `electron/services/SettingsStore.ts`), but the settings dialog only exposes HTTP/HTTPS fields. Users cannot currently edit SOCKS5 relay defaults from the UI.
 - **Renderer requires Electron bridge** – `getWindowApi()` (`src/lib/window-api.ts`) throws when `window.api` is absent. Serving the renderer with plain Vite (without the preload script) will break as soon as settings or transfer actions touch the bridge. A lightweight browser mock is not yet implemented.
 - **History size column bug** – The transfer history table occasionally omits or misformats file sizes, so long-running sends lack accurate totals until this renderer formatting issue is fixed.
+- **Drag-n-Drop**: Due to Electron's security limits, drag-n-drop action from renderer side couldn't get the absolute path on the disk. I will try to find a workaround but not promised.
 
 ## Troubleshooting
 

@@ -456,15 +456,18 @@
                 }
             },
             "dropzone": {
-                "title": "Click to choose files or drop them here",
-                "description": "Supports drag-and-drop directly from Explorer/Finder (files only).",
+                "title": "Please select files or folder",
+                "selectFiles": "Select file(s)",
+                "selectFolder": "Select folder",
+                "description": "Select single or multiple files, or a single folder",
                 "error": "Unable to add files."
             },
             "items": {
                 "count_one": "{{count}} item",
                 "count_other": "{{count}} items",
                 "total": "Total size: {{size}}",
-                "clear": "Clear list"
+                "clear": "Clear list",
+                "folder": "Folder"
             },
             "textMode": {
                 "placeholder": "Paste or type the content to send",
@@ -501,7 +504,7 @@
             "toast": {
                 "noItems": "Select at least one file or folder.",
                 "noText": "Enter text to send.",
-                "missingPaths": "Some items are missing actual paths. Please reselect them with the “Browse…” button.",
+                "missingPaths": "Some items are missing actual paths. Please reselect them with the Browse button.",
                 "started": "Send session started.",
                 "startFailed": "Unable to start sending.",
                 "autoCopySuccess": "Code copied to clipboard.",
@@ -511,7 +514,10 @@
                 "qrSaved": "QR code saved (SVG).",
                 "qrSaveFailed": "Unable to save QR code.",
                 "resetBlockedActive": "Finish or cancel the current send before resetting.",
-                "resetCompleted": "Send form reset."
+                "resetCompleted": "Send form reset.",
+                "filePathError": "Failed to get path for file: {{fileName}}",
+                "fileProcessError": "Failed to process files.",
+                "mixedItemsNotAllowed": "Cannot mix files and folders. Please select either files or a single folder."
             }
         },
         "receive": {

@@ -456,15 +456,18 @@
                 }
             },
             "dropzone": {
-                "title": "クリックしてファイルを選択するか、ここにドロップしてください",
-                "description": "エクスプローラー/Finder からのドラッグ＆ドロップに対応しています (ファイルのみ)。",
+                "title": "ファイルまたはフォルダーを選択してください",
+                "selectFiles": "ファイルを選択",
+                "selectFolder": "フォルダーを選択",
+                "description": "単一または複数のファイル、または単一のフォルダーを選択",
                 "error": "ファイルを追加できませんでした。"
             },
             "items": {
                 "count_one": "{{count}} 件",
                 "count_other": "{{count}} 件",
                 "total": "合計サイズ: {{size}}",
-                "clear": "一覧をクリア"
+                "clear": "一覧をクリア",
+                "folder": "フォルダー"
             },
             "textMode": {
                 "placeholder": "送信する内容を貼り付けるか入力してください",
@@ -511,7 +514,10 @@
                 "qrSaved": "QR コードを保存しました (SVG)。",
                 "qrSaveFailed": "QR コードを保存できませんでした。",
                 "resetBlockedActive": "リセットする前に現在の送信を完了またはキャンセルしてください。",
-                "resetCompleted": "送信フォームをリセットしました。"
+                "resetCompleted": "送信フォームをリセットしました。",
+                "filePathError": "ファイルのパスを取得できませんでした: {{fileName}}",
+                "fileProcessError": "ファイルの処理に失敗しました。",
+                "mixedItemsNotAllowed": "ファイルとフォルダーを混在させることはできません。ファイルまたは単一のフォルダーを選択してください。"
             }
         },
         "receive": {

@@ -456,15 +456,18 @@
                 }
             },
             "dropzone": {
-                "title": "Nhấn để chọn tệp hoặc kéo thả vào đây",
-                "description": "Hỗ trợ kéo thả trực tiếp từ Explorer/Finder (chỉ tệp).",
+                "title": "Vui lòng chọn tệp hoặc thư mục",
+                "selectFiles": "Chọn tệp",
+                "selectFolder": "Chọn thư mục",
+                "description": "Chọn một hoặc nhiều tệp, hoặc một thư mục",
                 "error": "Không thể thêm tệp."
             },
             "items": {
                 "count_one": "{{count}} mục",
                 "count_other": "{{count}} mục",
                 "total": "Tổng dung lượng: {{size}}",
-                "clear": "Xóa danh sách"
+                "clear": "Xóa danh sách",
+                "folder": "Thư mục"
             },
             "textMode": {
                 "placeholder": "Dán hoặc nhập nội dung cần gửi",
@@ -511,7 +514,10 @@
                 "qrSaved": "Đã lưu mã QR (SVG).",
                 "qrSaveFailed": "Không thể lưu mã QR.",
                 "resetBlockedActive": "Hãy hoàn tất hoặc hủy phiên gửi hiện tại trước khi đặt lại.",
-                "resetCompleted": "Đã đặt lại biểu mẫu gửi."
+                "resetCompleted": "Đã đặt lại biểu mẫu gửi.",
+                "filePathError": "Không thể lấy đường dẫn cho tệp: {{fileName}}",
+                "fileProcessError": "Không thể xử lý tệp.",
+                "mixedItemsNotAllowed": "Không thể trộn lẫn tệp và thư mục. Vui lòng chọn tệp hoặc một thư mục duy nhất."
             }
         },
         "receive": {

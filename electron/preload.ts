@@ -8,7 +8,8 @@ const api: WindowApi = {
     selectFolder: () => ipcRenderer.invoke('app:selectFolder'),
     clipboardRead: () => ipcRenderer.invoke('app:clipboardRead'),
     clipboardWrite: (text: string) => ipcRenderer.invoke('app:clipboardWrite', text),
-    openPath: (target: string) => ipcRenderer.invoke('app:openPath', target)
+    openPath: (target: string) => ipcRenderer.invoke('app:openPath', target),
+    getPathStats: (paths: string[]) => ipcRenderer.invoke('app:getPathStats', paths)
   },
   window: {
     minimize: () => ipcRenderer.invoke('app:window:minimize'),

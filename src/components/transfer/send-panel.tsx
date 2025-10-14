@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ClipboardPaste, Copy, File as FileIcon, FileText, FolderPlus, QrCode, RefreshCw, RotateCcw, Save, Settings2, Trash2 } from 'lucide-react';
+import { ClipboardPaste, Copy, File as FileIcon, FileText, Folder, FolderPlus, QrCode, RefreshCw, RotateCcw, Save, Settings2, Trash2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Dropzone } from '@/components/ui/dropzone';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useSettingsStore } from '@/stores/settings';
 import { useTransferStore } from '@/stores/transfer';
@@ -25,8 +24,6 @@ import { createLocalId } from '@/lib/id';
 import { formatBytes } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { DEFAULT_CURVE, DEFAULT_RELAY_HOST, normalizeRelayHost } from '@/lib/croc';
-
-type ElectronFile = File & { path?: string };
 
 const MODE_OPTIONS: Array<{ value: SendMode; labelKey: string; descriptionKey: string }> = [
   { value: 'files', labelKey: 'transfer.send.modes.files.label', descriptionKey: 'transfer.send.modes.files.description' },
@@ -139,12 +136,67 @@ export function SendPanel() {
     }));
   };
 
-  const handleDropzoneFiles = useCallback((acceptedFiles: File[]) => {
-    if (!acceptedFiles || acceptedFiles.length === 0) return;
-    const items: SelectedPathItem[] = acceptedFiles.map((file) => createItemFromFile(file));
-    setForm((prev) => addItems(prev, items));
-  }, []);
+  const handleBrowseFiles = useCallback(async () => {
+    try {
+      const api = getWindowApi();
+      const paths = await api.app.selectFiles({ allowFolders: false, multiple: true });
 
+      if (paths && paths.length > 0) {
+        // Fetch file stats to get sizes
+        const stats = await api.app.getPathStats(paths);
+        const items: SelectedPathItem[] = stats.map((stat) => ({
+          id: createLocalId('path'),
+          name: stat.path.split(/[/\\]/).pop() || stat.path,
+          path: stat.path,
+          size: stat.size,
+          kind: 'file'
+        }));
+
+        setForm((prev) => {
+          const result = addItems(prev, items);
+          if (!result) {
+            toast.error(t('transfer.send.toast.mixedItemsNotAllowed'));
+            return prev;
+          }
+          return result;
+        });
+      }
+    } catch (error) {
+      console.error('[handleBrowseFiles] Failed to select files:', error);
+      toast.error(t('transfer.send.toast.fileProcessError'));
+    }
+  }, [t]);
+
+  const handleBrowseFolder = useCallback(async () => {
+    try {
+      const api = getWindowApi();
+      const paths = await api.app.selectFiles({ allowFolders: true, multiple: false });
+
+      if (paths && paths.length > 0) {
+        // Fetch path stats to determine if it's a folder
+        const stats = await api.app.getPathStats(paths);
+        const items: SelectedPathItem[] = stats.map((stat) => ({
+          id: createLocalId('path'),
+          name: stat.path.split(/[/\\]/).pop() || stat.path,
+          path: stat.path,
+          size: stat.size, // undefined for folders
+          kind: stat.isDirectory ? 'folder' : 'file'
+        }));
+
+        setForm((prev) => {
+          const result = addItems(prev, items);
+          if (!result) {
+            toast.error(t('transfer.send.toast.mixedItemsNotAllowed'));
+            return prev;
+          }
+          return result;
+        });
+      }
+    } catch (error) {
+      console.error('[handleBrowseFolder] Failed to select folder:', error);
+      toast.error(t('transfer.send.toast.fileProcessError'));
+    }
+  }, [t]);
   const handleRemoveItem = (id: string) => {
     setForm((prev) => ({ ...prev, items: prev.items.filter((item) => item.id !== id) }));
   };
@@ -481,13 +533,23 @@ export function SendPanel() {
 
       {form.mode === 'files' ? (
         <div className="space-y-3">
-          <Dropzone multiple maxFiles={0} disabled={isSending} onDrop={handleDropzoneFiles} onError={(error) => toast.error(error.message ?? t('transfer.send.dropzone.error'))} className="p-4 sm:p-6">
-            <div className="flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
+          <div className="relative flex h-auto w-full flex-col overflow-hidden rounded-lg border-2 border-dashed border-border/60 bg-muted/20 p-4 text-muted-foreground sm:p-6">
+            <div className="flex flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
               <FolderPlus className="size-8 text-primary" aria-hidden />
               <p className="text-center text-sm font-medium text-foreground sm:text-base">{t('transfer.send.dropzone.title')}</p>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <Button variant="outline" size="sm" onClick={handleBrowseFiles} disabled={isSending} className="gap-2">
+                  <FileIcon className="size-4" aria-hidden />
+                  {t('transfer.send.dropzone.selectFiles')}
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleBrowseFolder} disabled={isSending} className="gap-2">
+                  <FolderPlus className="size-4" aria-hidden />
+                  {t('transfer.send.dropzone.selectFolder')}
+                </Button>
+              </div>
               <p className="text-center text-xs text-muted-foreground">{t('transfer.send.dropzone.description')}</p>
             </div>
-          </Dropzone>
+          </div>
           {form.items.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs uppercase tracking-wide text-muted-foreground">
@@ -498,12 +560,12 @@ export function SendPanel() {
                 {form.items.map((item) => (
                   <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-background/70 p-2">
                     <div className="flex min-w-0 items-center gap-2">
-                      <FileIcon className="size-4 text-muted-foreground" aria-hidden />
+                      {item.kind === 'folder' ? <Folder className="size-4 text-muted-foreground" aria-hidden /> : <FileIcon className="size-4 text-muted-foreground" aria-hidden />}
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium" title={item.path ?? item.name}>
                           {item.name}
                         </p>
-                        <p className="text-xs text-muted-foreground">{formatBytes(item.size)}</p>
+                        <p className="text-xs text-muted-foreground">{item.kind === 'folder' ? t('transfer.send.items.folder') : formatBytes(item.size)}</p>
                       </div>
                     </div>
                     <Button variant="ghost" size="icon" className="size-7" onClick={() => handleRemoveItem(item.id)}>
@@ -753,18 +815,7 @@ function buildInitialForm(settings?: SettingsState | null): SendFormState {
   };
 }
 
-function createItemFromFile(file: File): SelectedPathItem {
-  const electronFile = file as ElectronFile;
-  return {
-    id: createLocalId('file'),
-    name: file.name,
-    path: electronFile.path ?? file.name,
-    size: file.size,
-    kind: 'file'
-  };
-}
-
-function createItemFromPath(path: string): SelectedPathItem {
+function createItemFromPath(path: string, kind: 'file' | 'folder' = 'file'): SelectedPathItem {
   const segments = path.split(/[/\\]/);
   const name = segments[segments.length - 1] || path;
   return {
@@ -772,11 +823,27 @@ function createItemFromPath(path: string): SelectedPathItem {
     name,
     path,
     size: undefined,
-    kind: 'file'
+    kind
   };
 }
 
-function addItems(form: SendFormState, items: SelectedPathItem[]): SendFormState {
+function addItems(form: SendFormState, items: SelectedPathItem[]): SendFormState | null {
+  // Validation: Check if mixing files and folders
+  const existingHasFolders = form.items.some((item) => item.kind === 'folder');
+  const existingHasFiles = form.items.some((item) => item.kind === 'file');
+  const newHasFolders = items.some((item) => item.kind === 'folder');
+  const newHasFiles = items.some((item) => item.kind === 'file');
+
+  // Rule 1: Can't mix files and folders
+  if ((existingHasFolders && newHasFiles) || (existingHasFiles && newHasFolders)) {
+    return null; // Invalid: mixing files and folders
+  }
+
+  // Rule 2: Only one folder allowed at a time
+  if (existingHasFolders && newHasFolders) {
+    return null; // Invalid: trying to add folder when one already exists
+  }
+
   const existingPaths = new Set(form.items.map((item) => item.path ?? item.name));
   const merged = [...form.items];
   for (const item of items) {

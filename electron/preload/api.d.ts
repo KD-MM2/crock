@@ -64,6 +64,14 @@ export type EventPayloadMap = {
 
 export type EventUnsubscribe = () => void;
 
+export type PathStats = {
+  path: string;
+  size?: number;
+  isDirectory: boolean;
+  isFile: boolean;
+  error?: string;
+};
+
 export interface WindowApi {
   app: {
     selectFiles: (options?: SelectFilesOptions) => Promise<string[]>;
@@ -71,6 +79,7 @@ export interface WindowApi {
     clipboardRead: () => Promise<string>;
     clipboardWrite: (text: string) => Promise<void>;
     openPath: (path: string) => Promise<void>;
+    getPathStats: (paths: string[]) => Promise<PathStats[]>;
   };
   window: {
     minimize: () => Promise<void>;

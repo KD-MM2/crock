@@ -46,6 +46,11 @@ export const Dropzone = ({ accept, maxFiles = 1, maxSize, minSize, onDrop, onErr
     minSize,
     onError,
     disabled,
+    // Disable default file input since we'll use Electron's native dialog
+    noClick: true,
+    noKeyboard: true,
+    // Only allow drop, not file input
+    noDrag: false,
     onDrop: (acceptedFiles: File[], fileRejections: FileRejection[], event: DropEvent) => {
       if (fileRejections.length > 0) {
         const message = fileRejections[0]?.errors[0]?.message;

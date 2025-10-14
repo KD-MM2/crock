@@ -172,6 +172,7 @@ pnpm build
 - **SOCKS5 プロキシ UI 不足** — バックエンドは SOCKS5 (`electron/services/CrocCommandBuilder.ts`, `electron/services/SettingsStore.ts`) を扱えますが、設定ダイアログには HTTP/HTTPS フィールドのみで編集できません。
 - **Electron ブリッジ必須のレンダラー** — `getWindowApi()` (`src/lib/window-api.ts`) は `window.api` が無いと例外を投げます。プリロードなしで Vite を単独起動すると、設定や転送操作で即座に失敗します。軽量なブラウザモックは未実装です。
 - **履歴サイズ列の不具合** — 転送履歴テーブルでファイルサイズが欠落・誤表示することがあり、長時間転送の合計値が正しく出ない場合があります。
+- **Drag-n-Drop**: Electronのセキュリティ制限により、レンダラ側からのドラッグ＆ドロップ操作ではディスク上の絶対パスを取得することができませんでした。代替手段を探してみるつもりですが、保証はできません。
 
 ## トラブルシューティング
 
