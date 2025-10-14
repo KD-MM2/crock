@@ -3,7 +3,7 @@ import { Activity, ArrowUpRight, Clock, Download, ExternalLink, FileText, Refres
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -97,49 +97,38 @@ export function HistoryDialog() {
             </DialogHeader>
 
             <div className="mt-4 grid gap-4">
-              <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border/60 bg-muted/20 p-3">
-                <div className="flex-1 min-w-[200px]">
-                  <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">{t('history.dialog.filters.type.label')}</label>
-                  <Select value={filters.type} onValueChange={(value) => setFilters({ type: value as typeof filters.type })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('history.dialog.filters.type.options.all')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t('history.dialog.filters.type.options.all')}</SelectItem>
-                      <SelectItem value="send">{t(typeLabelKeys.send)}</SelectItem>
-                      <SelectItem value="receive">{t(typeLabelKeys.receive)}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex-1 min-w-[200px]">
-                  <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">{t('history.dialog.filters.status.label')}</label>
-                  <Select value={filters.status} onValueChange={(value) => setFilters({ status: value as typeof filters.status })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('history.dialog.filters.status.options.all')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t('history.dialog.filters.status.options.all')}</SelectItem>
-                      <SelectItem value="done">{t(statusLabelKeys.done)}</SelectItem>
-                      <SelectItem value="failed">{t(statusLabelKeys.failed)}</SelectItem>
-                      <SelectItem value="canceled">{t(statusLabelKeys.canceled)}</SelectItem>
-                      <SelectItem value="in-progress">{t(statusLabelKeys['in-progress'])}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex-1 min-w-[200px]">
-                  <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">{t('history.dialog.filters.search.label')}</label>
+              <div className="flex items-center gap-4 rounded-lg border border-border/60 bg-muted/20 p-3">
+                <Select value={filters.type} onValueChange={(value) => setFilters({ type: value as typeof filters.type })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('history.dialog.filters.type.options.all')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('history.dialog.filters.type.options.all')}</SelectItem>
+                    <SelectItem value="send">{t(typeLabelKeys.send)}</SelectItem>
+                    <SelectItem value="receive">{t(typeLabelKeys.receive)}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filters.status} onValueChange={(value) => setFilters({ status: value as typeof filters.status })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('history.dialog.filters.status.options.all')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('history.dialog.filters.status.options.all')}</SelectItem>
+                    <SelectItem value="done">{t(statusLabelKeys.done)}</SelectItem>
+                    <SelectItem value="failed">{t(statusLabelKeys.failed)}</SelectItem>
+                    <SelectItem value="canceled">{t(statusLabelKeys.canceled)}</SelectItem>
+                    <SelectItem value="in-progress">{t(statusLabelKeys['in-progress'])}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="flex-[2]">
                   <Input placeholder={t('history.dialog.filters.search.placeholder')} value={filters.search} onChange={(event) => setFilters({ search: event.target.value })} />
                 </div>
-                <div className="flex-1 min-w-[200px]">
-                  <Button variant="outline" size="sm" onClick={() => void refresh()}>
-                    <RefreshCw className="mr-2 size-4" aria-hidden /> {t('history.dialog.actions.refresh')}
-                  </Button>
-                </div>
-                <div className="flex-1 min-w-[200px]">
-                  <Button variant="ghost" size="sm" onClick={() => setFilters({ type: 'all', status: 'all', search: '' })}>
-                    {t('history.dialog.actions.resetFilters')}
-                  </Button>
-                </div>
+                <Button variant="outline" size="sm" onClick={() => void refresh()}>
+                  <RefreshCw className="mr-2 size-4" aria-hidden /> {t('history.dialog.actions.refresh')}
+                </Button>
+                <Button variant="destructive" size="sm" onClick={() => setFilters({ type: 'all', status: 'all', search: '' })}>
+                  {t('history.dialog.actions.resetFilters')}
+                </Button>
               </div>
               <div className="rounded-lg border border-border/60">
                 <div className="max-h-[320px] overflow-y-auto">
@@ -162,68 +151,73 @@ export function HistoryDialog() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {records.map((record: HistoryRecord) => (
-                          <TableRow key={record.id} className={cn('cursor-pointer', selectedId === record.id && 'bg-primary/10')} onClick={() => select(record.id)} data-state={selectedId === record.id ? 'selected' : undefined}>
-                            <TableCell className="font-medium text-muted-foreground">{t(typeLabelKeys[record.type] ?? 'history.types.unknown', { defaultValue: record.type })}</TableCell>
-                            <TableCell className="text-xs text-muted-foreground">{formatDateTime(record.createdAt)}</TableCell>
-                            <TableCell className="text-right font-medium">{formatBytes(record.totalSize)}</TableCell>
-                            <TableCell className="truncate text-right text-xs text-muted-foreground" title={record.relay ?? ''}>
-                              {record.relay ?? '—'}
-                            </TableCell>
-                            <TableCell className="truncate text-right font-mono text-xs text-muted-foreground" title={record.code ?? ''}>
-                              {maskCode(record.code)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <StatusBadge status={record.status} />
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {records.map((record: HistoryRecord) => {
+                          const totalSize = record.totalSize ?? record.files?.reduce((sum, file) => sum + (file.size ?? 0), 0) ?? 0;
+                          return (
+                            <TableRow key={record.id} className={cn('cursor-pointer', selectedId === record.id && 'bg-primary/10')} onClick={() => select(record.id)} data-state={selectedId === record.id ? 'selected' : undefined}>
+                              <TableCell className="font-medium text-muted-foreground">{t(typeLabelKeys[record.type] ?? 'history.types.unknown', { defaultValue: record.type })}</TableCell>
+                              <TableCell className="text-xs text-muted-foreground">{formatDateTime(record.createdAt)}</TableCell>
+                              <TableCell className="text-right font-medium">{formatBytes(totalSize)}</TableCell>
+                              <TableCell className="truncate text-right text-xs text-muted-foreground" title={record.relay ?? ''}>
+                                {record.relay ?? '—'}
+                              </TableCell>
+                              <TableCell className="truncate text-right font-mono text-xs text-muted-foreground" title={record.code ?? ''}>
+                                {maskCode(record.code)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <StatusBadge status={record.status} />
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   )}
                 </div>
+              </div>
+              <div className="flex gap-2">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" disabled={allRecords.length === 0}>
+                      <Trash2 className="mr-2 size-4" aria-hidden /> {t('history.dialog.actions.clearAll')}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t('history.dialog.clearConfirm.title')}</AlertDialogTitle>
+                      <AlertDialogDescription>{t('history.dialog.clearConfirm.description')}</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t('common.actions.cancel')}</AlertDialogCancel>
+                      <AlertDialogAction variant="destructive" onClick={() => void handleClearAll()}>
+                        <Trash2 className="size-4" aria-hidden /> {t('history.dialog.clearConfirm.confirm')}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                <Button variant="secondary" size="sm" onClick={() => void handleExport()} disabled={allRecords.length === 0}>
+                  <Download className="mr-2 size-4" aria-hidden /> {t('history.dialog.actions.exportJson')}
+                </Button>
               </div>
             </div>
           </div>
 
           <Separator orientation="vertical" className="hidden h-full sm:block" />
 
-          <aside className="w-full border-t border-border/60 bg-muted/20 p-6 sm:w-[320px] sm:border-l sm:border-t-0">
-            {selectedRecord ? (
-              <HistoryDetail record={selectedRecord} onClose={() => select(undefined)} />
-            ) : (
-              <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-sm text-muted-foreground">
-                <FileText className="size-10 text-muted-foreground" aria-hidden />
-                <div>
-                  <p className="font-medium text-foreground">{t('history.dialog.selection.promptTitle')}</p>
-                  <p>{t('history.dialog.selection.promptDescription')}</p>
+          <aside className="flex h-full flex-col w-full border-t border-border/60 bg-muted/20 sm:w-[360px] sm:border-l sm:border-t-0">
+            <div className="flex-1 overflow-hidden p-6">
+              {selectedRecord ? (
+                <HistoryDetail record={selectedRecord} onClose={() => select(undefined)} />
+              ) : (
+                <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-sm text-muted-foreground">
+                  <FileText className="size-10 text-muted-foreground" aria-hidden />
+                  <div>
+                    <p className="font-medium text-foreground">{t('history.dialog.selection.promptTitle')}</p>
+                    <p>{t('history.dialog.selection.promptDescription')}</p>
+                  </div>
                 </div>
-              </div>
-            )}
-            <DialogFooter className="mt-6 flex-col gap-2 sm:flex-col">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm" className="w-full">
-                    <Trash2 className="mr-2 size-4" aria-hidden /> {t('history.dialog.actions.clearAll')}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t('history.dialog.clearConfirm.title')}</AlertDialogTitle>
-                    <AlertDialogDescription>{t('history.dialog.clearConfirm.description')}</AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t('common.actions.cancel')}</AlertDialogCancel>
-                    <AlertDialogAction className="gap-2 bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive" onClick={() => void handleClearAll()}>
-                      <Trash2 className="size-4" aria-hidden /> {t('history.dialog.clearConfirm.confirm')}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-              <Button variant="secondary" size="sm" onClick={() => void handleExport()} className="w-full">
-                <Download className="mr-2 size-4" aria-hidden /> {t('history.dialog.actions.exportJson')}
-              </Button>
-            </DialogFooter>
+              )}
+            </div>
           </aside>
         </div>
       </DialogContent>
@@ -244,6 +238,7 @@ function HistoryDetail({ record, onClose }: { record: HistoryRecord; onClose: ()
   const { t } = useTranslation();
   const typeLabelKey = typeLabelKeys[record.type];
   const typeLabel = typeLabelKey ? t(typeLabelKey) : record.type;
+  const totalSize = record.totalSize ?? record.files?.reduce((sum, file) => sum + (file.size ?? 0), 0) ?? 0;
 
   const handleOpenFolder = async () => {
     const path = record.type === 'receive' ? record.destinationPath : record.sourcePath;
@@ -261,51 +256,51 @@ function HistoryDetail({ record, onClose }: { record: HistoryRecord; onClose: ()
   };
 
   return (
-    <div className="flex h-full flex-col gap-4 text-sm">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-xs uppercase text-muted-foreground">{t('history.detail.sessionLabel', { type: typeLabel })}</p>
-          <p className="font-semibold text-foreground">{formatDateTime(record.createdAt)}</p>
+    <div className="flex h-full flex-col gap-4 text-sm overflow-hidden">
+      <div className="flex-shrink-0">
+        <p className="text-xs uppercase text-muted-foreground">{t('history.detail.sessionLabel', { type: typeLabel })}</p>
+        <p className="font-semibold text-foreground">{formatDateTime(record.createdAt)}</p>
+      </div>
+      <div className="flex-1 overflow-y-auto space-y-4">
+        <div className="space-y-2 rounded-lg border border-border/60 bg-background/40 p-3">
+          <DetailRow label={t('history.detail.fields.code')} value={record.code ?? '—'} mono />
+          <DetailRow label={t('history.detail.fields.relay')} value={record.relay ?? '—'} />
+          <DetailRow label={t('history.detail.fields.status')} value={<StatusBadge status={record.status} />} />
+          <DetailRow label={t('history.detail.fields.totalSize')} value={formatBytes(totalSize)} />
+          <DetailRow label={t('history.detail.fields.duration')} value={record.duration ?? formatDuration(record.finishedAt && record.createdAt ? record.finishedAt - record.createdAt : undefined)} />
         </div>
-        <Button variant="ghost" size="sm" onClick={onClose}>
+        {record.files && record.files.length > 0 && (
+          <div>
+            <p className="mb-2 text-xs font-medium uppercase text-muted-foreground">{t('history.detail.files.title')}</p>
+            <div className="space-y-2 rounded-lg border border-border/60 bg-background/40 p-3">
+              {record.files.map((file: NonNullable<HistoryRecord['files']>[number]) => (
+                <div key={file.name} className="flex items-center justify-between text-xs">
+                  <span className="truncate" title={file.path ?? file.name}>
+                    {file.name}
+                  </span>
+                  <span className="text-muted-foreground">{formatBytes(file.size)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {record.logTail && record.logTail.length > 0 && (
+          <div>
+            <p className="mb-2 text-xs font-medium uppercase text-muted-foreground">{t('history.detail.log.title')}</p>
+            <div className="max-h-32 space-y-1 overflow-y-auto rounded-lg border border-border/60 bg-background/60 p-3 text-xs font-mono">
+              {record.logTail.map((line: string, index: number) => (
+                <p key={`${record.id}-log-${index}`} className="whitespace-pre-wrap text-left">
+                  {line}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="flex-shrink-0 grid gap-2">
+        <Button variant="outline" size="sm" onClick={onClose}>
           {t('common.actions.close')}
         </Button>
-      </div>
-      <div className="space-y-2 rounded-lg border border-border/60 bg-background/40 p-3">
-        <DetailRow label={t('history.detail.fields.code')} value={record.code ?? '—'} mono />
-        <DetailRow label={t('history.detail.fields.relay')} value={record.relay ?? '—'} />
-        <DetailRow label={t('history.detail.fields.status')} value={<StatusBadge status={record.status} />} />
-        <DetailRow label={t('history.detail.fields.totalSize')} value={formatBytes(record.totalSize)} />
-        <DetailRow label={t('history.detail.fields.duration')} value={record.duration ?? formatDuration(record.finishedAt && record.createdAt ? record.finishedAt - record.createdAt : undefined)} />
-      </div>
-      {record.files && record.files.length > 0 && (
-        <div>
-          <p className="mb-2 text-xs font-medium uppercase text-muted-foreground">{t('history.detail.files.title')}</p>
-          <div className="space-y-2 rounded-lg border border-border/60 bg-background/40 p-3">
-            {record.files.map((file: NonNullable<HistoryRecord['files']>[number]) => (
-              <div key={file.name} className="flex items-center justify-between text-xs">
-                <span className="truncate" title={file.path ?? file.name}>
-                  {file.name}
-                </span>
-                <span className="text-muted-foreground">{formatBytes(file.size)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      {record.logTail && record.logTail.length > 0 && (
-        <div>
-          <p className="mb-2 text-xs font-medium uppercase text-muted-foreground">{t('history.detail.log.title')}</p>
-          <div className="max-h-32 space-y-1 overflow-y-auto rounded-lg border border-border/60 bg-background/60 p-3 text-xs font-mono">
-            {record.logTail.map((line: string, index: number) => (
-              <p key={`${record.id}-log-${index}`} className="whitespace-pre-wrap text-left">
-                {line}
-              </p>
-            ))}
-          </div>
-        </div>
-      )}
-      <div className="mt-auto grid gap-2">
         <Button variant="outline" size="sm" onClick={() => void handleResend()}>
           <ArrowUpRight className="mr-2 size-4" aria-hidden /> {t('history.detail.actions.resend')}
         </Button>

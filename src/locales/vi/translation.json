@@ -375,8 +375,8 @@
             "canceled": "ĐÃ HỦY"
         },
         "types": {
-            "send": "Gửi",
-            "receive": "Nhận"
+            "send": "GỬI",
+            "receive": "NHẬN"
         },
         "detail": {
             "sessionLabel": "Phiên {{type}}",
