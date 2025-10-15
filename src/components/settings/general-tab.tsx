@@ -153,9 +153,6 @@ export default function GeneralTab({ settings, updateDraft }: { settings: Settin
               })
             }
           />
-          <Field label={t('settings.general.receiveDefaults.defaultDir')}>
-            <Input value={settings.general.downloadDir} readOnly className="font-mono" />
-          </Field>
         </div>
       </div>
     </div>

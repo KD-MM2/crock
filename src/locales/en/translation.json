@@ -33,8 +33,9 @@
     },
     "tabs": {
       "general": "General",
+      "network": "Network",
+      "security": "Security & Privacy",
       "advanced": "Advanced",
-      "misc": "Miscellaneous",
       "about": "About"
     },
     "general": {
@@ -182,8 +183,8 @@
     },
     "misc": {
       "logging": {
-        "title": "Logging & history",
-        "description": "Adjust log tails and retention.",
+        "title": "Logging & Debugging",
+        "description": "Configure log output and verbosity.",
         "fields": {
           "logTail": "Log tail lines",
           "historyRetention": "History retention (days)"
@@ -193,9 +194,17 @@
           "description": "Toggle detailed logs in the progress view."
         }
       },
+      "history": {
+        "title": "History",
+        "description": "Manage transfer history retention."
+      },
+      "expert": {
+        "title": "Expert Options",
+        "description": "Advanced configuration for power users."
+      },
       "security": {
-        "title": "Security options",
-        "description": "Adjust code validation and flags.",
+        "title": "Privacy & Safety",
+        "description": "Configure privacy and safety features.",
         "deepLink": {
           "label": "Enable deep links",
           "description": "Allow croc-ui://receive?code=…"

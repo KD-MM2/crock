@@ -33,8 +33,9 @@
         },
         "tabs": {
             "general": "Chung",
+            "network": "Mạng",
+            "security": "Bảo mật & Riêng tư",
             "advanced": "Nâng cao",
-            "misc": "Khác",
             "about": "Giới thiệu"
         },
         "general": {
@@ -182,8 +183,8 @@
         },
         "misc": {
             "logging": {
-                "title": "Logging & History",
-                "description": "Điều chỉnh log tail và thời gian giữ.",
+                "title": "Logging & Debugging",
+                "description": "Cấu hình đầu ra nhật ký và độ chi tiết.",
                 "fields": {
                     "logTail": "Số dòng log tail",
                     "historyRetention": "Giữ lịch sử (ngày)"
@@ -193,9 +194,17 @@
                     "description": "Ẩn/hiện log chi tiết trong bảng tiến trình."
                 }
             },
+            "history": {
+                "title": "Lịch sử",
+                "description": "Quản lý thời gian lưu trữ lịch sử truyền tải."
+            },
+            "expert": {
+                "title": "Tùy chọn chuyên gia",
+                "description": "Cấu hình nâng cao cho người dùng chuyên nghiệp."
+            },
             "security": {
-                "title": "Tùy chọn bảo mật",
-                "description": "Điều chỉnh xác thực code và flags.",
+                "title": "Riêng tư & An toàn",
+                "description": "Cấu hình tính năng riêng tư và an toàn.",
                 "deepLink": {
                     "label": "Bật deep links",
                     "description": "Cho phép croc-ui://receive?code=…"

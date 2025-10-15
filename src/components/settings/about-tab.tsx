@@ -193,50 +193,52 @@ export default function AboutTab({ settings }: { settings: SettingsState }) {
 
       <div className="space-y-6">
         <SectionHeading icon={FileCode2} title={t('settings.about.binary.title')} description={t('settings.about.binary.description')} />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t('settings.about.binary.fields.version')}>
-            <Select value={selectValue} onValueChange={handleSelectVersion} disabled={loadingVersions || installing}>
-              <SelectTrigger className="w-full" aria-label={t('settings.about.binary.fields.versionAria')}>
-                <SelectValue placeholder={loadingVersions ? t('common.loadingShort') : t('settings.about.binary.fields.versionPlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                {versionItems.length === 0 ? (
-                  <SelectItem value="__empty" disabled>
-                    {loadingVersions ? t('common.loadingShort') : t('settings.about.binary.fields.versionEmpty')}
-                  </SelectItem>
-                ) : (
-                  versionItems.map((release) => {
-                    const statusLabels: string[] = [];
-                    if (release.prerelease) statusLabels.push(t('settings.about.binary.labels.preRelease'));
-                    if (release.immutable) statusLabels.push(t('settings.about.binary.labels.immutable'));
-                    const statusSuffix = statusLabels.length > 0 ? ` (${statusLabels.join(' • ')})` : '';
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={t('settings.about.binary.fields.version')}>
+              <Select value={selectValue} onValueChange={handleSelectVersion} disabled={loadingVersions || installing}>
+                <SelectTrigger className="w-full" aria-label={t('settings.about.binary.fields.versionAria')}>
+                  <SelectValue placeholder={loadingVersions ? t('common.loadingShort') : t('settings.about.binary.fields.versionPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {versionItems.length === 0 ? (
+                    <SelectItem value="__empty" disabled>
+                      {loadingVersions ? t('common.loadingShort') : t('settings.about.binary.fields.versionEmpty')}
+                    </SelectItem>
+                  ) : (
+                    versionItems.map((release) => {
+                      const statusLabels: string[] = [];
+                      if (release.prerelease) statusLabels.push(t('settings.about.binary.labels.preRelease'));
+                      if (release.immutable) statusLabels.push(t('settings.about.binary.labels.immutable'));
+                      const statusSuffix = statusLabels.length > 0 ? ` (${statusLabels.join(' • ')})` : '';
 
-                    return (
-                      <SelectItem key={release.tagName} value={release.tagName} className="flex flex-col items-start text-left">
-                        <span className="text-sm font-medium">
-                          {t('settings.about.binary.labels.releaseTitle', {
-                            version: release.tagName,
-                            status: statusSuffix
-                          })}
-                        </span>
-                        {release.publishedAt ? (
-                          <span className="text-xs text-muted-foreground">
-                            {t('settings.about.binary.labels.publishedAt', { date: new Date(release.publishedAt).toLocaleDateString() })}
+                      return (
+                        <SelectItem key={release.tagName} value={release.tagName} className="flex flex-col items-start text-left">
+                          <span className="text-sm font-medium">
+                            {t('settings.about.binary.labels.releaseTitle', {
+                              version: release.tagName,
+                              status: statusSuffix
+                            })}
                           </span>
-                        ) : null}
-                      </SelectItem>
-                    );
-                  })
-                )}
-              </SelectContent>
-            </Select>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {t('settings.about.binary.current', { version: settings.binary.crocVersion ?? t('settings.about.binary.labels.notInstalled') })}
-            </p>
-          </Field>
-          <Field label={t('settings.about.binary.fields.path')}>
-            <Input value={settings.binary.crocPath ?? ''} readOnly className="font-mono" />
-          </Field>
+                          {release.publishedAt ? (
+                            <span className="text-xs text-muted-foreground">
+                              {t('settings.about.binary.labels.publishedAt', { date: new Date(release.publishedAt).toLocaleDateString() })}
+                            </span>
+                          ) : null}
+                        </SelectItem>
+                      );
+                    })
+                  )}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label={t('settings.about.binary.fields.path')}>
+              <Input value={settings.binary.crocPath ?? ''} readOnly className="font-mono" />
+            </Field>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t('settings.about.binary.current', { version: settings.binary.crocVersion ?? t('settings.about.binary.labels.notInstalled') })}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button

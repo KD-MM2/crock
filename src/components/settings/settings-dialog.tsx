@@ -12,7 +12,8 @@ import AboutTab from './about-tab';
 import AdvancedTab from './advanced-tab';
 import { TAB_ITEMS } from './const';
 import GeneralTab from './general-tab';
-import MiscTab from './misc-tab';
+import NetworkTab from './network-tab';
+import SecurityTab from './security-tab';
 import { UpdateDraft } from './types';
 
 export default function SettingsDialog() {
@@ -113,8 +114,8 @@ export default function SettingsDialog() {
                 <TabsContent value="general" className="pb-16">
                   <GeneralTab settings={draft} updateDraft={updateDraft} />
                 </TabsContent>
-                <TabsContent value="advanced" className="pb-16">
-                  <AdvancedTab
+                <TabsContent value="network" className="pb-16">
+                  <NetworkTab
                     settings={draft}
                     updateDraft={updateDraft}
                     connectionStatus={connectionStatus}
@@ -122,8 +123,11 @@ export default function SettingsDialog() {
                     onRefreshStatus={() => refreshConnectionStatus()}
                   />
                 </TabsContent>
-                <TabsContent value="misc" className="pb-16">
-                  <MiscTab settings={draft} updateDraft={updateDraft} />
+                <TabsContent value="security" className="pb-16">
+                  <SecurityTab settings={draft} updateDraft={updateDraft} />
+                </TabsContent>
+                <TabsContent value="advanced" className="pb-16">
+                  <AdvancedTab settings={draft} updateDraft={updateDraft} />
                 </TabsContent>
                 <TabsContent value="about" className="pb-16">
                   <AboutTab settings={draft} />

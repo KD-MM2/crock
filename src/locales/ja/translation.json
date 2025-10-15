@@ -33,8 +33,9 @@
     },
     "tabs": {
       "general": "一般",
+      "network": "ネットワーク",
+      "security": "セキュリティとプライバシー",
       "advanced": "高度",
-      "misc": "その他",
       "about": "情報"
     },
     "general": {
@@ -182,8 +183,8 @@
     },
     "misc": {
       "logging": {
-        "title": "ログと履歴",
-        "description": "ログ末尾と保持期間を調整します。",
+        "title": "ログとデバッグ",
+        "description": "ログ出力と詳細度を設定します。",
         "fields": {
           "logTail": "ログの末尾行数",
           "historyRetention": "履歴の保持期間 (日)"
@@ -193,9 +194,17 @@
           "description": "進行状況ビューで詳細ログを切り替えます。"
         }
       },
+      "history": {
+        "title": "履歴",
+        "description": "転送履歴の保持期間を管理します。"
+      },
+      "expert": {
+        "title": "エキスパートオプション",
+        "description": "パワーユーザー向けの高度な設定。"
+      },
       "security": {
-        "title": "セキュリティオプション",
-        "description": "コードの検証やフラグを調整します。",
+        "title": "プライバシーと安全性",
+        "description": "プライバシーと安全性機能を設定します。",
         "deepLink": {
           "label": "ディープリンクを有効化",
           "description": "croc-ui://receive?code=… を許可します。"
