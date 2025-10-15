@@ -1,7 +1,7 @@
 {
   "name": "crock",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A polished Electron + React desktop companion for croc transfers.",
   "author": {
     "name": "KD-MM2 (Cao Thai Duong)",

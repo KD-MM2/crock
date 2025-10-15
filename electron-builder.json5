@@ -4,7 +4,7 @@
   appId: 'com.kdmm2.crock',
   asar: true,
   productName: 'Crock',
-  buildVersion: '0.1.0',
+  buildVersion: '0.1.1',
   artifactName: 'Crock-${platform}-${version}.${ext}',
   copyright: '© 2025 KD-MM2 (Cao Thai Duong)',
   directories: {
