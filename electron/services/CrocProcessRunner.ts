@@ -13,11 +13,20 @@ const PARENTHETICAL_REGEX = /\(([^()]+)\)/g;
 const BYTE_UNIT_FRAGMENT = '(?:[kmgtpe]i?b)';
 const SPEED_TOKEN_REGEX = new RegExp(`\\b\\d+(?:\\.\\d+)?\\s*${BYTE_UNIT_FRAGMENT}\\s*/\\s*s\\b`, 'i');
 const SIZE_VALUE_REGEX = new RegExp(`\\b\\d+(?:\\.\\d+)?\\s*${BYTE_UNIT_FRAGMENT}\\b`, 'i');
-const SIZE_PAIR_REGEX = new RegExp(`^\\s*(\\d+(?:\\.\\d+)?(?:\\s*${BYTE_UNIT_FRAGMENT})?)\\s*/\\s*(\\d+(?:\\.\\d+)?\\s*${BYTE_UNIT_FRAGMENT})\\s*$`, 'i');
+const SIZE_PAIR_REGEX = new RegExp(
+  `^\\s*(\\d+(?:\\.\\d+)?(?:\\s*${BYTE_UNIT_FRAGMENT})?)\\s*/\\s*(\\d+(?:\\.\\d+)?\\s*${BYTE_UNIT_FRAGMENT})\\s*$`,
+  'i'
+);
 const HASHING_REGEX = /\bhash(?:ing|ed)?\b/i;
 const WAITING_REGEX = /\bwait(?:ing)?\b/i;
 const WAITING_CONTEXT_REGEX = /\b(receiver|client|peer|other side|connection|connect|listener)\b/i;
-const WAITING_PROMPT_PATTERNS = [/sending\s+0\s+files/i, /sending\s+['"][^'"()]+['"]\s+\([^)]*\)/i, /code\s+is:/i, /on\s+the\s+other\s+computer\s+run/i, /code\s+copied\s+to\s+clipboard/i];
+const WAITING_PROMPT_PATTERNS = [
+  /sending\s+0\s+files/i,
+  /sending\s+['"][^'"()]+['"]\s+\([^)]*\)/i,
+  /code\s+is:/i,
+  /on\s+the\s+other\s+computer\s+run/i,
+  /code\s+copied\s+to\s+clipboard/i
+];
 const TRANSFER_PROGRESS_REGEX = /^.+?\b\d{1,3}%\s*\|/i;
 const PROGRESS_FILENAME_REGEX = /^(.+?)\s+\d{1,3}%\s*\|/;
 

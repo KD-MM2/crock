@@ -1,4 +1,4 @@
-import { type ComponentProps, type ReactNode, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Check, Globe, History, Minus, Settings, Square, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import type { SupportedLanguage } from '@/lib/i18n';
 import i18next from '@/lib/i18n';
 import crockLogo from '@/assets/crock.svg';
+import HeaderActionButton from './action-button';
 
 export function AppShellTopbar() {
   const openHistory = useUiStore((state: UiStore) => state.openHistory);
@@ -86,7 +87,10 @@ export function AppShellTopbar() {
 
   return (
     <header
-      className={cn('flex h-14 shrink-0 items-center gap-2 border-b border-border/80 bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60', 'app-region-drag')}
+      className={cn(
+        'flex h-14 shrink-0 items-center gap-2 border-b border-border/80 bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60',
+        'app-region-drag'
+      )}
       style={{ WebkitAppRegion: 'drag' }}
       aria-label={t('topbar.ariaLabel')}
     >
@@ -97,13 +101,31 @@ export function AppShellTopbar() {
         </span>
       </div>
       <div className="ml-auto flex items-center gap-2" style={{ WebkitAppRegion: 'no-drag' }}>
-        <HeaderActionButton icon={<History className="size-4" aria-hidden />} label={t('topbar.history.label')} tooltip={t('topbar.history.tooltip')} onClick={openHistory} ariaLabel={t('topbar.history.ariaLabel')} />
-        <HeaderActionButton icon={<Settings className="size-4" aria-hidden />} label={t('topbar.settings.label')} tooltip={t('topbar.settings.tooltip')} onClick={openSettings} ariaLabel={t('topbar.settings.ariaLabel')} />
+        <HeaderActionButton
+          icon={<History className="size-4" aria-hidden />}
+          label={t('topbar.history.label')}
+          tooltip={t('topbar.history.tooltip')}
+          onClick={openHistory}
+          ariaLabel={t('topbar.history.ariaLabel')}
+        />
+        <HeaderActionButton
+          icon={<Settings className="size-4" aria-hidden />}
+          label={t('topbar.settings.label')}
+          tooltip={t('topbar.settings.tooltip')}
+          onClick={openSettings}
+          ariaLabel={t('topbar.settings.ariaLabel')}
+        />
         <DropdownMenu>
           <Tooltip>
             <TooltipTrigger asChild>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="size-9 text-muted-foreground hover:text-foreground" aria-label={t('topbar.language.buttonAria', { language: currentLanguageLabel })} disabled={!settings || status === 'loading'}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="size-9 text-muted-foreground hover:text-foreground"
+                  aria-label={t('topbar.language.buttonAria', { language: currentLanguageLabel })}
+                  disabled={!settings || status === 'loading'}
+                >
                   <Globe className="size-4" aria-hidden />
                 </Button>
               </DropdownMenuTrigger>
@@ -164,29 +186,5 @@ export function AppShellTopbar() {
         </div>
       </div>
     </header>
-  );
-}
-
-interface HeaderActionButtonProps {
-  icon: ReactNode;
-  label: string;
-  tooltip: string;
-  onClick: () => void;
-  ariaLabel: string;
-  variant?: ComponentProps<typeof Button>['variant'];
-  className?: string;
-}
-
-function HeaderActionButton({ icon, label, tooltip, onClick, ariaLabel, variant = 'outline', className }: HeaderActionButtonProps) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button variant={variant} size="icon" className={cn('size-9 text-muted-foreground hover:text-foreground', className)} onClick={onClick} aria-label={ariaLabel}>
-          {icon}
-          <span className="sr-only">{label}</span>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom">{tooltip}</TooltipContent>
-    </Tooltip>
   );
 }

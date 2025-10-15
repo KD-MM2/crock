@@ -1,53 +1,27 @@
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
-import { Activity, AlertTriangle, CheckCircle2, CircleSlash, Loader2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useTransferStore } from '@/stores/transfer';
 import { useHistoryStore, type HistoryStoreState } from '@/stores/history';
 import { useSettingsStore } from '@/stores/settings';
 import { getWindowApi } from '@/lib/window-api';
-import { createLocalId } from '@/lib/id';
-import type { TransferLogEntry, TransferProgress, TransferSession, TransferDonePayload } from '@/types/transfer';
-
-const PHASE_LABEL_KEYS: Record<TransferSession['phase'], string> = {
-  idle: 'transfer.progress.phases.idle',
-  connecting: 'transfer.progress.phases.connecting',
-  hashing: 'transfer.progress.phases.hashing',
-  waiting: 'transfer.progress.phases.waiting',
-  sending: 'transfer.progress.phases.sending',
-  receiving: 'transfer.progress.phases.receiving',
-  done: 'transfer.progress.phases.done',
-  failed: 'transfer.progress.phases.failed',
-  canceled: 'transfer.progress.phases.canceled'
-};
-
-const PHASE_COLORS: Record<TransferSession['phase'], string> = {
-  idle: 'bg-muted text-muted-foreground',
-  connecting: 'bg-blue-500/15 text-blue-500 dark:bg-blue-400/10 dark:text-blue-300',
-  hashing: 'bg-purple-500/15 text-purple-600 dark:bg-purple-400/10 dark:text-purple-200',
-  waiting: 'bg-sky-500/15 text-sky-600 dark:bg-sky-400/10 dark:text-sky-300',
-  sending: 'bg-emerald-500/15 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300',
-  receiving: 'bg-amber-500/15 text-amber-600 dark:bg-amber-400/10 dark:text-amber-300',
-  done: 'bg-emerald-500/15 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300',
-  failed: 'bg-destructive/15 text-destructive',
-  canceled: 'bg-muted text-muted-foreground'
-};
-
-const STATUS_ICON: Record<TransferSession['phase'], ReactNode> = {
-  idle: <Activity className="size-4" aria-hidden />,
-  connecting: <Loader2 className="size-4 animate-spin" aria-hidden />,
-  hashing: <Loader2 className="size-4 animate-spin" aria-hidden />,
-  waiting: <Loader2 className="size-4 animate-spin" aria-hidden />,
-  sending: <Loader2 className="size-4 animate-spin" aria-hidden />,
-  receiving: <Loader2 className="size-4 animate-spin" aria-hidden />,
-  done: <CheckCircle2 className="size-4" aria-hidden />,
-  failed: <AlertTriangle className="size-4" aria-hidden />,
-  canceled: <CircleSlash className="size-4" aria-hidden />
-};
+import type { TransferSession } from '@/types/transfer';
+import { PHASE_COLORS, STATUS_ICON, PHASE_LABEL_KEYS } from './const';
+import { normalizeProgress, createLogEntry, normalizeDone } from './utils';
 
 export function TransferProgressPanel() {
   const activeId = useTransferStore((state) => state.activeTransferId);
@@ -149,9 +123,18 @@ export function TransferProgressPanel() {
   const phase = session.phase;
   const isIndeterminate = phase === 'waiting';
   const percentLabel = isIndeterminate ? '—' : `${percent}%`;
-  const progressStatusText = phase === 'done' ? t('transfer.progress.status.done') : isIndeterminate ? t('transfer.progress.status.waiting') : t('transfer.progress.status.processing');
+  const progressStatusText =
+    phase === 'done'
+      ? t('transfer.progress.status.done')
+      : isIndeterminate
+        ? t('transfer.progress.status.waiting')
+        : t('transfer.progress.status.processing');
   const hasRatio = phase !== 'hashing' && session.sizeTransferred && session.sizeTotal;
-  const sizeLabel = hasRatio ? t('transfer.progress.info.sizeRatio', { transferred: session.sizeTransferred, total: session.sizeTotal }) : session.sizeTotal ? t('transfer.progress.info.sizeTotal', { total: session.sizeTotal }) : null;
+  const sizeLabel = hasRatio
+    ? t('transfer.progress.info.sizeRatio', { transferred: session.sizeTransferred, total: session.sizeTotal })
+    : session.sizeTotal
+      ? t('transfer.progress.info.sizeTotal', { total: session.sizeTotal })
+      : null;
   const infoItems =
     phase === 'waiting'
       ? []
@@ -222,7 +205,13 @@ export function TransferProgressPanel() {
               {session.logTail.map((entry: TransferSession['logTail'][number]) => (
                 <li key={entry.id} className="flex gap-2">
                   <span className="text-muted-foreground">{new Date(entry.timestamp).toLocaleTimeString()}</span>
-                  <span className={entry.level === 'error' ? 'text-destructive' : entry.level === 'warn' ? 'text-amber-500 dark:text-amber-300' : 'text-foreground'}>{entry.message}</span>
+                  <span
+                    className={
+                      entry.level === 'error' ? 'text-destructive' : entry.level === 'warn' ? 'text-amber-500 dark:text-amber-300' : 'text-foreground'
+                    }
+                  >
+                    {entry.message}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -231,42 +220,4 @@ export function TransferProgressPanel() {
       )}
     </section>
   );
-}
-
-function normalizeProgress(payload: unknown): TransferProgress | null {
-  if (!payload || typeof payload !== 'object') return null;
-  const candidate = payload as Partial<TransferProgress>;
-  if (!candidate.id || typeof candidate.id !== 'string') return null;
-  if (!candidate.phase || typeof candidate.phase !== 'string') return null;
-  if (typeof candidate.percent !== 'number') return null;
-  if (!candidate.type || (candidate.type !== 'send' && candidate.type !== 'receive')) return null;
-  return candidate as TransferProgress;
-}
-
-function normalizeDone(payload: unknown): TransferDonePayload | null {
-  if (!payload || typeof payload !== 'object') return null;
-  const candidate = payload as Partial<TransferDonePayload>;
-  if (!candidate.id || typeof candidate.id !== 'string') return null;
-  if (typeof candidate.success !== 'boolean' && !candidate.canceled) return null;
-  const type = candidate.type === 'receive' || candidate.type === 'send' ? candidate.type : 'send';
-  return {
-    id: candidate.id,
-    type,
-    success: Boolean(candidate.success),
-    canceled: Boolean(candidate.canceled),
-    error: typeof candidate.error === 'string' ? candidate.error : undefined,
-    finishedAt: typeof candidate.finishedAt === 'number' ? candidate.finishedAt : Date.now(),
-    durationMs: typeof candidate.durationMs === 'number' ? candidate.durationMs : undefined,
-    code: typeof candidate.code === 'string' ? candidate.code : undefined,
-    bytesTransferred: typeof candidate.bytesTransferred === 'number' ? candidate.bytesTransferred : undefined
-  };
-}
-
-function createLogEntry(level: TransferLogEntry['level'], message: string): TransferLogEntry {
-  return {
-    id: createLocalId('log'),
-    timestamp: Date.now(),
-    level,
-    message
-  };
 }

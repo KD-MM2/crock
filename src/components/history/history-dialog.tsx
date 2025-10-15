@@ -1,5 +1,5 @@
-import { type ReactNode, useEffect, useMemo } from 'react';
-import { Activity, ArrowUpRight, Clock, Download, ExternalLink, FileText, RefreshCw, Trash2 } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
+import { Activity, Clock, Download, FileText, RefreshCw, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 
@@ -12,27 +12,25 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useUiStore, type UiStore } from '@/stores/ui';
 import { useHistoryStore } from '@/stores/history';
 import type { HistoryRecord } from '@/types/history';
-import { formatBytes, formatDateTime, formatDuration, maskCode } from '@/lib/format';
+import { formatBytes, formatDateTime, maskCode } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { getWindowApi } from '@/lib/window-api';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog';
+import StatusBadge from './status-badge';
+import HistoryDetail from './history-detail';
+import { statusLabelKeys, typeLabelKeys } from './const';
 
-const statusLabelKeys: Record<string, string> = {
-  'in-progress': 'history.statuses.in-progress',
-  connecting: 'history.statuses.connecting',
-  sending: 'history.statuses.sending',
-  receiving: 'history.statuses.receiving',
-  done: 'history.statuses.done',
-  failed: 'history.statuses.failed',
-  canceled: 'history.statuses.canceled'
-};
-
-const typeLabelKeys: Record<string, string> = {
-  send: 'history.types.send',
-  receive: 'history.types.receive'
-};
-
-export function HistoryDialog() {
+export default function HistoryDialog() {
   const open = useUiStore((state: UiStore) => state.dialogs.historyOpen);
   const closeHistory = useUiStore((state: UiStore) => state.closeHistory);
   const { t } = useTranslation();
@@ -60,7 +58,10 @@ export function HistoryDialog() {
     });
   }, [allRecords, filters]);
 
-  const selectedRecord = useMemo<HistoryRecord | undefined>(() => records.find((record: HistoryRecord) => record.id === selectedId), [records, selectedId]);
+  const selectedRecord = useMemo<HistoryRecord | undefined>(
+    () => records.find((record: HistoryRecord) => record.id === selectedId),
+    [records, selectedId]
+  );
 
   useEffect(() => {
     if (open) {
@@ -121,7 +122,11 @@ export function HistoryDialog() {
                   </SelectContent>
                 </Select>
                 <div className="flex-[2]">
-                  <Input placeholder={t('history.dialog.filters.search.placeholder')} value={filters.search} onChange={(event) => setFilters({ search: event.target.value })} />
+                  <Input
+                    placeholder={t('history.dialog.filters.search.placeholder')}
+                    value={filters.search}
+                    onChange={(event) => setFilters({ search: event.target.value })}
+                  />
                 </div>
                 <Button variant="outline" size="sm" onClick={() => void refresh()}>
                   <RefreshCw className="mr-2 size-4" aria-hidden /> {t('history.dialog.actions.refresh')}
@@ -137,7 +142,9 @@ export function HistoryDialog() {
                       <Activity className="size-4 animate-spin" aria-hidden /> {t('history.dialog.loading')}
                     </div>
                   )}
-                  {status === 'ready' && records.length === 0 && <div className="px-4 py-6 text-sm text-muted-foreground">{t('history.dialog.empty')}</div>}
+                  {status === 'ready' && records.length === 0 && (
+                    <div className="px-4 py-6 text-sm text-muted-foreground">{t('history.dialog.empty')}</div>
+                  )}
                   {status === 'ready' && records.length > 0 && (
                     <Table>
                       <TableHeader>
@@ -154,8 +161,15 @@ export function HistoryDialog() {
                         {records.map((record: HistoryRecord) => {
                           const totalSize = record.totalSize ?? record.files?.reduce((sum, file) => sum + (file.size ?? 0), 0) ?? 0;
                           return (
-                            <TableRow key={record.id} className={cn('cursor-pointer', selectedId === record.id && 'bg-primary/10')} onClick={() => select(record.id)} data-state={selectedId === record.id ? 'selected' : undefined}>
-                              <TableCell className="font-medium text-muted-foreground">{t(typeLabelKeys[record.type] ?? 'history.types.unknown', { defaultValue: record.type })}</TableCell>
+                            <TableRow
+                              key={record.id}
+                              className={cn('cursor-pointer', selectedId === record.id && 'bg-primary/10')}
+                              onClick={() => select(record.id)}
+                              data-state={selectedId === record.id ? 'selected' : undefined}
+                            >
+                              <TableCell className="font-medium text-muted-foreground">
+                                {t(typeLabelKeys[record.type] ?? 'history.types.unknown', { defaultValue: record.type })}
+                              </TableCell>
                               <TableCell className="text-xs text-muted-foreground">{formatDateTime(record.createdAt)}</TableCell>
                               <TableCell className="text-right font-medium">{formatBytes(totalSize)}</TableCell>
                               <TableCell className="truncate text-right text-xs text-muted-foreground" title={record.relay ?? ''}>
@@ -222,103 +236,5 @@ export function HistoryDialog() {
         </div>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const { t } = useTranslation();
-  const labelKey = statusLabelKeys[status];
-  const label = labelKey ? t(labelKey) : status;
-  const color = status === 'done' ? 'bg-emerald-500/10 text-emerald-500' : status === 'failed' ? 'bg-red-500/10 text-red-500' : status === 'canceled' ? 'bg-amber-500/10 text-amber-500' : 'bg-slate-500/10 text-slate-500';
-  return <span className={cn('inline-flex items-center justify-end rounded-full px-2 py-0.5 text-xs font-medium', color)}>{label}</span>;
-}
-
-function HistoryDetail({ record, onClose }: { record: HistoryRecord; onClose: () => void }) {
-  const api = getWindowApi();
-  const { t } = useTranslation();
-  const typeLabelKey = typeLabelKeys[record.type];
-  const typeLabel = typeLabelKey ? t(typeLabelKey) : record.type;
-  const totalSize = record.totalSize ?? record.files?.reduce((sum, file) => sum + (file.size ?? 0), 0) ?? 0;
-
-  const handleOpenFolder = async () => {
-    const path = record.type === 'receive' ? record.destinationPath : record.sourcePath;
-    if (path) {
-      await api.app.openPath(path);
-    }
-  };
-
-  const handleResend = async () => {
-    window.dispatchEvent(
-      new CustomEvent('history:resend', {
-        detail: record
-      })
-    );
-  };
-
-  return (
-    <div className="flex h-full flex-col gap-4 text-sm overflow-hidden">
-      <div className="flex-shrink-0">
-        <p className="text-xs uppercase text-muted-foreground">{t('history.detail.sessionLabel', { type: typeLabel })}</p>
-        <p className="font-semibold text-foreground">{formatDateTime(record.createdAt)}</p>
-      </div>
-      <div className="flex-1 overflow-y-auto space-y-4">
-        <div className="space-y-2 rounded-lg border border-border/60 bg-background/40 p-3">
-          <DetailRow label={t('history.detail.fields.code')} value={record.code ?? '—'} mono />
-          <DetailRow label={t('history.detail.fields.relay')} value={record.relay ?? '—'} />
-          <DetailRow label={t('history.detail.fields.status')} value={<StatusBadge status={record.status} />} />
-          <DetailRow label={t('history.detail.fields.totalSize')} value={formatBytes(totalSize)} />
-          <DetailRow label={t('history.detail.fields.duration')} value={record.duration ?? formatDuration(record.finishedAt && record.createdAt ? record.finishedAt - record.createdAt : undefined)} />
-        </div>
-        {record.files && record.files.length > 0 && (
-          <div>
-            <p className="mb-2 text-xs font-medium uppercase text-muted-foreground">{t('history.detail.files.title')}</p>
-            <div className="space-y-2 rounded-lg border border-border/60 bg-background/40 p-3">
-              {record.files.map((file: NonNullable<HistoryRecord['files']>[number]) => (
-                <div key={file.name} className="flex items-center justify-between text-xs">
-                  <span className="truncate" title={file.path ?? file.name}>
-                    {file.name}
-                  </span>
-                  <span className="text-muted-foreground">{formatBytes(file.size)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        {record.logTail && record.logTail.length > 0 && (
-          <div>
-            <p className="mb-2 text-xs font-medium uppercase text-muted-foreground">{t('history.detail.log.title')}</p>
-            <div className="max-h-32 space-y-1 overflow-y-auto rounded-lg border border-border/60 bg-background/60 p-3 text-xs font-mono">
-              {record.logTail.map((line: string, index: number) => (
-                <p key={`${record.id}-log-${index}`} className="whitespace-pre-wrap text-left">
-                  {line}
-                </p>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="flex-shrink-0 grid gap-2">
-        <Button variant="outline" size="sm" onClick={onClose}>
-          {t('common.actions.close')}
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => void handleResend()}>
-          <ArrowUpRight className="mr-2 size-4" aria-hidden /> {t('history.detail.actions.resend')}
-        </Button>
-        {record.type === 'receive' && record.destinationPath && (
-          <Button variant="secondary" size="sm" onClick={() => void handleOpenFolder()}>
-            <ExternalLink className="mr-2 size-4" aria-hidden /> {t('history.detail.actions.openDestination')}
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function DetailRow({ label, value, mono }: { label: string; value: ReactNode; mono?: boolean }) {
-  return (
-    <div className="flex items-center justify-between gap-4 text-xs">
-      <span className="text-muted-foreground">{label}</span>
-      <span className={cn('text-right font-medium', mono && 'font-mono')}>{value}</span>
-    </div>
   );
 }

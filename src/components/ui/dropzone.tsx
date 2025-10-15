@@ -38,7 +38,19 @@ export type DropzoneProps = Omit<DropzoneOptions, 'onDrop'> & {
   children?: ReactNode;
 };
 
-export const Dropzone = ({ accept, maxFiles = 1, maxSize, minSize, onDrop, onError, disabled, src, className, children, ...props }: DropzoneProps) => {
+export const Dropzone = ({
+  accept,
+  maxFiles = 1,
+  maxSize,
+  minSize,
+  onDrop,
+  onError,
+  disabled,
+  src,
+  className,
+  children,
+  ...props
+}: DropzoneProps) => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept,
     maxFiles,

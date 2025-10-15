@@ -19,7 +19,12 @@ function parseExtraFlags(extraFlags?: string): string[] {
     .filter(Boolean);
 }
 
-function maybeApplyFlag(list: string[], flag: keyof CrocCapabilities, capabilities: CrocCapabilities | undefined, build: () => string | string[] | undefined) {
+function maybeApplyFlag(
+  list: string[],
+  flag: keyof CrocCapabilities,
+  capabilities: CrocCapabilities | undefined,
+  build: () => string | string[] | undefined
+) {
   if (capabilities && flag in capabilities && capabilities[flag] === false) return;
   const value = build();
   if (!value) return;
