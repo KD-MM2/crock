@@ -193,17 +193,14 @@ croc://receive?code=<code-phrase>[&relay=<relay-host>][&password=<relay-password
 ## ロードマップ
 
 - **キーボードショートカット** — 履歴 (`Ctrl+H`) や設定 (`Ctrl+,`) を開くグローバルアクセラレータをレンダラーとメイン双方に実装。
-- **履歴ビューの磨き込み** — カラム配置、空状態、アクセシビリティ向上などテーブル UI を刷新。
 - **設定画面の再設計** — 文言とグルーピングを見直し、冗長なコントロールを整理して余白を最適化。
 - **型定義の整理** — `src/types` と `electron/types` の重複・未使用型を削除し保守性を向上。
 
 ## 既知の問題と制約
 
-- **ESLint × TypeScript 警告** — `pnpm lint` 実行時に、`@typescript-eslint/typescript-estree` が TypeScript < 5.6 のみをサポートするため警告を出します。コンパイラバージョンを合わせるか lint ツールを更新すると解消します。
 - **プロキシ診断の浅さ** — `ConnectionDiagnostics` (`electron/services/ConnectionDiagnostics.ts`) はプロキシ URL の設定有無しか報告せず、接続チェックを行わないため誤設定を検知できません。
 - **SOCKS5 プロキシ UI 不足** — バックエンドは SOCKS5 (`electron/services/CrocCommandBuilder.ts`, `electron/services/SettingsStore.ts`) を扱えますが、設定ダイアログには HTTP/HTTPS フィールドのみで編集できません。
 - **Electron ブリッジ必須のレンダラー** — `getWindowApi()` (`src/lib/window-api.ts`) は `window.api` が無いと例外を投げます。プリロードなしで Vite を単独起動すると、設定や転送操作で即座に失敗します。軽量なブラウザモックは未実装です。
-- **履歴サイズ列の不具合** — 転送履歴テーブルでファイルサイズが欠落・誤表示することがあり、長時間転送の合計値が正しく出ない場合があります。
 - **Drag-n-Drop**: Electronのセキュリティ制限により、レンダラ側からのドラッグ＆ドロップ操作ではディスク上の絶対パスを取得することができませんでした。代替手段を探してみるつもりですが、保証はできません。
 
 ## トラブルシューティング

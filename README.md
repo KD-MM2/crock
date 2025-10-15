@@ -193,17 +193,14 @@ croc://receive?code=<code-phrase>[&relay=<relay-host>][&password=<relay-password
 ## Roadmap
 
 - **Keyboard shortcuts** – Wire global accelerator handling for opening history (`Ctrl+H`) and settings (`Ctrl+,`) from both renderer and main process.
-- **Transfer history polish** – Refresh the history data table, improving column layout, empty states, and accessibility affordances.
 - **Settings redesign** – Simplify copy and grouping across the Settings dialog tabs, removing redundant controls and tightening spacing.
 - **Type cleanup** – Prune duplicate or unused TypeScript definitions in `src/types` and `electron/types` to reduce maintenance overhead.
 
 ## Known issues & limitations
 
-- **ESLint TypeScript warning** – Running `pnpm lint` emits a warning because `@typescript-eslint/typescript-estree` only supports TypeScript < 5.6 while this project currently pins 5.9 (see the lint output in this repo). Aligning the compiler version or upgrading the lint tooling will resolve it.
 - **Proxy diagnostics are shallow** – `ConnectionDiagnostics` (`electron/services/ConnectionDiagnostics.ts`) only reports whether proxy URLs are configured; it does not attempt any connectivity checks, so proxy misconfiguration goes unnoticed.
 - **No SOCKS5 proxy UI** – The backend understands SOCKS5 (`electron/services/CrocCommandBuilder.ts`, `electron/services/SettingsStore.ts`), but the settings dialog only exposes HTTP/HTTPS fields. Users cannot currently edit SOCKS5 relay defaults from the UI.
 - **Renderer requires Electron bridge** – `getWindowApi()` (`src/lib/window-api.ts`) throws when `window.api` is absent. Serving the renderer with plain Vite (without the preload script) will break as soon as settings or transfer actions touch the bridge. A lightweight browser mock is not yet implemented.
-- **History size column bug** – The transfer history table occasionally omits or misformats file sizes, so long-running sends lack accurate totals until this renderer formatting issue is fixed.
 - **Drag-n-Drop**: Due to Electron's security limits, drag-n-drop action from renderer side couldn't get the absolute path on the disk. I will try to find a workaround but not promised.
 
 ## Troubleshooting

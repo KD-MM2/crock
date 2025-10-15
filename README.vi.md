@@ -190,19 +190,15 @@ croc://receive?code=<code-phrase>[&relay=<relay-host>][&password=<relay-password
 
 ## Lộ trình phát triển
 
-- **Hỗ trợ deep link** — Khôi phục và củng cố xử lý `croc://` để tự động điền luồng nhận.
 - **Phím tắt toàn cục** — Thêm accelerator mở lịch sử (`Ctrl+H`) và cài đặt (`Ctrl+,`) ở renderer và main.
-- **Làm mới lịch sử** — Tối ưu layout cột, empty state và khả năng truy cập của bảng lịch sử.
 - **Tái thiết kế Settings** — Tinh gọn copy, nhóm lại các control và tối ưu khoảng cách.
 - **Dọn dẹp kiểu** — Loại bỏ định nghĩa TypeScript trùng/lỗi thời trong `src/types` và `electron/types`.
 
 ## Vấn đề đã biết & giới hạn
 
-- **Cảnh báo ESLint + TypeScript** — `pnpm lint` cảnh báo do `@typescript-eslint/typescript-estree` mới hỗ trợ TypeScript < 5.6, trong khi dự án dùng 5.9. Cập nhật compiler hoặc lint tool sẽ khắc phục.
 - **Chẩn đoán proxy còn hạn chế** — `ConnectionDiagnostics` (`electron/services/ConnectionDiagnostics.ts`) chỉ báo có cấu hình proxy hay không, chưa kiểm tra khả năng kết nối nên dễ bỏ sót lỗi cấu hình.
 - **Thiếu UI cho SOCKS5** — Backend hỗ trợ SOCKS5 (`electron/services/CrocCommandBuilder.ts`, `electron/services/SettingsStore.ts`) nhưng giao diện chỉ có trường HTTP/HTTPS nên chưa chỉnh được SOCKS5 mặc định.
 - **Renderer phụ thuộc bridge Electron** — `getWindowApi()` (`src/lib/window-api.ts`) sẽ throw nếu thiếu `window.api`. Khi chạy Vite đơn thuần không preload, mọi thao tác dùng bridge (cài đặt, chuyển file) sẽ lỗi ngay. Mock cho trình duyệt còn chưa hoàn thiện.
-- **Cột dung lượng lịch sử lỗi định dạng** — Bảng lịch sử đôi lúc thiếu hoặc hiển thị sai kích thước, khiến phiên dài không có tổng dung lượng chính xác.
 - **Drag-n-Drop**: Do các hạn chế về bảo mật của Electron, thao tác kéo-thả từ phía renderer không thể lấy được đường dẫn tuyệt đối trên ổ đĩa. Tôi sẽ cố gắng tìm cách khắc phục, nhưng không đảm bảo thành công.
 
 ## Khắc phục sự cố
