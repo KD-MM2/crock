@@ -1,20 +1,13 @@
 import { useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Activity, Clock, Download, FileText, RefreshCw, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useTranslation } from 'react-i18next';
-
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useUiStore, type UiStore } from '@/stores/ui';
-import { useHistoryStore } from '@/stores/history';
-import type { HistoryRecord } from '@/types/history';
 import { formatBytes, formatDateTime, maskCode } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { getWindowApi } from '@/lib/window-api';
+import { useHistoryStore } from '@/stores/history';
+import { type UiStore, useUiStore } from '@/stores/ui';
+import type { HistoryRecord } from '@/types/history';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,9 +19,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
-import StatusBadge from './status-badge';
-import HistoryDetail from './history-detail';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { statusLabelKeys, typeLabelKeys } from './const';
+import HistoryDetail from './history-detail';
+import StatusBadge from './status-badge';
 
 export default function HistoryDialog() {
   const open = useUiStore((state: UiStore) => state.dialogs.historyOpen);

@@ -1,8 +1,8 @@
+import type { SetStateAction } from 'react';
 import { create } from 'zustand';
 import type { StateCreator } from 'zustand';
-import type { SettingsState, ConnectionStatus } from '@/types/settings';
-import type { SetStateAction } from 'react';
 import { getWindowApi } from '@/lib/window-api';
+import type { ConnectionStatus, SettingsState } from '@/types/settings';
 
 export type SettingsStoreState = {
   settings: SettingsState | null;

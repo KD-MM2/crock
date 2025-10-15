@@ -1,4 +1,4 @@
-import { SettingsState, CurveName } from '@/types/settings';
+import { CurveName, SettingsState } from '@/types/settings';
 import { ReceiveFormState } from '@/types/transfer-ui';
 
 function buildInitialReceiveForm(settings?: SettingsState | null): ReceiveFormState {

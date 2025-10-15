@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
 import { statusLabelKeys } from './const';
 
 export default function StatusBadge({ status }: { status: string }) {

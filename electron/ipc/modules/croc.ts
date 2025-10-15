@@ -4,12 +4,12 @@ import fs from 'node:fs';
 import { mkdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
-import type { HistoryFileEntry, HistoryRecord } from '../../types/history';
-import type { ReceiveOptions, SendMode, SendOptions } from '../../types/croc';
-import type { Settings } from '../../types/settings';
-import type { ReleaseInfo } from '../../types/release';
-import { parseHostPort } from '../../utils/network';
 import { getCapabilities } from '../../services/CrocCapabilities';
+import type { ReceiveOptions, SendMode, SendOptions } from '../../types/croc';
+import type { HistoryFileEntry, HistoryRecord } from '../../types/history';
+import type { ReleaseInfo } from '../../types/release';
+import type { Settings } from '../../types/settings';
+import { parseHostPort } from '../../utils/network';
 import type { AppIpcContext } from '../context';
 
 const CODE_REGEX = /^[a-z0-9-]{6,}$/i;

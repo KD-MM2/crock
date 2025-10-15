@@ -1,6 +1,6 @@
-import { TransferSession } from '@/types/transfer';
-import { Loader2, CheckCircle2, AlertTriangle, CircleSlash, Activity } from 'lucide-react';
 import { ReactNode } from 'react';
+import { Activity, AlertTriangle, CheckCircle2, CircleSlash, Loader2 } from 'lucide-react';
+import { TransferSession } from '@/types/transfer';
 
 const PHASE_LABEL_KEYS: Record<TransferSession['phase'], string> = {
   idle: 'transfer.progress.phases.idle',

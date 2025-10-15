@@ -1,19 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ClipboardPaste, FolderOpen, RefreshCw, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useTranslation } from 'react-i18next';
-
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
+import { DEFAULT_CURVE, DEFAULT_RELAY_HOST, normalizeRelayHost } from '@/lib/croc';
+import { getWindowApi } from '@/lib/window-api';
 import { useSettingsStore } from '@/stores/settings';
 import { useTransferStore } from '@/stores/transfer';
 import { useUiStore } from '@/stores/ui';
 import type { ReceiveFormState } from '@/types/transfer-ui';
-import { getWindowApi } from '@/lib/window-api';
-import { DEFAULT_CURVE, DEFAULT_RELAY_HOST, normalizeRelayHost } from '@/lib/croc';
-import { buildInitialReceiveForm, resolveRelay, resolveRelayPass, resolveSecurityCurve, quoteCliArg } from './utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { buildInitialReceiveForm, quoteCliArg, resolveRelay, resolveRelayPass, resolveSecurityCurve } from './utils';
 
 export default function ReceivePanel() {
   const { t } = useTranslation();

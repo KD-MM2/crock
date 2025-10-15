@@ -1,6 +1,5 @@
-import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
-
+import i18next from 'i18next';
 import enTranslation from '@/locales/en/translation.json';
 import jaTranslation from '@/locales/ja/translation.json';
 import viTranslation from '@/locales/vi/translation.json';

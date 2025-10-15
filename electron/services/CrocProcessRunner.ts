@@ -1,6 +1,5 @@
-import { BrowserWindow } from 'electron';
 import { ChildProcess, spawn } from 'child_process';
-
+import { BrowserWindow } from 'electron';
 import { EventEmitter } from 'node:events';
 import type { ReceiveOptions, SendOptions, TransferDonePayload, TransferProgress, TransferType } from '../types/croc';
 import type { CrocCommandBuilder } from './CrocCommandBuilder';

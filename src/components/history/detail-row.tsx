@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils';
 import { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
 export default function DetailRow({ label, value, mono }: { label: string; value: ReactNode; mono?: boolean }) {
   return (

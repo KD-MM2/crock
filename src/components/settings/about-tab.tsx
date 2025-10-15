@@ -1,19 +1,19 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
+import { Download, FileCode2, FolderOpen, Info, RefreshCw, ShieldCheck } from 'lucide-react';
+import { toast } from 'sonner';
 import { getWindowApi } from '@/lib/window-api';
 import { useSettingsStore } from '@/stores/settings';
 import { ReleaseInfo } from '@/types/release';
 import { SettingsState } from '@/types/settings';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Info, FileCode2, Download, RefreshCw, FolderOpen, ShieldCheck } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
-import { useTranslation, Trans } from 'react-i18next';
-import { toast } from 'sonner';
+import crockLogo from '@/assets/crock.svg';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Spinner } from '../ui/spinner';
 import AlertNote from './alert-note';
 import Field from './field';
 import SectionHeading from './section-heading';
-import crockLogo from '@/assets/crock.svg';
 
 export default function AboutTab({ settings }: { settings: SettingsState }) {
   const installedVersion = settings.binary.crocVersion?.startsWith('v') ? settings.binary.crocVersion : undefined;

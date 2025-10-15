@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-
+import { toast } from 'sonner';
+import { getWindowApi } from '@/lib/window-api';
+import { type HistoryStoreState, useHistoryStore } from '@/stores/history';
+import { useSettingsStore } from '@/stores/settings';
+import { useTransferStore } from '@/stores/transfer';
+import type { TransferSession } from '@/types/transfer';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,13 +19,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useTransferStore } from '@/stores/transfer';
-import { useHistoryStore, type HistoryStoreState } from '@/stores/history';
-import { useSettingsStore } from '@/stores/settings';
-import { getWindowApi } from '@/lib/window-api';
-import type { TransferSession } from '@/types/transfer';
-import { PHASE_COLORS, STATUS_ICON, PHASE_LABEL_KEYS } from './const';
-import { normalizeProgress, createLogEntry, normalizeDone } from './utils';
+import { PHASE_COLORS, PHASE_LABEL_KEYS, STATUS_ICON } from './const';
+import { createLogEntry, normalizeDone, normalizeProgress } from './utils';
 
 export function TransferProgressPanel() {
   const activeId = useTransferStore((state) => state.activeTransferId);

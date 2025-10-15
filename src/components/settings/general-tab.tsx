@@ -1,7 +1,7 @@
+import { useTranslation } from 'react-i18next';
+import { ClipboardCopy, Download, FolderOpen, Waypoints } from 'lucide-react';
 import { getWindowApi } from '@/lib/window-api';
 import { SettingsState } from '@/types/settings';
-import { FolderOpen, ClipboardCopy, Waypoints, Download } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';

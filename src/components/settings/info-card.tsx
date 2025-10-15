@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
 
 export default function InfoCard({ title, description, status }: { title: string; description: string; status: 'online' | 'offline' }) {
   const { t } = useTranslation();

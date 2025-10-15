@@ -1,7 +1,7 @@
 import { BrowserWindow } from 'electron';
 import net from 'node:net';
 import { performance } from 'node:perf_hooks';
-import { parseHostPort, isIpv6 } from '../utils/network';
+import { isIpv6, parseHostPort } from '../utils/network';
 import { SettingsStore } from './SettingsStore';
 
 const DEFAULT_INTERVAL_MS = 15000;

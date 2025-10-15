@@ -1,23 +1,22 @@
 import { useEffect, useMemo } from 'react';
-import { Check, Globe, History, Minus, Settings, Square, X } from 'lucide-react';
-
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { ModeToggle } from '@/components/mode-toggle';
-import { useUiStore, type UiStore } from '@/stores/ui';
-import { useSettingsStore } from '@/stores/settings';
-import { cn } from '@/lib/utils';
-import type { SettingsState } from '@/types/settings';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Separator } from '@/components/ui/separator';
-import { getWindowApi } from '@/lib/window-api';
 import { useTranslation } from 'react-i18next';
+import { Check, Globe, History, Minus, Settings, Square, X } from 'lucide-react';
 import type { SupportedLanguage } from '@/lib/i18n';
 import i18next from '@/lib/i18n';
+import { cn } from '@/lib/utils';
+import { getWindowApi } from '@/lib/window-api';
+import { useSettingsStore } from '@/stores/settings';
+import { type UiStore, useUiStore } from '@/stores/ui';
+import type { SettingsState } from '@/types/settings';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ModeToggle } from '@/components/mode-toggle';
 import crockLogo from '@/assets/crock.svg';
 import HeaderActionButton from './action-button';
 
-export function AppShellTopbar() {
+export default function AppShellTopbar() {
   const openHistory = useUiStore((state: UiStore) => state.openHistory);
   const openSettings = useUiStore((state: UiStore) => state.openSettings);
   const status = useSettingsStore((state) => state.status);

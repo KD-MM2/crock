@@ -1,6 +1,6 @@
 import { BrowserWindow } from 'electron';
+import type { DeepLinkData, ParsedDeepLink } from '../types/deep-link';
 import type { SettingsStore } from './SettingsStore';
-import type { ParsedDeepLink, DeepLinkData } from '../types/deep-link';
 
 /**
  * DeepLinkManager handles croc:// protocol URLs

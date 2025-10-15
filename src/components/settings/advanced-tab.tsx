@@ -1,17 +1,17 @@
-import { cn } from '@/lib/utils';
-import { SettingsState, ConnectionStatus, CurveName } from '@/types/settings';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Link2, RefreshCw, Globe, ShieldCheck, ShieldQuestion, Network } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Globe, Link2, Network, RefreshCw, ShieldCheck, ShieldQuestion } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { ConnectionStatus, CurveName, SettingsState } from '@/types/settings';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import AlertNote from './alert-note';
 import Field from './field';
 import InfoCard from './info-card';
 import SectionHeading from './section-heading';
-import { UpdateDraft, SettingsDialogSelectors } from './types';
+import { SettingsDialogSelectors, UpdateDraft } from './types';
 
 export default function AdvancedTab({
   settings,

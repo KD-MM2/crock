@@ -1,15 +1,13 @@
-import { useTranslation } from 'react-i18next';
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-
-import SendPanel from './send-panel';
-import ReceivePanel from './receive-panel';
-import { TransferProgressPanel } from './transfer-progress';
-import { useUiStore } from '@/stores/ui';
-import { getWindowApi } from '@/lib/window-api';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { getWindowApi } from '@/lib/window-api';
+import { useUiStore } from '@/stores/ui';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import ReceivePanel from './receive-panel';
+import SendPanel from './send-panel';
+import { TransferProgressPanel } from './transfer-progress';
 
-export function TransferView() {
+export default function TransferView() {
   const { t } = useTranslation();
   const activeTransferTab = useUiStore((state) => state.activeTransferTab);
   const setActiveTransferTab = useUiStore((state) => state.setActiveTransferTab);

@@ -1,6 +1,6 @@
-import { SettingsState } from '@/types/settings';
-import { Cpu, ShieldAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Cpu, ShieldAlert } from 'lucide-react';
+import { SettingsState } from '@/types/settings';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import Field from './field';

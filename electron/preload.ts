@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { Settings } from './types/settings';
 import type { EventPayloadMap, IpcEventName, ReceiveRequest, SelectFilesOptions, SendRequest, WindowApi } from './preload/api';
+import type { Settings } from './types/settings';
 
 const api: WindowApi = {
   app: {

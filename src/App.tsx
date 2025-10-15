@@ -1,11 +1,10 @@
-import './App.css';
 import { Toaster } from 'sonner';
-
-import { AppShellTopbar } from './components/app-shell/topbar';
-import { HistoryDialog } from './components/history/history-dialog';
-import { SettingsDialog } from './components/settings/settings-dialog';
-import { TransferView } from './components/transfer/transfer-view';
-import { ThemeProvider } from './providers/theme';
+import './App.css';
+import AppShellTopbar from './components/app-shell/topbar';
+import HistoryDialog from './components/history/history-dialog';
+import SettingsDialog from './components/settings/settings-dialog';
+import TransferView from './components/transfer/transfer-view';
+import ThemeProvider from './providers/theme';
 
 function App() {
   return (

@@ -1,8 +1,8 @@
-import { formatDateTime, formatBytes, formatDuration } from '@/lib/format';
+import { useTranslation } from 'react-i18next';
+import { ArrowUpRight, ExternalLink } from 'lucide-react';
+import { formatBytes, formatDateTime, formatDuration } from '@/lib/format';
 import { getWindowApi } from '@/lib/window-api';
 import { HistoryRecord } from '@/types/history';
-import { ArrowUpRight, ExternalLink } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/button';
 import { typeLabelKeys } from './const';
 import DetailRow from './detail-row';

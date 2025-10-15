@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ClipboardPaste,
   Copy,
@@ -15,42 +16,40 @@ import {
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
-import { useTranslation } from 'react-i18next';
-
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { generateCodePhrase } from '@/lib/code';
+import { formatBytes } from '@/lib/format';
+import { createLocalId } from '@/lib/id';
+import { cn } from '@/lib/utils';
+import { getWindowApi } from '@/lib/window-api';
 import { useSettingsStore } from '@/stores/settings';
 import { useTransferStore } from '@/stores/transfer';
-import { useUiStore, type UiStore } from '@/stores/ui';
-import type { SendFormState, SelectedPathItem, SendMode } from '@/types/transfer-ui';
-import type { TransferSession } from '@/types/transfer';
+import { type UiStore, useUiStore } from '@/stores/ui';
 import type { HistoryRecord } from '@/types/history';
-import { getWindowApi } from '@/lib/window-api';
-import { generateCodePhrase } from '@/lib/code';
-import { createLocalId } from '@/lib/id';
-import { formatBytes } from '@/lib/format';
-import { cn } from '@/lib/utils';
+import type { TransferSession } from '@/types/transfer';
+import type { SelectedPathItem, SendFormState, SendMode } from '@/types/transfer-ui';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { resolveRelay, resolveRelayPass } from '../receive-panel/utils';
+import { FINAL_SEND_PHASES, MAX_TEXT_LENGTH, MODE_OPTIONS } from './const';
 import {
-  buildInitialForm,
   addItems,
-  copyToClipboard,
-  buildSendCliCommand,
-  isPlainObject,
-  pickFirstOption,
-  isString,
-  isSendMode,
-  isStringArray,
-  isBoolean,
-  hasSessionOverrides,
+  buildInitialForm,
   buildItemsFromHistory,
+  buildSendCliCommand,
+  copyToClipboard,
+  hasSessionOverrides,
+  isBoolean,
+  isPlainObject,
+  isSendMode,
+  isString,
+  isStringArray,
+  pickFirstOption,
   resolveExcludePatterns
 } from './utils';
-import { FINAL_SEND_PHASES, MAX_TEXT_LENGTH, MODE_OPTIONS } from './const';
 
 export default function SendPanel() {
   const { t } = useTranslation();

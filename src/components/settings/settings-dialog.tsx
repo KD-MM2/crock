@@ -1,17 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Save, SettingsIcon } from 'lucide-react';
-
+import { getWindowApi } from '@/lib/window-api';
+import { useSettingsStore } from '@/stores/settings';
+import { type UiStore, useUiStore } from '@/stores/ui';
+import type { SettingsState } from '@/types/settings';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { useUiStore, type UiStore } from '@/stores/ui';
-import { useSettingsStore } from '@/stores/settings';
-import type { SettingsState } from '@/types/settings';
-import { getWindowApi } from '@/lib/window-api';
-import { useTranslation } from 'react-i18next';
-import { TAB_ITEMS } from './const';
 import AboutTab from './about-tab';
 import AdvancedTab from './advanced-tab';
+import { TAB_ITEMS } from './const';
 import GeneralTab from './general-tab';
 import MiscTab from './misc-tab';
 import { UpdateDraft } from './types';

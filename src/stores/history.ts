@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { StateCreator } from 'zustand';
-import type { HistoryFilter, HistoryRecord } from '@/types/history';
 import { getWindowApi } from '@/lib/window-api';
+import type { HistoryFilter, HistoryRecord } from '@/types/history';
 
 export type HistoryStoreState = {
   records: HistoryRecord[];

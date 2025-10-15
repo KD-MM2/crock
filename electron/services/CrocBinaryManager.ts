@@ -1,20 +1,20 @@
+import decompress from 'decompress';
+import decompressTargz from 'decompress-targz';
+import decompressUnzip from 'decompress-unzip';
 import { app } from 'electron';
+import fg from 'fast-glob';
+import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import { mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { pipeline } from 'node:stream/promises';
 import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
-import decompress from 'decompress';
-import decompressTargz from 'decompress-targz';
-import decompressUnzip from 'decompress-unzip';
-import fg from 'fast-glob';
 import semver from 'semver';
-import { spawn } from 'node:child_process';
 import which from 'which';
-import type { Asset, Author, Release, Reactions } from '../types/release';
+import type { Asset, Author, Reactions, Release } from '../types/release';
 
 export type EnsureOptions = {
   preferSystem?: boolean;

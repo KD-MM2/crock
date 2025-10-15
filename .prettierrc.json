@@ -5,5 +5,24 @@
     "semi": true,
     "singleQuote": true,
     "printWidth": 150,
-    "bracketSameLine": false
+    "bracketSameLine": false,
+    "plugins": [
+        "@trivago/prettier-plugin-sort-imports"
+    ],
+    "importOrder": [
+        "^react$",
+        "^react/(.*)$",
+        "^react-(.*)$",
+        "<THIRD_PARTY_MODULES>",
+        "^@/lib/(.*)$",
+        "^@/stores/(.*)$",
+        "^@/types/(.*)$",
+        "^@/components/ui/(.*)$",
+        "^@/components/(.*)$",
+        "^@/assets/(.*)$",
+        "^@/(.*)$",
+        "^[./]"
+    ],
+    "importOrderSeparation": false,
+    "importOrderSortSpecifiers": true
 }

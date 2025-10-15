@@ -1,7 +1,7 @@
 import net from 'node:net';
 import { performance } from 'node:perf_hooks';
 import type { ConnectionStatus } from '../types/settings';
-import { parseHostPort, isIpv6 } from '../utils/network';
+import { isIpv6, parseHostPort } from '../utils/network';
 import { CrocBinaryManager } from './CrocBinaryManager';
 import { SettingsStore } from './SettingsStore';
 

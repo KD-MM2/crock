@@ -1,11 +1,11 @@
-import { normalizeRelayHost, DEFAULT_RELAY_HOST, DEFAULT_CURVE } from '@/lib/croc';
+import i18next from 'i18next';
+import { toast } from 'sonner';
+import { DEFAULT_CURVE, DEFAULT_RELAY_HOST, normalizeRelayHost } from '@/lib/croc';
 import { createLocalId } from '@/lib/id';
 import { getWindowApi } from '@/lib/window-api';
 import { HistoryRecord } from '@/types/history';
-import { SettingsState, CurveName } from '@/types/settings';
-import { SendFormState, SelectedPathItem, SendMode } from '@/types/transfer-ui';
-import i18next from 'i18next';
-import { toast } from 'sonner';
+import { CurveName, SettingsState } from '@/types/settings';
+import { SelectedPathItem, SendFormState, SendMode } from '@/types/transfer-ui';
 
 function buildInitialForm(settings?: SettingsState | null): SendFormState {
   return {

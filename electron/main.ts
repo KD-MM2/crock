@@ -1,17 +1,17 @@
-import { app, BrowserWindow, shell } from 'electron';
-import { fileURLToPath } from 'node:url';
+import { BrowserWindow, app, shell } from 'electron';
 import path from 'node:path';
-import { CrocBinaryManager } from './services/CrocBinaryManager';
-import { SettingsStore } from './services/SettingsStore';
-import { HistoryStore } from './services/HistoryStore';
-import { CrocCommandBuilder } from './services/CrocCommandBuilder';
-import { getCapabilities } from './services/CrocCapabilities';
-import { CrocProcessRunner } from './services/CrocProcessRunner';
-import { RelayStatusMonitor } from './services/RelayStatusMonitor';
-import { ConnectionDiagnostics } from './services/ConnectionDiagnostics';
-import { DeepLinkManager } from './services/DeepLinkManager';
-import { setupIpcHandlers } from './ipc/index.js';
+import { fileURLToPath } from 'node:url';
 import type { AppIpcContext } from './ipc/context.js';
+import { setupIpcHandlers } from './ipc/index.js';
+import { ConnectionDiagnostics } from './services/ConnectionDiagnostics';
+import { CrocBinaryManager } from './services/CrocBinaryManager';
+import { getCapabilities } from './services/CrocCapabilities';
+import { CrocCommandBuilder } from './services/CrocCommandBuilder';
+import { CrocProcessRunner } from './services/CrocProcessRunner';
+import { DeepLinkManager } from './services/DeepLinkManager';
+import { HistoryStore } from './services/HistoryStore';
+import { RelayStatusMonitor } from './services/RelayStatusMonitor';
+import { SettingsStore } from './services/SettingsStore';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

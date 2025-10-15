@@ -1,7 +1,7 @@
 import type { TransferDonePayload, TransferProgress } from '../types/croc';
 import type { HistoryRecord } from '../types/history';
-import type { ConnectionStatus, Settings } from '../types/settings';
 import type { ReleaseInfo } from '../types/release';
+import type { ConnectionStatus, Settings } from '../types/settings';
 
 export type SelectFilesOptions = {
   allowFolders?: boolean;

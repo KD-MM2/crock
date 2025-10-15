@@ -1,5 +1,5 @@
 import { createLocalId } from '@/lib/id';
-import { TransferProgress, TransferDonePayload, TransferLogEntry } from '@/types/transfer';
+import { TransferDonePayload, TransferLogEntry, TransferProgress } from '@/types/transfer';
 
 function normalizeProgress(payload: unknown): TransferProgress | null {
   if (!payload || typeof payload !== 'object') return null;
