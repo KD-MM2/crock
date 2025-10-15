@@ -9,6 +9,7 @@ import { getCapabilities } from './services/CrocCapabilities';
 import { CrocProcessRunner } from './services/CrocProcessRunner';
 import { RelayStatusMonitor } from './services/RelayStatusMonitor';
 import { ConnectionDiagnostics } from './services/ConnectionDiagnostics';
+import { DeepLinkManager } from './services/DeepLinkManager';
 import { setupIpcHandlers } from './ipc/index.js';
 import type { AppIpcContext } from './ipc/context.js';
 
@@ -25,15 +26,26 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 let mainWindow: BrowserWindow | null = null;
 let appContext: AppIpcContext | null = null;
 
+let deepLinkManager: DeepLinkManager | null = null;
+
 const singleInstanceLock = app.requestSingleInstanceLock();
 if (!singleInstanceLock) {
   app.quit();
 }
 
-app.on('second-instance', () => {
+app.on('second-instance', (_event, commandLine) => {
   if (!mainWindow) return;
   if (mainWindow.isMinimized()) mainWindow.restore();
   mainWindow.focus();
+
+  // Handle deep link from second instance (Windows/Linux)
+  if (deepLinkManager && process.platform === 'win32') {
+    // On Windows, the deep link URL is passed as a command line argument
+    const url = commandLine.find((arg) => arg.startsWith('croc://'));
+    if (url) {
+      deepLinkManager.handleUrl(url);
+    }
+  }
 });
 
 app.on('web-contents-created', (_event, contents) => {
@@ -79,7 +91,7 @@ async function createMainWindow(): Promise<BrowserWindow> {
     show: false,
     autoHideMenuBar: true,
     frame: process.platform === 'linux' ? true : false,
-    icon: path.join(process.env.VITE_PUBLIC as string, 'electron-vite.svg'),
+    icon: path.join(process.env.VITE_PUBLIC as string, 'crock.svg'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
       nodeIntegration: false,
@@ -108,6 +120,15 @@ async function loadMainWindow(window: BrowserWindow) {
 }
 
 async function bootstrap() {
+  // Register protocol handler before app is ready
+  if (process.defaultApp) {
+    if (process.argv.length >= 2) {
+      app.setAsDefaultProtocolClient('croc', process.execPath, [path.resolve(process.argv[1])]);
+    }
+  } else {
+    app.setAsDefaultProtocolClient('croc');
+  }
+
   await app.whenReady();
 
   const window = await createMainWindow();
@@ -135,7 +156,7 @@ async function bootstrap() {
     binaryPath = await binaryManager.ensure({
       version: preferredVersion && preferredVersion.startsWith('v') ? preferredVersion : undefined
     });
-  } catch(error) {
+  } catch (error) {
     console.warn('[bootstrap] failed to ensure preferred croc version, falling back', error);
     binaryPath = await binaryManager.ensure();
   }
@@ -162,6 +183,10 @@ async function bootstrap() {
 
   settingsStore.applyCapabilities(capabilities);
 
+  // Initialize deep link manager
+  deepLinkManager = new DeepLinkManager(settingsStore);
+  deepLinkManager.setWindow(window);
+
   appContext = {
     window,
     binaryPath,
@@ -177,6 +202,28 @@ async function bootstrap() {
   setupIpcHandlers(appContext);
   await loadMainWindow(window);
   relayMonitor.start();
+
+  // Handle deep links on macOS
+  app.on('open-url', (event, url) => {
+    event.preventDefault();
+    if (deepLinkManager) {
+      deepLinkManager.handleUrl(url);
+    }
+  });
+
+  // Handle deep links on Windows/Linux from command line
+  if (process.platform === 'win32') {
+    // Check if app was launched with a deep link URL
+    const url = process.argv.find((arg) => arg.startsWith('croc://'));
+    if (url && deepLinkManager) {
+      // Delay handling to ensure window is fully loaded
+      setTimeout(() => {
+        if (deepLinkManager) {
+          deepLinkManager.handleUrl(url);
+        }
+      }, 1000);
+    }
+  }
 
   window.on('close', () => {
     relayMonitor.stop();

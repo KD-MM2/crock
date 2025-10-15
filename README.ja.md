@@ -24,6 +24,7 @@
   - [ビルドとパッケージング](#ビルドとパッケージング)
   - [設定とデータ保存](#設定とデータ保存)
   - [多言語対応](#多言語対応)
+  - [ディープリンク（Deep Link）](#ディープリンクdeep-link)
   - [ロードマップ](#ロードマップ)
   - [既知の問題と制約](#既知の問題と制約)
   - [トラブルシューティング](#トラブルシューティング)
@@ -157,9 +158,40 @@ pnpm build
 - 翻訳リソースは `src/locales/<lang>/translation.json` に配置され、`src/lib/i18n.ts` が読み込みます。
 - 言語を追加する際は既存ファイルを複製し、`supportedLanguages` にコードを追加して UI 文言を更新してください。
 
+## ディープリンク（Deep Link）
+
+```pwsh
+croc://receive?code=<code-phrase>[&relay=<relay-host>][&password=<relay-password>]
+```
+
+**パラメータ:**
+
+- `code` (必須): ファイルを受信するためのCROCコードフレーズ  
+- `relay` (オプション): カスタムリレーサーバー（ホスト:ポート形式）  
+- `password` (オプション): リレーサーバーのパスワード  
+
+**例:**
+
+1. 基本設定での受信:
+
+    ```pwsh
+    croc://receive?code=7243-aurora-ceiling-collect
+    ```
+
+2. カスタムリレーを使用する場合:
+
+    ```pwsh
+    croc://receive?code=7243-aurora-ceiling-collect&relay=custom.relay.com:9009
+    ```
+
+3. リレーおよびパスワードを使用する場合:  
+
+    ```pwsh
+    croc://receive?code=7243-aurora-ceiling-collect&relay=custom.relay.com:9009&password=secret
+    ```
+
 ## ロードマップ
 
-- **ディープリンク対応** — `croc://` URI を受信して自動的に受信フローへ入力する処理を復元・強化。
 - **キーボードショートカット** — 履歴 (`Ctrl+H`) や設定 (`Ctrl+,`) を開くグローバルアクセラレータをレンダラーとメイン双方に実装。
 - **履歴ビューの磨き込み** — カラム配置、空状態、アクセシビリティ向上などテーブル UI を刷新。
 - **設定画面の再設計** — 文言とグルーピングを見直し、冗長なコントロールを整理して余白を最適化。

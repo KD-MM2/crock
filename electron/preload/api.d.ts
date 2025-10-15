@@ -47,7 +47,14 @@ export type TransferHandle = {
   id: string;
 };
 
-export type IpcEventName = 'transfer:progress' | 'transfer:done' | 'relay:status';
+export type DeepLinkData = {
+  action: 'receive' | 'send';
+  code?: string;
+  relay?: string;
+  password?: string;
+};
+
+export type IpcEventName = 'transfer:progress' | 'transfer:done' | 'relay:status' | 'deep-link:receive';
 
 export type EventPayloadMap = {
   'transfer:progress': TransferProgress;
@@ -60,17 +67,10 @@ export type EventPayloadMap = {
     ipv6?: boolean;
     port?: number;
   };
+  'deep-link:receive': DeepLinkData;
 };
 
 export type EventUnsubscribe = () => void;
-
-export type PathStats = {
-  path: string;
-  size?: number;
-  isDirectory: boolean;
-  isFile: boolean;
-  error?: string;
-};
 
 export interface WindowApi {
   app: {

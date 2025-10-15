@@ -24,6 +24,7 @@
   - [Building \& packaging](#building--packaging)
   - [Configuration \& data storage](#configuration--data-storage)
   - [Internationalisation](#internationalisation)
+  - [Deeplink](#deeplink)
   - [Roadmap](#roadmap)
   - [Known issues \& limitations](#known-issues--limitations)
   - [Troubleshooting](#troubleshooting)
@@ -157,9 +158,40 @@ Adjust icons, app identifiers, update channels, and signing options inside `elec
 - Translation resources live in `src/locales/<lang>/translation.json` and are loaded by `src/lib/i18n.ts`.
 - To add a new language, duplicate an existing locale file, add the language code to `supportedLanguages`, and update UI copy as needed.
 
+## Deeplink
+
+```pwsh
+croc://receive?code=<code-phrase>[&relay=<relay-host>][&password=<relay-password>]
+```
+
+**Parameters:**
+
+- `code` (required): The croc code phrase to receive files
+- `relay` (optional): Custom relay server (host:port format)
+- `password` (optional): Relay server password
+
+**Examples:**
+
+1. Basic receive:
+
+    ```pwsh
+    croc://receive?code=7243-aurora-ceiling-collect
+    ```
+
+2. With custom relay:
+
+    ```pwsh
+    croc://receive?code=7243-aurora-ceiling-collect&relay=custom.relay.com:9009
+    ```
+
+3. With relay and password:
+
+    ```pwsh
+    croc://receive?code=7243-aurora-ceiling-collect&relay=custom.relay.com:9009&password=secret
+    ```
+
 ## Roadmap
 
-- **Deep link handling** – Restore and harden application-level deep link support so incoming `croc://` URIs populate the receive flow automatically.
 - **Keyboard shortcuts** – Wire global accelerator handling for opening history (`Ctrl+H`) and settings (`Ctrl+,`) from both renderer and main process.
 - **Transfer history polish** – Refresh the history data table, improving column layout, empty states, and accessibility affordances.
 - **Settings redesign** – Simplify copy and grouping across the Settings dialog tabs, removing redundant controls and tightening spacing.

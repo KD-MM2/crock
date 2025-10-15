@@ -22,6 +22,7 @@ Giao diện desktop cho [croc](https://github.com/schollz/croc) được xây d�
   - [Quy trình build \& đóng gói](#quy-trình-build--đóng-gói)
   - [Cấu hình \& lưu trữ dữ liệu](#cấu-hình--lưu-trữ-dữ-liệu)
   - [Đa ngôn ngữ](#đa-ngôn-ngữ)
+  - [Deeplink](#deeplink)
   - [Lộ trình phát triển](#lộ-trình-phát-triển)
   - [Vấn đề đã biết \& giới hạn](#vấn-đề-đã-biết--giới-hạn)
   - [Khắc phục sự cố](#khắc-phục-sự-cố)
@@ -154,6 +155,38 @@ Bạn có thể chỉnh icon, app ID, kênh cập nhật hoặc ký số trong `
 - Mặc định sử dụng tiếng Việt (`vi`); gói kèm tiếng Anh (`en`) và tiếng Nhật (`ja`).
 - Tệp dịch nằm trong `src/locales/<lang>/translation.json`, được nạp bởi `src/lib/i18n.ts`.
 - Muốn thêm ngôn ngữ mới, hãy nhân bản file hiện có, thêm mã vào `supportedLanguages` và cập nhật copy giao diện.
+
+## Deeplink
+
+```pwsh
+croc://receive?code=<code-phrase>[&relay=<relay-host>][&password=<relay-password>]
+```
+
+**Các thông số:**
+
+- `code` (bắt buộc): Cụm từ mật khẩu dùng để nhận tệp tin.  
+- `relay` (tùy chọn): Server trung gian tùy chỉnh (theo định dạng: host:port).  
+- `password` (tùy chọn): Mật khẩu cho server trung gian.  
+
+**Ví dụ:**
+
+1. Nhận tệp tin theo cách cơ bản:
+
+    ```pwsh
+    croc://receive?code=7243-aurora-ceiling-collect
+    ```  
+
+2. Sử dụng server trung gian tùy chỉnh:  
+
+    ```pwsh
+    croc://receive?code=7243-aurora-ceiling-collect&relay=custom.relay.com:9009
+    ```  
+
+3. Sử dụng server trung gian và mật khẩu:  
+
+    ```pwsh
+    croc://receive?code=7243-aurora-ceiling-collect&relay=custom.relay.com:9009&password=secret
+    ```
 
 ## Lộ trình phát triển
 

@@ -549,7 +549,8 @@
       "toast": {
         "missingCode": "Enter a code phrase to receive.",
         "started": "Waiting for incoming files…",
-        "startFailed": "Unable to start receiving."
+        "startFailed": "Unable to start receiving.",
+        "deepLinkReceived": "Code auto-filled from deep link"
       }
     },
     "progress": {

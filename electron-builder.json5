@@ -45,6 +45,12 @@
     icon: 'public/crock.ico',
     legalTrademarks: 'KD-MM2'
   },
+  protocols: [
+    {
+      name: 'Crock Protocol',
+      schemes: ['croc']
+    }
+  ],
   nsis: {
     oneClick: false,
     perMachine: false,

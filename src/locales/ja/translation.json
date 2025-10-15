@@ -549,7 +549,8 @@
       "toast": {
         "missingCode": "受信用のコードフレーズを入力してください。",
         "started": "受信待ちです…",
-        "startFailed": "受信を開始できませんでした。"
+        "startFailed": "受信を開始できませんでした。",
+        "deepLinkReceived": "ディープリンクからコードを自動入力しました"
       }
     },
     "progress": {

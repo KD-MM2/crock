@@ -66,6 +66,34 @@ export function ReceivePanel() {
     };
   }, [form.autoPaste]);
 
+  // Process pending deep link data from store
+  const pendingDeepLink = useUiStore((state) => state.pendingDeepLink);
+  const clearPendingDeepLink = useUiStore((state) => state.clearPendingDeepLink);
+
+  useEffect(() => {
+    // Check if there's a pending deep link for receive action
+    if (pendingDeepLink && pendingDeepLink.action === 'receive' && pendingDeepLink.code) {
+      console.log('[ReceivePanel] Processing pending deep link:', pendingDeepLink);
+
+      // Update the form with the deep link data
+      setForm((prev) => ({
+        ...prev,
+        code: pendingDeepLink.code || '',
+        sessionOverrides: {
+          ...prev.sessionOverrides,
+          relay: pendingDeepLink.relay || prev.sessionOverrides.relay,
+          pass: pendingDeepLink.password || prev.sessionOverrides.pass
+        }
+      }));
+
+      // Show a notification
+      toast.success(t('transfer.receive.toast.deepLinkReceived'));
+
+      // Clear the pending deep link after processing
+      clearPendingDeepLink();
+    }
+  }, [pendingDeepLink, clearPendingDeepLink, t]);
+
   const downloadDir = settings?.general.downloadDir ?? 'Downloads';
 
   const receiveCli = useMemo(() => {

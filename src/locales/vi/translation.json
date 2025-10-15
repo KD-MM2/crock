@@ -549,7 +549,8 @@
             "toast": {
                 "missingCode": "Nhập mã code-phrase để nhận.",
                 "started": "Đang chờ nhận file…",
-                "startFailed": "Không thể bắt đầu nhận."
+                "startFailed": "Không thể bắt đầu nhận.",
+                "deepLinkReceived": "Đã tự động điền mã từ deep link"
             }
         },
         "progress": {

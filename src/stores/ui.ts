@@ -8,6 +8,9 @@ export type UiStore = UiState & {
   closeSettings: () => void;
   setTheme: (theme: UiState['theme']) => void;
   setActiveTransferId: (id?: string) => void;
+  setActiveTransferTab: (tab: string) => void;
+  setPendingDeepLink: (data?: UiState['pendingDeepLink']) => void;
+  clearPendingDeepLink: () => void;
 };
 
 const initialState: UiState = {
@@ -15,7 +18,9 @@ const initialState: UiState = {
     historyOpen: false,
     settingsOpen: false
   },
-  theme: 'system'
+  theme: 'system',
+  activeTransferTab: 'send',
+  pendingDeepLink: undefined
 };
 
 export const useUiStore = create<UiStore>((set) => ({
@@ -25,5 +30,8 @@ export const useUiStore = create<UiStore>((set) => ({
   openSettings: () => set((state) => ({ dialogs: { ...state.dialogs, settingsOpen: true } })),
   closeSettings: () => set((state) => ({ dialogs: { ...state.dialogs, settingsOpen: false } })),
   setTheme: (theme: UiState['theme']) => set({ theme }),
-  setActiveTransferId: (id?: string) => set({ activeTransferId: id })
+  setActiveTransferId: (id?: string) => set({ activeTransferId: id }),
+  setActiveTransferTab: (tab: string) => set({ activeTransferTab: tab }),
+  setPendingDeepLink: (data?: UiState['pendingDeepLink']) => set({ pendingDeepLink: data }),
+  clearPendingDeepLink: () => set({ pendingDeepLink: undefined })
 }));
