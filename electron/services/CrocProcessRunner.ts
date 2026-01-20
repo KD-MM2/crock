@@ -4,7 +4,7 @@ import { EventEmitter } from 'node:events';
 import type { ReceiveOptions, SendOptions, TransferDonePayload, TransferProgress, TransferType } from '../types/croc';
 import type { CrocCommandBuilder } from './CrocCommandBuilder';
 
-const CODE_REGEX = /(?<=Code is: )[a-zA-Z0-9-]+/i;
+const CODE_REGEX = /(?<=Code is: ).+/i;
 const FILE_REGEX = /^\s*(?:sending|receiving)\s+['"]?(.+?)['"]?\s+\([^)]+\)/i;
 const TARGET_REGEX = /(?:sending|receiving)\s+\((?:->|<-)\s*([^)]+)\)/i;
 const PERCENT_REGEX = /(\d{1,3})%\s*\|/;
