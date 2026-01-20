@@ -105,11 +105,11 @@ export class DeepLinkManager {
         };
       }
 
-      // Validate code format (basic validation: should contain hyphens)
-      if (!/^[\w-]+$/.test(code)) {
+      // Validate code format (basic validation: should be at least 4 chars)
+      if (code.length < 4) {
         return {
           valid: false,
-          error: 'Invalid code format'
+          error: 'Invalid code format: too short'
         };
       }
 

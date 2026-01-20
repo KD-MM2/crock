@@ -12,7 +12,7 @@ import type { Settings } from '../../types/settings';
 import { parseHostPort } from '../../utils/network';
 import type { AppIpcContext } from '../context';
 
-const CODE_REGEX = /^[\x20-\x7E]{6,}$/;
+const CODE_REGEX = /^.{4,}$/;
 
 const sendPayloadBase = z.object({
   id: z.string().optional(),
