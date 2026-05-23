@@ -6,7 +6,16 @@ import viTranslation from '@/locales/vi/translation.json';
 
 export const supportedLanguages = ['vi', 'en', 'ja'] as const;
 export type SupportedLanguage = (typeof supportedLanguages)[number];
-export const defaultLanguage: SupportedLanguage = 'vi';
+
+export function detectSystemLanguage(): SupportedLanguage {
+  const locale = (typeof navigator !== 'undefined' && navigator.language) || 'en';
+  const lang = locale.split('-')[0].toLowerCase();
+  if (lang === 'vi') return 'vi';
+  if (lang === 'ja') return 'ja';
+  return 'en';
+}
+
+export const defaultLanguage: SupportedLanguage = detectSystemLanguage();
 export const fallbackLanguage: SupportedLanguage = 'vi';
 
 const resources = {

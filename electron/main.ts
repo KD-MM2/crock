@@ -119,6 +119,14 @@ async function loadMainWindow(window: BrowserWindow) {
   }
 }
 
+function detectInitialLanguage(): 'vi' | 'en' | 'ja' {
+  const locale = app.getLocale();
+  const lang = locale.split('-')[0].toLowerCase();
+  if (lang === 'vi') return 'vi';
+  if (lang === 'ja') return 'ja';
+  return 'en';
+}
+
 async function bootstrap() {
   // Register protocol handler before app is ready
   if (process.defaultApp) {
@@ -140,7 +148,7 @@ async function bootstrap() {
       autoCopyCodeOnSend: true,
       autoResetOnSendSuccess: false,
       autoResetOnSendFailure: false,
-      language: 'vi',
+      language: detectInitialLanguage(),
       theme: 'system'
     }
   });

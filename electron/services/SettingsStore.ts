@@ -79,7 +79,7 @@ const DEFAULT_SETTINGS: Settings = {
     autoCopyCodeOnSend: true,
     autoResetOnSendSuccess: false,
     autoResetOnSendFailure: false,
-    language: 'vi',
+    language: 'en',
     theme: 'system'
   },
   transferDefaults: {
