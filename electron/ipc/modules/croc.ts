@@ -237,12 +237,22 @@ export function registerCrocHandlers(context: AppIpcContext) {
     }));
   });
 
-  ipcMain.handle('croc:installVersion', async (_event, rawVersion: unknown) => {
+  ipcMain.handle('croc:installVersion', async (event, rawVersion: unknown) => {
     if (typeof rawVersion !== 'string' || !rawVersion.trim()) {
       throw new Error('Version is required');
     }
 
-    const { path: binaryPath } = await binaryManager.ensureVersion(rawVersion.trim());
+    const sender = event.sender;
+    const { path: binaryPath } = await binaryManager.ensureVersion(
+      rawVersion.trim(),
+      (downloaded, total) => {
+        sender.send('croc:downloadProgress', { downloaded, total });
+      }
+    );
+
+    // Send final progress to clear the bar
+    sender.send('croc:downloadProgress', { downloaded: null, total: null });
+
     const version = await binaryManager.getVersion(binaryPath);
 
     processRunner.setBinaryPath(binaryPath);

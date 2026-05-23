@@ -19,7 +19,8 @@
             "off": "OFF",
             "unknown": "Không rõ",
             "notAvailable": "—",
-            "notConfigured": "Chưa thiết lập"
+            "notConfigured": "Chưa thiết lập",
+            "configured": "Đã thiết lập"
         }
     },
     "settings": {
@@ -99,9 +100,9 @@
                 "relayTestFailure": "Không thể kiểm tra relay.",
                 "relayOnline": "{{host}} hoạt động (latency {{latency}} ms).",
                 "relayOffline": "{{host}} không phản hồi hoặc ngoại tuyến.",
-                "proxyTestFailure": "Không thể kiểm tra proxy.",
-                "proxyOnline": "Proxy hoạt động (HTTP {{http}} • HTTPS {{https}}).",
-                "proxyOffline": "Proxy chưa bật hoặc không phản hồi."
+                "proxyTestFailure": "Không thể kiểm tra cấu hình proxy.",
+                "proxyConfigured": "Proxy đã thiết lập (HTTP: {{http}}, HTTPS: {{https}}, SOCKS5: {{socks5}}).",
+                "proxyNotConfigured": "Chưa thiết lập proxy."
             },
             "defaultRelay": {
                 "title": "Relay mặc định",
@@ -142,12 +143,14 @@
             },
             "proxy": {
                 "title": "Proxy",
-                "description": "Cấu hình HTTP(S) proxy cho phiên.",
+                "description": "Cấu hình HTTP(S) và SOCKS5 proxy cho phiên.",
                 "fields": {
                     "http": "HTTP Proxy",
                     "httpPlaceholder": "http://127.0.0.1:8080",
                     "https": "HTTPS Proxy",
-                    "httpsPlaceholder": "https://127.0.0.1:8080"
+                    "httpsPlaceholder": "https://127.0.0.1:8080",
+                    "socks5": "SOCKS5 Proxy",
+                    "socks5Placeholder": "socks5://127.0.0.1:1080"
                 },
                 "info": {
                     "title": "Trạng thái proxy",
@@ -172,7 +175,7 @@
                     },
                     "proxy": {
                         "title": "Proxy",
-                        "description": "HTTP {{http}} • HTTPS {{https}}"
+                        "description": "HTTP: {{http}}, HTTPS: {{https}}, SOCKS5: {{socks5}}"
                     },
                     "croc": {
                         "title": "croc",
@@ -276,12 +279,12 @@
         "ariaLabel": "Thanh tiêu đề ứng dụng",
         "history": {
             "label": "Lịch sử",
-            "tooltip": "Xem lịch sử truyền tải (Ctrl+H)",
+            "tooltip": "Xem lịch sử truyền tải",
             "ariaLabel": "Mở lịch sử truyền tải"
         },
         "settings": {
             "label": "Cài đặt",
-            "tooltip": "Mở cài đặt (Ctrl+,)",
+            "tooltip": "Mở cài đặt",
             "ariaLabel": "Mở cài đặt"
         },
         "language": {

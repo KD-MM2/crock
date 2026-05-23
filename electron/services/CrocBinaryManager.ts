@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import { mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { Readable } from 'node:stream';
+import { Readable, Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import semver from 'semver';
@@ -81,7 +81,11 @@ async function fetchText(url: string) {
   return res.text();
 }
 
-async function downloadFile(url: string, destination: string) {
+async function downloadFile(
+  url: string,
+  destination: string,
+  onProgress?: (downloaded: number, total: number) => void
+) {
   const res = await fetch(url, {
     headers: {
       'User-Agent': 'crock-app/1.0',
@@ -92,8 +96,19 @@ async function downloadFile(url: string, destination: string) {
     throw new Error(`Failed to download ${url}: ${res.status} ${res.statusText}`);
   }
   await ensureDir(path.dirname(destination));
+
+  const contentLength = Number(res.headers.get('content-length') || '0');
+  let downloaded = 0;
+  const progress = new Transform({
+    transform(chunk, _encoding, callback) {
+      downloaded += chunk.length;
+      onProgress?.(downloaded, contentLength);
+      callback(null, chunk);
+    }
+  });
+
   const nodeStream = Readable.fromWeb(res.body as unknown as NodeReadableStream<Uint8Array>);
-  await pipeline(nodeStream, fs.createWriteStream(destination));
+  await pipeline(nodeStream, progress, fs.createWriteStream(destination));
 }
 
 function resolveTarget(version: string): CrocBinaryTarget {
@@ -145,16 +160,22 @@ export class CrocBinaryManager {
     this.manifestPath = path.join(this.baseDir, manifestFileName);
   }
 
-  async ensure(options: EnsureOptions = {}): Promise<string> {
+  async ensure(
+    options: EnsureOptions = {},
+    onProgress?: (downloaded: number, total: number) => void
+  ): Promise<string> {
     if (!this.ensurePromise) {
-      this.ensurePromise = this.resolveEnsure(options).finally(() => {
+      this.ensurePromise = this.resolveEnsure(options, onProgress).finally(() => {
         this.ensurePromise = null;
       });
     }
     return this.ensurePromise;
   }
 
-  private async resolveEnsure(options: EnsureOptions): Promise<string> {
+  private async resolveEnsure(
+    options: EnsureOptions,
+    onProgress?: (downloaded: number, total: number) => void
+  ): Promise<string> {
     if (options.preferSystem) {
       const systemBinary = await this.tryResolveSystemBinary();
       if (systemBinary) {
@@ -178,7 +199,7 @@ export class CrocBinaryManager {
       return binaryPath;
     }
 
-    await this.downloadAndExtract(targetVersion, binaryDir);
+    await this.downloadAndExtract(targetVersion, binaryDir, false, onProgress);
     await this.updateManifest(targetVersion, binaryPath);
     return binaryPath;
   }
@@ -216,9 +237,12 @@ export class CrocBinaryManager {
     return binaryPath;
   }
 
-  async ensureVersion(version: string): Promise<{ version: string; path: string }> {
+  async ensureVersion(
+    version: string,
+    onProgress?: (downloaded: number, total: number) => void
+  ): Promise<{ version: string; path: string }> {
     const normalized = this.normalizeVersion(version);
-    const binaryPath = await this.ensure({ version: normalized });
+    const binaryPath = await this.ensure({ version: normalized }, onProgress);
     return { version: normalized, path: binaryPath };
   }
 
@@ -375,13 +399,18 @@ export class CrocBinaryManager {
     return trimmed;
   }
 
-  private async downloadAndExtract(version: string, targetDir: string, force = false) {
+  private async downloadAndExtract(
+    version: string,
+    targetDir: string,
+    force = false,
+    onProgress?: (downloaded: number, total: number) => void
+  ) {
     const target = resolveTarget(version);
     const assetUrl = resolveGithubAsset(version, target);
     const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'croc-download-'));
     const assetDownloadPath = path.join(tmpDir, target.assetName);
 
-    await downloadFile(assetUrl, assetDownloadPath);
+    await downloadFile(assetUrl, assetDownloadPath, onProgress);
 
     await this.verifyChecksum(version, target.assetName, assetDownloadPath).catch((error) => {
       console.warn('[croc] checksum verification skipped', error);

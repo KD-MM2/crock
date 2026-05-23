@@ -1,4 +1,4 @@
-import { BrowserWindow, app, session, shell } from 'electron';
+import { BrowserWindow, app, shell } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { AppIpcContext } from './ipc/context.js';
@@ -145,17 +145,6 @@ async function bootstrap() {
   }
 
   await app.whenReady();
-
-  if (!VITE_DEV_SERVER_URL) {
-    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-      callback({
-        responseHeaders: {
-          ...details.responseHeaders,
-          'Content-Security-Policy': ["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"]
-        }
-      });
-    });
-  }
 
   const window = await createMainWindow();
   const binaryManager = new CrocBinaryManager();

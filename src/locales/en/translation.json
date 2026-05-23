@@ -19,7 +19,8 @@
       "off": "OFF",
       "unknown": "Unknown",
       "notAvailable": "N/A",
-      "notConfigured": "Not configured"
+      "notConfigured": "Not configured",
+      "configured": "Configured"
     }
   },
   "settings": {
@@ -99,9 +100,9 @@
         "relayTestFailure": "Unable to test relay.",
         "relayOnline": "{{host}} responding (latency {{latency}} ms).",
         "relayOffline": "{{host}} is offline or not responding.",
-        "proxyTestFailure": "Unable to test proxy.",
-        "proxyOnline": "Proxy responding (HTTP {{http}} • HTTPS {{https}}).",
-        "proxyOffline": "Proxy is disabled or not responding."
+        "proxyTestFailure": "Unable to check proxy configuration.",
+        "proxyConfigured": "Proxy configured (HTTP: {{http}}, HTTPS: {{https}}, SOCKS5: {{socks5}}).",
+        "proxyNotConfigured": "No proxy endpoints configured."
       },
       "defaultRelay": {
         "title": "Default relay",
@@ -142,12 +143,14 @@
       },
       "proxy": {
         "title": "Proxy",
-        "description": "Configure HTTP(S) proxy for sessions.",
+        "description": "Configure HTTP(S) and SOCKS5 proxy for sessions.",
         "fields": {
           "http": "HTTP proxy",
           "httpPlaceholder": "http://127.0.0.1:8080",
           "https": "HTTPS proxy",
-          "httpsPlaceholder": "https://127.0.0.1:8080"
+          "httpsPlaceholder": "https://127.0.0.1:8080",
+          "socks5": "SOCKS5 proxy",
+          "socks5Placeholder": "socks5://127.0.0.1:1080"
         },
         "info": {
           "title": "Proxy status",
@@ -172,7 +175,7 @@
           },
           "proxy": {
             "title": "Proxy",
-            "description": "HTTP {{http}} • HTTPS {{https}}"
+            "description": "HTTP: {{http}}, HTTPS: {{https}}, SOCKS5: {{socks5}}"
           },
           "croc": {
             "title": "croc",
@@ -276,12 +279,12 @@
     "ariaLabel": "Application title bar",
     "history": {
       "label": "History",
-      "tooltip": "View transfer history (Ctrl+H)",
+      "tooltip": "View transfer history",
       "ariaLabel": "Open transfer history"
     },
     "settings": {
       "label": "Settings",
-      "tooltip": "Open settings (Ctrl+,)",
+      "tooltip": "Open settings",
       "ariaLabel": "Open settings"
     },
     "language": {

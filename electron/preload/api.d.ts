@@ -54,7 +54,7 @@ export type DeepLinkData = {
   password?: string;
 };
 
-export type IpcEventName = 'transfer:progress' | 'transfer:done' | 'relay:status' | 'deep-link:receive';
+export type IpcEventName = 'transfer:progress' | 'transfer:done' | 'relay:status' | 'deep-link:receive' | 'croc:downloadProgress';
 
 export type EventPayloadMap = {
   'transfer:progress': TransferProgress;
@@ -68,6 +68,7 @@ export type EventPayloadMap = {
     port?: number;
   };
   'deep-link:receive': DeepLinkData;
+  'croc:downloadProgress': { downloaded: number | null; total: number | null };
 };
 
 export type EventUnsubscribe = () => void;

@@ -1,14 +1,31 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
+import type { Plugin } from 'vite';
 import { defineConfig } from 'vite';
 import electron from 'vite-plugin-electron/simple';
+
+const cspMeta = `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">`;
+
+function cspPlugin(): Plugin {
+  return {
+    name: 'csp',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        if (ctx.server) return html;
+        return html.replace('</head>', `  ${cspMeta}\n  </head>`);
+      }
+    }
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    cspPlugin(),
     electron({
       main: {
         // Shortcut of `build.lib.entry`.

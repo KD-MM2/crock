@@ -21,8 +21,19 @@ export default function AboutTab({ settings }: { settings: SettingsState }) {
   const [versions, setVersions] = useState<ReleaseInfo[]>([]);
   const [loadingVersions, setLoadingVersions] = useState(false);
   const [installing, setInstalling] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState<{ downloaded: number; total: number } | null>(null);
   const [selectedVersion, setSelectedVersion] = useState<string | undefined>(() => installedVersion);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    return getWindowApi().events.on('croc:downloadProgress', ({ downloaded, total }) => {
+      if (downloaded === null || total === null) {
+        setDownloadProgress(null);
+      } else {
+        setDownloadProgress({ downloaded, total });
+      }
+    });
+  }, []);
 
   const selectableVersions = useMemo(() => versions.filter((release) => !release.draft), [versions]);
   const versionItems = useMemo(() => {
@@ -256,6 +267,20 @@ export default function AboutTab({ settings }: { settings: SettingsState }) {
             <FolderOpen className="mr-2 size-4" aria-hidden /> {t('settings.about.binary.actions.openFolder')}
           </Button>
         </div>
+        {installing && downloadProgress && downloadProgress.total > 0 ? (
+          <div className="space-y-1">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+              <div
+                className="h-full bg-primary transition-all duration-300 ease-out"
+                style={{ width: `${Math.round((downloadProgress.downloaded / downloadProgress.total) * 100)}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {Math.round((downloadProgress.downloaded / downloadProgress.total) * 100)}% ({Math.round(downloadProgress.downloaded / 1024 / 1024)} MB /{' '}
+              {Math.round(downloadProgress.total / 1024 / 1024)} MB)
+            </p>
+          </div>
+        ) : null}
         {isSameAsInstalled ? <AlertNote icon={ShieldCheck} text={t('settings.about.binary.notes.current')} /> : null}
       </div>
     </div>

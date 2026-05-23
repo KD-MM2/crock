@@ -19,7 +19,8 @@
       "off": "オフ",
       "unknown": "不明",
       "notAvailable": "利用不可",
-      "notConfigured": "未設定"
+      "notConfigured": "未設定",
+      "configured": "設定済み"
     }
   },
   "settings": {
@@ -99,9 +100,9 @@
         "relayTestFailure": "リレーをテストできませんでした。",
         "relayOnline": "{{host}} が応答しています (レイテンシ {{latency}} ms)。",
         "relayOffline": "{{host}} はオフラインか応答していません。",
-        "proxyTestFailure": "プロキシをテストできませんでした。",
-        "proxyOnline": "プロキシが応答しています (HTTP {{http}} • HTTPS {{https}})。",
-        "proxyOffline": "プロキシが無効、または応答していません。"
+        "proxyTestFailure": "プロキシ設定を確認できませんでした。",
+        "proxyConfigured": "プロキシ設定済み (HTTP: {{http}}, HTTPS: {{https}}, SOCKS5: {{socks5}})。",
+        "proxyNotConfigured": "プロキシは設定されていません。"
       },
       "defaultRelay": {
         "title": "既定のリレー",
@@ -142,12 +143,14 @@
       },
       "proxy": {
         "title": "プロキシ",
-        "description": "セッション用の HTTP(S) プロキシを設定します。",
+        "description": "セッション用の HTTP(S) および SOCKS5 プロキシを設定します。",
         "fields": {
           "http": "HTTP プロキシ",
           "httpPlaceholder": "http://127.0.0.1:8080",
           "https": "HTTPS プロキシ",
-          "httpsPlaceholder": "https://127.0.0.1:8080"
+          "httpsPlaceholder": "https://127.0.0.1:8080",
+          "socks5": "SOCKS5 プロキシ",
+          "socks5Placeholder": "socks5://127.0.0.1:1080"
         },
         "info": {
           "title": "プロキシの状態",
@@ -172,7 +175,7 @@
           },
           "proxy": {
             "title": "プロキシ",
-            "description": "HTTP {{http}} • HTTPS {{https}}"
+            "description": "HTTP: {{http}}, HTTPS: {{https}}, SOCKS5: {{socks5}}"
           },
           "croc": {
             "title": "croc",
@@ -276,12 +279,12 @@
     "ariaLabel": "アプリケーションのタイトルバー",
     "history": {
       "label": "履歴",
-      "tooltip": "転送履歴を表示 (Ctrl+H)",
+      "tooltip": "転送履歴を表示",
       "ariaLabel": "転送履歴を開く"
     },
     "settings": {
       "label": "設定",
-      "tooltip": "設定を開く (Ctrl+,)",
+      "tooltip": "設定を開く",
       "ariaLabel": "設定を開く"
     },
     "language": {

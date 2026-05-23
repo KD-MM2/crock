@@ -41,11 +41,10 @@ Crock UI wraps the battle-tested `croc` CLI in a modern desktop experience. It b
 - **Instant send & receive** — Queue files or plain text, choose a relay, and kick off croc transfers with a single click.
 - **Code phrase ergonomics** — Generate, copy, paste, or scan QR codes for session codes; the UI keeps clipboard and form state in sync.
 - **Transfer observability** — Track real-time progress, inspect structured logs, and revisit prior sessions via the built-in history viewer.
-- **Configurable defaults** — Adjust send/receive flags, destinations, and automation toggles across General, Advanced, Misc, and About tabs.
+- **Configurable defaults** — Adjust send/receive flags, destinations, and automation toggles across General, Network, Security, Advanced, and About tabs.
 - **Relay & proxy health checks** — Test the configured relay, proxy, and croc binary; receive live relay status events streamed from the main process.
 - **Binary lifecycle management** — Download, install, or pin croc releases directly from GitHub without leaving the app.
 - **Theming & localisation** — Light, dark, and system themes plus English, Vietnamese, and Japanese translations out of the box.
-- **Browser-friendly mock API** — In non-Electron contexts a safe mock `window.api` keeps the renderer functional for design previews.
 
 ## Screenshots
 
@@ -154,7 +153,7 @@ Adjust icons, app identifiers, update channels, and signing options inside `elec
 
 ## Internationalisation
 
-- Default language is Vietnamese (`vi`), with English (`en`) and Japanese (`ja`) translations bundled.
+- The language defaults to the system locale on first launch (English, Vietnamese, or Japanese), with Vietnamese (`vi`) as the fallback when a translation key is missing in the active language.
 - Translation resources live in `src/locales/<lang>/translation.json` and are loaded by `src/lib/i18n.ts`.
 - To add a new language, duplicate an existing locale file, add the language code to `supportedLanguages`, and update UI copy as needed.
 
@@ -198,15 +197,14 @@ croc://receive?code=<code-phrase>[&relay=<relay-host>][&password=<relay-password
 
 ## Known issues & limitations
 
-- **Proxy diagnostics are shallow** – `ConnectionDiagnostics` (`electron/services/ConnectionDiagnostics.ts`) only reports whether proxy URLs are configured; it does not attempt any connectivity checks, so proxy misconfiguration goes unnoticed.
-- **No SOCKS5 proxy UI** – The backend understands SOCKS5 (`electron/services/CrocCommandBuilder.ts`, `electron/services/SettingsStore.ts`), but the settings dialog only exposes HTTP/HTTPS fields. Users cannot currently edit SOCKS5 relay defaults from the UI.
+- **Proxy diagnostics are shallow** – `ConnectionDiagnostics` (`electron/services/ConnectionDiagnostics.ts`) only reports whether proxy URLs are configured (HTTP, HTTPS, SOCKS5); it does not attempt any connectivity checks, so proxy misconfiguration goes unnoticed.
 - **Renderer requires Electron bridge** – `getWindowApi()` (`src/lib/window-api.ts`) throws when `window.api` is absent. Serving the renderer with plain Vite (without the preload script) will break as soon as settings or transfer actions touch the bridge. A lightweight browser mock is not yet implemented.
 - **Drag-n-Drop**: Due to Electron's security limits, drag-n-drop action from renderer side couldn't get the absolute path on the disk. I will try to find a workaround but not promised.
 
 ## Troubleshooting
 
 - TypeScript warnings about unsupported versions come from `@typescript-eslint` if you use a newer compiler; either align the TypeScript version or pin a supported range.
-- When running outside Electron (e.g., `pnpm preview`), certain bridge features are mocked. Use the full Electron runtime for transfer tests.
+- When running outside Electron (e.g., `pnpm preview`), the renderer will crash as soon as it tries to access `window.api`. Always use the full Electron runtime (`pnpm dev`) for transfer tests.
 - If relay checks fail, confirm network access to your chosen relay, or update the relay settings under **Settings → Advanced**.
 
 ## Contributing

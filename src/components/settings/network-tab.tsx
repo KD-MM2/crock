@@ -60,15 +60,16 @@ export default function NetworkTab({
     }
 
     const proxy = status.proxy;
-    if (proxy?.http || proxy?.https) {
+    if (proxy?.http || proxy?.https || proxy?.socks5) {
       toast.success(
-        t('settings.advanced.toast.proxyOnline', {
+        t('settings.advanced.toast.proxyConfigured', {
           http: proxy.http ? t('common.status.on') : t('common.status.off'),
-          https: proxy.https ? t('common.status.on') : t('common.status.off')
+          https: proxy.https ? t('common.status.on') : t('common.status.off'),
+          socks5: proxy.socks5 ? t('common.status.on') : t('common.status.off')
         })
       );
     } else {
-      toast.warning(t('settings.advanced.toast.proxyOffline'));
+      toast.warning(t('settings.advanced.toast.proxyNotConfigured'));
     }
   };
 
@@ -216,6 +217,22 @@ export default function NetworkTab({
             />
           </Field>
         </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label={t('settings.advanced.proxy.fields.socks5')}>
+            <Input
+              value={settings.relayProxy.proxy?.socks5 ?? ''}
+              onChange={(event) =>
+                updateDraft((draft) => {
+                  draft.relayProxy.proxy = {
+                    ...draft.relayProxy.proxy,
+                    socks5: event.target.value || undefined
+                  };
+                })
+              }
+              placeholder={t('settings.advanced.proxy.fields.socks5Placeholder')}
+            />
+          </Field>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -241,10 +258,11 @@ export default function NetworkTab({
           />
           <InfoCard
             title={t('settings.advanced.connectionStatus.cards.proxy.title')}
-            status={connectionStatus?.proxy?.http || connectionStatus?.proxy?.https ? 'online' : 'offline'}
+            status={connectionStatus?.proxy?.http || connectionStatus?.proxy?.https || connectionStatus?.proxy?.socks5 ? 'configured' : 'offline'}
             description={t('settings.advanced.connectionStatus.cards.proxy.description', {
               http: connectionStatus?.proxy?.http ? t('common.status.on') : t('common.status.off'),
-              https: connectionStatus?.proxy?.https ? t('common.status.on') : t('common.status.off')
+              https: connectionStatus?.proxy?.https ? t('common.status.on') : t('common.status.off'),
+              socks5: connectionStatus?.proxy?.socks5 ? t('common.status.on') : t('common.status.off')
             })}
           />
           <InfoCard
