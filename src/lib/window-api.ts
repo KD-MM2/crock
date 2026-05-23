@@ -13,4 +13,5 @@ export function getWindowApi(): WindowApi {
   return cachedApi;
 }
 
-export const api: WindowApi = typeof window !== 'undefined' && window.api ? window.api : ({} as WindowApi);
+
+

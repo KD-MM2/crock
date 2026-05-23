@@ -18,6 +18,7 @@ const DEFAULT_OPTIONS: HistoryStoreOptions = {
 export class HistoryStore {
   private readonly store: Store<PersistedSchema>;
   private options: HistoryStoreOptions;
+  private recordsCache: HistoryRecord[];
 
   constructor(options: HistoryStoreOptions = DEFAULT_OPTIONS) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
@@ -25,6 +26,7 @@ export class HistoryStore {
       name: 'history',
       defaults: { records: [] }
     });
+    this.recordsCache = this.store.get('records') ?? [];
   }
 
   configure(options: Partial<HistoryStoreOptions>) {
@@ -32,53 +34,54 @@ export class HistoryStore {
   }
 
   list(): HistoryRecord[] {
-    return [...(this.store.get('records') ?? [])];
+    return this.recordsCache;
   }
 
   get(id: string): HistoryRecord | undefined {
-    return this.list().find((record) => record.id === id);
+    return this.recordsCache.find((record) => record.id === id);
   }
 
   add(record: HistoryRecord): void {
-    const records = this.list();
-    const next = [record, ...records];
-    this.store.set('records', next);
+    this.recordsCache = [record, ...this.recordsCache];
+    this.store.set('records', this.recordsCache);
     this.applyRetention();
   }
 
   update(id: string, patch: Partial<HistoryRecord>): HistoryRecord | undefined {
-    const records = this.list();
-    const next = records.map((record) => {
+    let updated: HistoryRecord | undefined;
+    this.recordsCache = this.recordsCache.map((record) => {
       if (record.id !== id) return record;
-      return { ...record, ...patch };
+      updated = { ...record, ...patch };
+      return updated;
     });
-    this.store.set('records', next);
-    return next.find((record) => record.id === id);
+    this.store.set('records', this.recordsCache);
+    return updated;
   }
 
   appendLog(id: string, line: string): void {
-    const record = this.get(id);
+    const record = this.recordsCache.find((r) => r.id === id);
     if (!record) return;
     const maxLines = this.options.maxLogLines ?? DEFAULT_OPTIONS.maxLogLines!;
     const logTail = [...(record.logTail ?? []), line].slice(-maxLines);
-    this.update(id, { logTail });
+    record.logTail = logTail;
+    this.store.set('records', this.recordsCache);
   }
 
   clear(): void {
+    this.recordsCache = [];
     this.store.set('records', []);
   }
 
   export(): string {
-    const records = this.list();
-    return JSON.stringify(records, null, 2);
+    return JSON.stringify(this.recordsCache, null, 2);
   }
 
   pruneRetention(retentionDays?: number): void {
     const days = retentionDays ?? this.options.retentionDays ?? DEFAULT_OPTIONS.retentionDays!;
     if (!days) return;
     const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-    const filtered = this.list().filter((record) => (record.finishedAt ?? record.createdAt) >= cutoff);
-    this.store.set('records', filtered);
+    this.recordsCache = this.recordsCache.filter((record) => (record.finishedAt ?? record.createdAt) >= cutoff);
+    this.store.set('records', this.recordsCache);
   }
 
   private applyRetention() {

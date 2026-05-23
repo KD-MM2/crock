@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { getWindowApi } from '@/lib/window-api';
@@ -23,8 +23,12 @@ import { PHASE_COLORS, PHASE_LABEL_KEYS, STATUS_ICON } from './const';
 import { createLogEntry, normalizeDone, normalizeProgress } from './utils';
 
 export function TransferProgressPanel() {
-  const activeId = useTransferStore((state) => state.activeTransferId);
-  const sessions = useTransferStore((state) => state.sessions);
+  const session = useTransferStore((state) => {
+    if (state.activeTransferId && state.sessions[state.activeTransferId]) {
+      return state.sessions[state.activeTransferId];
+    }
+    return undefined;
+  });
   const updateProgress = useTransferStore((state) => state.updateProgress);
   const finalizeSession = useTransferStore((state) => state.finalizeSession);
   const appendLog = useTransferStore((state) => state.appendLog);
@@ -33,18 +37,21 @@ export function TransferProgressPanel() {
   const showLogs = useSettingsStore((state) => state.settings?.advanced?.showTransferLogs ?? true);
   const { t } = useTranslation();
 
+  const handlersRef = useRef({ updateProgress, finalizeSession, appendLog, refreshHistory, t });
+  handlersRef.current = { updateProgress, finalizeSession, appendLog, refreshHistory, t };
+
   useEffect(() => {
     const api = getWindowApi();
 
     const handleProgress = (payload: unknown) => {
       const progress = normalizeProgress(payload);
       if (!progress) return;
-      updateProgress(progress);
+      handlersRef.current.updateProgress(progress);
       if (progress.raw) {
-        appendLog(progress.id, createLogEntry('info', progress.raw));
+        handlersRef.current.appendLog(progress.id, createLogEntry('info', progress.raw));
       }
       if (progress.message && progress.message !== progress.raw) {
-        appendLog(progress.id, createLogEntry('info', progress.message));
+        handlersRef.current.appendLog(progress.id, createLogEntry('info', progress.message));
       }
     };
 
@@ -52,7 +59,7 @@ export function TransferProgressPanel() {
       const done = normalizeDone(payload);
       if (!done) return;
       const phase: TransferSession['phase'] = done.canceled ? 'canceled' : done.success ? 'done' : 'failed';
-      finalizeSession(done.id, {
+      handlersRef.current.finalizeSession(done.id, {
         phase,
         percent: phase === 'done' ? 100 : 0,
         error: done.error,
@@ -61,16 +68,16 @@ export function TransferProgressPanel() {
       });
 
       if (done.error) {
-        appendLog(done.id, createLogEntry('error', done.error));
+        handlersRef.current.appendLog(done.id, createLogEntry('error', done.error));
         toast.error(done.error);
       } else if (done.canceled) {
-        toast.info(t('transfer.progress.toast.canceled'));
+        toast.info(handlersRef.current.t('transfer.progress.toast.canceled'));
       } else if (done.success) {
-        toast.success(t('transfer.progress.toast.completed'));
+        toast.success(handlersRef.current.t('transfer.progress.toast.completed'));
       }
 
       try {
-        await refreshHistory();
+        await handlersRef.current.refreshHistory();
       } catch (error) {
         console.warn('[TransferProgress] refresh history failed', error);
       }
@@ -83,14 +90,7 @@ export function TransferProgressPanel() {
       unsubProgress();
       unsubDone();
     };
-  }, [updateProgress, finalizeSession, appendLog, refreshHistory, t]);
-
-  const session = useMemo<TransferSession | undefined>(() => {
-    if (activeId && sessions[activeId]) return sessions[activeId];
-    const values = Object.values(sessions) as TransferSession[];
-    if (values.length === 0) return undefined;
-    return values.slice().sort((a, b) => (b.startedAt ?? 0) - (a.startedAt ?? 0))[0];
-  }, [activeId, sessions]);
+  }, []);
 
   const canCancel = session && !['done', 'failed', 'canceled'].includes(session.phase);
 

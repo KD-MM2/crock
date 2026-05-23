@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Activity, Clock, Download, FileText, RefreshCw, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -62,6 +62,15 @@ export default function HistoryDialog() {
     [records, selectedId]
   );
 
+  const [searchInput, setSearchInput] = useState(filters.search);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters({ search: searchInput });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput, setFilters]);
+
   useEffect(() => {
     if (open) {
       void load();
@@ -123,14 +132,14 @@ export default function HistoryDialog() {
                 <div className="flex-[2]">
                   <Input
                     placeholder={t('history.dialog.filters.search.placeholder')}
-                    value={filters.search}
-                    onChange={(event) => setFilters({ search: event.target.value })}
+                    value={searchInput}
+                    onChange={(event) => setSearchInput(event.target.value)}
                   />
                 </div>
                 <Button variant="outline" size="sm" onClick={() => void refresh()}>
                   <RefreshCw className="mr-2 size-4" aria-hidden /> {t('history.dialog.actions.refresh')}
                 </Button>
-                <Button variant="destructive" size="sm" onClick={() => setFilters({ type: 'all', status: 'all', search: '' })}>
+                <Button variant="destructive" size="sm" onClick={() => { setFilters({ type: 'all', status: 'all', search: '' }); setSearchInput(''); }}>
                   {t('history.dialog.actions.resetFilters')}
                 </Button>
               </div>

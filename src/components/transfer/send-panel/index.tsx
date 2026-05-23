@@ -103,14 +103,14 @@ export default function SendPanel() {
 
   const removeSendSessions = useCallback(
     (predicate?: (session: TransferSession) => boolean) => {
-      const allSessions = Object.values(sessions) as TransferSession[];
+      const allSessions = Object.values(useTransferStore.getState().sessions) as TransferSession[];
       for (const session of allSessions) {
         if (session.type !== 'send') continue;
         if (predicate && !predicate(session)) continue;
         removeSession(session.id);
       }
     },
-    [sessions, removeSession]
+    [removeSession]
   );
 
   const resetFormState = useCallback(() => {
@@ -135,7 +135,7 @@ export default function SendPanel() {
       return;
     }
 
-    const sendSessions = Object.values(sessions) as TransferSession[];
+    const sendSessions = Object.values(useTransferStore.getState().sessions) as TransferSession[];
     const hasActiveSend = sendSessions.some((session) => session.type === 'send' && !FINAL_SEND_PHASES.includes(session.phase));
     if (hasActiveSend) {
       toast.warning(t('transfer.send.toast.resetBlockedActive'));
@@ -145,7 +145,7 @@ export default function SendPanel() {
     removeSendSessions();
     resetFormState();
     toast.success(t('transfer.send.toast.resetCompleted'));
-  }, [isSending, sessions, removeSendSessions, resetFormState, t]);
+  }, [isSending, removeSendSessions, resetFormState, t]);
 
   const handleModeChange = (mode: SendMode) => {
     setForm((prev) => ({
@@ -413,7 +413,7 @@ export default function SendPanel() {
       removeSendSessions((session) => FINAL_SEND_PHASES.includes(session.phase));
       resetFormState();
     }
-  }, [activeSendSession, autoResetOnSuccess, autoResetOnFailure, removeSendSessions, resetFormState]);
+  }, [activeSendSession?.id, activeSendSession?.phase, autoResetOnSuccess, autoResetOnFailure, removeSendSessions, resetFormState]);
 
   useEffect(() => {
     if (!autoCopyEnabled) return;
@@ -428,7 +428,7 @@ export default function SendPanel() {
         toast.success(t('transfer.send.toast.autoCopySuccess'));
       }
     })();
-  }, [autoCopyEnabled, activeSendSession, t]);
+  }, [autoCopyEnabled, activeSendSession?.id, activeSendSession?.code, t]);
 
   useEffect(() => {
     if (!finalCode) {

@@ -64,7 +64,7 @@ export default function SettingsDialog() {
   const updateDraft: UpdateDraft = (updater) => {
     setDraft((current: SettingsState | null) => {
       if (!current) return current;
-      const next = JSON.parse(JSON.stringify(current)) as SettingsState;
+      const next = structuredClone(current);
       updater(next);
       return next;
     });

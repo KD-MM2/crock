@@ -1,4 +1,4 @@
-import { BrowserWindow, app, shell } from 'electron';
+import { BrowserWindow, app, session, shell } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { AppIpcContext } from './ipc/context.js';
@@ -27,6 +27,13 @@ let mainWindow: BrowserWindow | null = null;
 let appContext: AppIpcContext | null = null;
 
 let deepLinkManager: DeepLinkManager | null = null;
+let deepLinkTimeout: ReturnType<typeof setTimeout> | null = null;
+const pendingDeepLinks: string[] = [];
+
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  pendingDeepLinks.push(url);
+});
 
 const singleInstanceLock = app.requestSingleInstanceLock();
 if (!singleInstanceLock) {
@@ -139,6 +146,17 @@ async function bootstrap() {
 
   await app.whenReady();
 
+  if (!VITE_DEV_SERVER_URL) {
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Content-Security-Policy': ["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"]
+        }
+      });
+    });
+  }
+
   const window = await createMainWindow();
   const binaryManager = new CrocBinaryManager();
   const settingsStore = new SettingsStore({
@@ -195,6 +213,12 @@ async function bootstrap() {
   deepLinkManager = new DeepLinkManager(settingsStore);
   deepLinkManager.setWindow(window);
 
+  // Process any deep links queued before bootstrap
+  for (const url of pendingDeepLinks) {
+    deepLinkManager.handleUrl(url);
+  }
+  pendingDeepLinks.length = 0;
+
   appContext = {
     window,
     binaryPath,
@@ -211,13 +235,6 @@ async function bootstrap() {
   await loadMainWindow(window);
   relayMonitor.start();
 
-  // Handle deep links on macOS
-  app.on('open-url', (event, url) => {
-    event.preventDefault();
-    if (deepLinkManager) {
-      deepLinkManager.handleUrl(url);
-    }
-  });
 
   // Handle deep links on Windows/Linux from command line
   if (process.platform === 'win32') {
@@ -225,7 +242,8 @@ async function bootstrap() {
     const url = process.argv.find((arg) => arg.startsWith('croc://'));
     if (url && deepLinkManager) {
       // Delay handling to ensure window is fully loaded
-      setTimeout(() => {
+      deepLinkTimeout = setTimeout(() => {
+        deepLinkTimeout = null;
         if (deepLinkManager) {
           deepLinkManager.handleUrl(url);
         }
@@ -235,11 +253,22 @@ async function bootstrap() {
 
   window.on('close', () => {
     relayMonitor.stop();
+    if (deepLinkTimeout) {
+      clearTimeout(deepLinkTimeout);
+      deepLinkTimeout = null;
+    }
   });
 
   app.on('before-quit', () => {
     processRunner.stopAll();
+    if (deepLinkTimeout) {
+      clearTimeout(deepLinkTimeout);
+      deepLinkTimeout = null;
+    }
   });
 }
 
-void bootstrap();
+void bootstrap().catch((err) => {
+  console.error('[fatal] bootstrap failed', err);
+  app.quit();
+});

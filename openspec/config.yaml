@@ -1,0 +1,18 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Electron 38, React 19, TypeScript 5, Vite 7, Zustand 5, Tailwind 4, shadcn/ui (Radix), react-i18next, pnpm 11
+  We use conventional commits
+  Domain: Desktop companion for croc CLI — peer-to-peer file and text transfers
+  Architecture: Electron main process (services + IPC handlers) → context-isolated preload bridge → React renderer (components + Zustand stores)
+  Security: contextIsolation, sandbox, no nodeIntegration, external links open in system browser
+  State: Zustand stores per domain (ui, transfer, settings, history), settings/history persisted via electron-store
+  i18n: Vietnamese (default), English, Japanese — JSON bundles in src/locales/
+
+rules:
+  proposal:
+    - Keep proposals under 500 words
+    - Always include a "Non-goals" section in design.md
+  tasks:
+    - Use checkbox format for task tracking
+    - Group tasks under ## numbered headings

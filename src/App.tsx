@@ -1,6 +1,5 @@
 import { Suspense, lazy } from 'react';
 import { Toaster } from 'sonner';
-import './App.css';
 import { AppLoadingFallback } from './components/ui/app-loading-fallback';
 import ThemeProvider from './providers/theme';
 
