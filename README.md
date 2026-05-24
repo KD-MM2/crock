@@ -191,20 +191,19 @@ croc://receive?code=<code-phrase>[&relay=<relay-host>][&password=<relay-password
 
 ## Roadmap
 
-- **Keyboard shortcuts** – Wire global accelerator handling for opening history (`Ctrl+H`) and settings (`Ctrl+,`) from both renderer and main process.
-- **Settings redesign** – Simplify copy and grouping across the Settings dialog tabs, removing redundant controls and tightening spacing.
-- **Type cleanup** – Prune duplicate or unused TypeScript definitions in `src/types` and `electron/types` to reduce maintenance overhead.
+- **Auto-update** – Integrate Electron auto-updater for seamless binary and app updates.
+- **Transfer resume** – Support resuming interrupted transfers where the croc protocol allows.
+- **Test suite** – Add unit and integration tests for renderer components and Electron services.
 
 ## Known issues & limitations
 
-- **Proxy diagnostics are shallow** – `ConnectionDiagnostics` (`electron/services/ConnectionDiagnostics.ts`) only reports whether proxy URLs are configured (HTTP, HTTPS, SOCKS5); it does not attempt any connectivity checks, so proxy misconfiguration goes unnoticed.
-- **Renderer requires Electron bridge** – `getWindowApi()` (`src/lib/window-api.ts`) throws when `window.api` is absent. Serving the renderer with plain Vite (without the preload script) will break as soon as settings or transfer actions touch the bridge. A lightweight browser mock is not yet implemented.
-- **Drag-n-Drop**: Due to Electron's security limits, drag-n-drop action from renderer side couldn't get the absolute path on the disk. I will try to find a workaround but not promised.
+- **No SOCKS5 relay UI** – SOCKS5 proxy is fully supported in settings and diagnostics, but the relay favorites and default relay fields only accept standard host:port addresses without a protocol prefix for SOCKS5 relays.
+- **Large file memory usage** – The transfer progress parser buffers process output in memory; very long-running transfers with verbose logging may accumulate significant memory.
 
 ## Troubleshooting
 
 - TypeScript warnings about unsupported versions come from `@typescript-eslint` if you use a newer compiler; either align the TypeScript version or pin a supported range.
-- When running outside Electron (e.g., `pnpm preview`), the renderer will crash as soon as it tries to access `window.api`. Always use the full Electron runtime (`pnpm dev`) for transfer tests.
+- When running outside Electron (e.g., `pnpm preview`), a browser mock provides stub implementations of the Electron bridge so the UI renders without crashing. Use the full Electron runtime (`pnpm dev`) for actual transfer tests.
 - If relay checks fail, confirm network access to your chosen relay, or update the relay settings under **Settings → Advanced**.
 
 ## Contributing
