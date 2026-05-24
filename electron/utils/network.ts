@@ -24,3 +24,11 @@ export function parseHostPort(input: string | undefined, fallbackPort = 9009): H
 export function isIpv6(host: string | undefined): boolean {
   return Boolean(host && host.includes(':'));
 }
+
+export function parseProxyUrl(url: string): HostPort | null {
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+  const match = trimmed.match(/^(?:\w+:\/\/)?(?:[^:@]+(?::[^@]+)?@)?([^:]+):(\d+)/);
+  if (!match) return parseHostPort(trimmed);
+  return { host: match[1], port: Number.parseInt(match[2], 10) };
+}

@@ -1,7 +1,7 @@
 import net from 'node:net';
 import { performance } from 'node:perf_hooks';
 import type { ConnectionStatus } from '../types/settings';
-import { isIpv6, parseHostPort } from '../utils/network';
+import { isIpv6, parseHostPort, parseProxyUrl } from '../utils/network';
 import { CrocBinaryManager } from './CrocBinaryManager';
 import { SettingsStore } from './SettingsStore';
 
@@ -20,6 +20,31 @@ async function checkRelay(host: string, port: number): Promise<{ online: boolean
       socket.destroy();
       const latency = performance.now() - start;
       resolve({ online, latency });
+    };
+
+    socket.once('connect', () => finalize(true));
+    socket.once('timeout', () => finalize(false));
+    socket.once('error', () => finalize(false));
+    socket.setTimeout(RELAY_TIMEOUT_MS, () => finalize(false));
+  });
+}
+
+async function checkProxy(url: string): Promise<{ ok: boolean; latencyMs?: number }> {
+  const addr = parseProxyUrl(url);
+  if (!addr) return { ok: false };
+
+  return new Promise((resolve) => {
+    const start = performance.now();
+    const socket = net.createConnection({ host: addr.host, port: addr.port });
+    let resolved = false;
+
+    const finalize = (ok: boolean) => {
+      if (resolved) return;
+      resolved = true;
+      socket.removeAllListeners();
+      socket.destroy();
+      const latencyMs = ok ? Math.round(performance.now() - start) : undefined;
+      resolve({ ok, latencyMs });
     };
 
     socket.once('connect', () => finalize(true));
@@ -61,9 +86,17 @@ export class ConnectionDiagnostics {
 
     const proxyStatus: ConnectionStatus['proxy'] = {};
     const proxy = settings.relayProxy.proxy ?? {};
-    if (proxy.http) proxyStatus.http = { set: true };
-    if (proxy.https) proxyStatus.https = { set: true };
-    if (proxy.socks5) proxyStatus.socks5 = { set: true };
+
+    const proxyResults = await Promise.all([
+      proxy.http ? checkProxy(proxy.http).then((r) => ({ key: 'http' as const, ...r })) : null,
+      proxy.https ? checkProxy(proxy.https).then((r) => ({ key: 'https' as const, ...r })) : null,
+      proxy.socks5 ? checkProxy(proxy.socks5).then((r) => ({ key: 'socks5' as const, ...r })) : null
+    ]);
+
+    for (const result of proxyResults) {
+      if (!result) continue;
+      proxyStatus[result.key] = { set: true, ok: result.ok, latencyMs: result.latencyMs };
+    }
 
     let crocStatus: ConnectionStatus['croc'] = { installed: false };
     try {

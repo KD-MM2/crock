@@ -1,4 +1,4 @@
-import { BrowserWindow, app, shell } from 'electron';
+import { BrowserWindow, app, globalShortcut, shell } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { AppIpcContext } from './ipc/context.js';
@@ -224,6 +224,18 @@ async function bootstrap() {
   await loadMainWindow(window);
   relayMonitor.start();
 
+  globalShortcut.register('CommandOrControl+H', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('ui:openHistory');
+    }
+  });
+
+  globalShortcut.register('CommandOrControl+,', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('ui:openSettings');
+    }
+  });
+
 
   // Handle deep links on Windows/Linux from command line
   if (process.platform === 'win32') {
@@ -250,6 +262,7 @@ async function bootstrap() {
 
   app.on('before-quit', () => {
     processRunner.stopAll();
+    globalShortcut.unregisterAll();
     if (deepLinkTimeout) {
       clearTimeout(deepLinkTimeout);
       deepLinkTimeout = null;

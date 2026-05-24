@@ -90,6 +90,56 @@ export default function SendPanel() {
 
   const totalSize = useMemo(() => form.items.reduce((sum, item) => sum + (item.size ?? 0), 0), [form.items]);
 
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const handleDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    async (event: React.DragEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setIsDragOver(false);
+
+      const droppedFiles = Array.from(event.dataTransfer.files);
+      if (droppedFiles.length === 0) return;
+
+      const api = getWindowApi();
+      const items: SelectedPathItem[] = [];
+
+      for (const file of droppedFiles) {
+        const filePath = api.app.getFilePath(file);
+        if (filePath) {
+          const stats = await api.app.getPathStats([filePath]);
+          items.push({
+            id: crypto.randomUUID(),
+            name: file.name,
+            path: filePath,
+            size: stats[0]?.size,
+            kind: stats[0]?.isDirectory ? 'folder' : 'file'
+          });
+        }
+      }
+
+      if (items.length > 0) {
+        setForm((prev) => {
+          const result = addItems(prev, items);
+          return result ?? prev;
+        });
+      }
+    },
+    [addItems]
+  );
+
   const activeSendSession = useMemo<TransferSession | undefined>(() => {
     const allSessions = Object.values(sessions) as TransferSession[];
     return allSessions
@@ -554,7 +604,17 @@ export default function SendPanel() {
 
       {form.mode === 'files' ? (
         <div className="space-y-3">
-          <div className="relative flex h-auto w-full flex-col overflow-hidden rounded-lg border-2 border-dashed border-border/60 bg-muted/20 p-4 text-muted-foreground sm:p-6">
+          <div
+            className={cn(
+              'relative flex h-auto w-full flex-col overflow-hidden rounded-lg border-2 border-dashed p-4 text-muted-foreground sm:p-6 transition-colors',
+              isDragOver ? 'border-primary bg-primary/5' : 'border-border/60 bg-muted/20'
+            )}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={(event) => {
+              void handleDrop(event);
+            }}
+          >
             <div className="flex flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
               <FolderPlus className="size-8 text-primary" aria-hidden />
               <p className="text-center text-sm font-medium text-foreground sm:text-base">{t('transfer.send.dropzone.title')}</p>

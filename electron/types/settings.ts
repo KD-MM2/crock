@@ -59,9 +59,9 @@ export type RelayConnectionStatus = {
 };
 
 export type ProxyConnectionStatus = {
-  http?: { set?: boolean; ok?: boolean };
-  https?: { set?: boolean; ok?: boolean };
-  socks5?: { set?: boolean; ok?: boolean };
+  http?: { set?: boolean; ok?: boolean; latencyMs?: number };
+  https?: { set?: boolean; ok?: boolean; latencyMs?: number };
+  socks5?: { set?: boolean; ok?: boolean; latencyMs?: number };
 };
 
 export type CrocBinaryStatus = {

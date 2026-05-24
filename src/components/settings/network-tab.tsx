@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Globe, Link2, Network, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { ConnectionStatus, SettingsState } from '@/types/settings';
+import { ConnectionStatus, Settings } from '@/types/settings';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import Field from './field';
@@ -18,7 +18,7 @@ export default function NetworkTab({
   loadingConnection,
   onRefreshStatus
 }: {
-  settings: SettingsState;
+  settings: Settings;
   updateDraft: UpdateDraft;
   connectionStatus: SettingsDialogSelectors['connectionStatus'];
   loadingConnection: boolean;
@@ -60,22 +60,29 @@ export default function NetworkTab({
     }
 
     const proxy = status.proxy;
-    if (proxy?.http || proxy?.https || proxy?.socks5) {
-      toast.success(
-        t('settings.advanced.toast.proxyConfigured', {
-          http: proxy.http ? t('common.status.on') : t('common.status.off'),
-          https: proxy.https ? t('common.status.on') : t('common.status.off'),
-          socks5: proxy.socks5 ? t('common.status.on') : t('common.status.off')
-        })
-      );
-    } else {
+    const hasProxy = proxy?.http?.set || proxy?.https?.set || proxy?.socks5?.set;
+    if (!hasProxy) {
       toast.warning(t('settings.advanced.toast.proxyNotConfigured'));
+      return;
+    }
+
+    const allOk = Object.values(proxy).every((p) => !p?.set || p?.ok);
+    if (allOk) {
+      toast.success(t('settings.advanced.toast.proxyOnline'));
+    } else {
+      const labels: string[] = [];
+      if (proxy.http?.set && !proxy.http?.ok) labels.push('HTTP');
+      if (proxy.https?.set && !proxy.https?.ok) labels.push('HTTPS');
+      if (proxy.socks5?.set && !proxy.socks5?.ok) labels.push('SOCKS5');
+      toast.warning(
+        t('settings.advanced.toast.proxyPartial', { failed: labels.join(', ') })
+      );
     }
   };
 
   return (
     <div className="space-y-8">
-      <div className="space-y-6">
+      <div className="space-y-4">
         <SectionHeading
           icon={Link2}
           title={t('settings.advanced.defaultRelay.title')}
@@ -117,7 +124,7 @@ export default function NetworkTab({
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         <SectionHeading icon={Link2} title={t('settings.advanced.favorites.title')} description={t('settings.advanced.favorites.description')} />
         {settings.relayProxy.favorites.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('settings.advanced.favorites.empty')}</p>
@@ -258,7 +265,17 @@ export default function NetworkTab({
           />
           <InfoCard
             title={t('settings.advanced.connectionStatus.cards.proxy.title')}
-            status={connectionStatus?.proxy?.http || connectionStatus?.proxy?.https || connectionStatus?.proxy?.socks5 ? 'configured' : 'offline'}
+            status={
+              connectionStatus?.proxy?.http?.ok ||
+              connectionStatus?.proxy?.https?.ok ||
+              connectionStatus?.proxy?.socks5?.ok
+                ? 'online'
+                : connectionStatus?.proxy?.http?.set ||
+                    connectionStatus?.proxy?.https?.set ||
+                    connectionStatus?.proxy?.socks5?.set
+                  ? 'offline'
+                  : 'offline'
+            }
             description={t('settings.advanced.connectionStatus.cards.proxy.description', {
               http: connectionStatus?.proxy?.http ? t('common.status.on') : t('common.status.off'),
               https: connectionStatus?.proxy?.https ? t('common.status.on') : t('common.status.off'),

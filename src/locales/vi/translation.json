@@ -101,7 +101,8 @@
                 "relayOnline": "{{host}} hoạt động (latency {{latency}} ms).",
                 "relayOffline": "{{host}} không phản hồi hoặc ngoại tuyến.",
                 "proxyTestFailure": "Không thể kiểm tra cấu hình proxy.",
-                "proxyConfigured": "Proxy đã thiết lập (HTTP: {{http}}, HTTPS: {{https}}, SOCKS5: {{socks5}}).",
+                "proxyOnline": "Tất cả proxy đều phản hồi.",
+                "proxyPartial": "Proxy {{failed}} không thể kết nối.",
                 "proxyNotConfigured": "Chưa thiết lập proxy."
             },
             "defaultRelay": {

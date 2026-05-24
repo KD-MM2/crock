@@ -1,13 +1,8 @@
+import type { DeepLinkData } from '../../electron/types/deep-link';
+
 export interface UiDialogsState {
   historyOpen: boolean;
   settingsOpen: boolean;
-}
-
-export interface DeepLinkData {
-  action: 'receive' | 'send';
-  code?: string;
-  relay?: string;
-  password?: string;
 }
 
 export interface UiState {

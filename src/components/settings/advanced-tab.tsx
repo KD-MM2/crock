@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Cpu } from 'lucide-react';
-import { SettingsState } from '@/types/settings';
+import { Settings } from '@/types/settings';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import Field from './field';
@@ -8,7 +8,7 @@ import SectionHeading from './section-heading';
 import ToggleField from './toggle-field';
 import { UpdateDraft } from './types';
 
-export default function AdvancedTab({ settings, updateDraft }: { settings: SettingsState; updateDraft: UpdateDraft }) {
+export default function AdvancedTab({ settings, updateDraft }: { settings: Settings; updateDraft: UpdateDraft }) {
   const { t } = useTranslation();
 
   return (

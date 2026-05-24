@@ -4,10 +4,10 @@ import { DEFAULT_CURVE, DEFAULT_RELAY_HOST, normalizeRelayHost } from '@/lib/cro
 import { createLocalId } from '@/lib/id';
 import { getWindowApi } from '@/lib/window-api';
 import { HistoryRecord } from '@/types/history';
-import { CurveName, SettingsState } from '@/types/settings';
+import { CurveName, Settings } from '@/types/settings';
 import { SelectedPathItem, SendFormState, SendMode } from '@/types/transfer-ui';
 
-function buildInitialForm(settings?: SettingsState | null): SendFormState {
+function buildInitialForm(settings?: Settings | null): SendFormState {
   return {
     mode: 'files',
     items: [],
@@ -142,7 +142,7 @@ function buildSendCliCommand({
   originalCode
 }: {
   form: SendFormState;
-  settings?: SettingsState | null;
+  settings?: Settings | null;
   originalCode?: string;
 }): string | null {
   const parts: string[] = ['croc', 'send'];
@@ -223,14 +223,14 @@ function formatCliText(text: string): string {
   return normalized.length > 40 ? `${normalized.slice(0, 37)}…` : normalized;
 }
 
-function resolveRelay(overrides: SendFormState['sessionOverrides'], settings?: SettingsState | null): string | undefined {
+function resolveRelay(overrides: SendFormState['sessionOverrides'], settings?: Settings | null): string | undefined {
   const overrideRelay = overrides.relay?.trim();
   if (overrideRelay) return overrideRelay;
   const defaultRelay = settings?.relayProxy?.defaultRelay?.host?.trim();
   return defaultRelay && defaultRelay.length > 0 ? defaultRelay : undefined;
 }
 
-function resolveRelayPass(overrides: SendFormState['sessionOverrides'], settings?: SettingsState | null): string | undefined {
+function resolveRelayPass(overrides: SendFormState['sessionOverrides'], settings?: Settings | null): string | undefined {
   if (overrides.pass !== undefined) {
     const trimmed = overrides.pass.trim();
     return trimmed.length > 0 ? trimmed : undefined;
@@ -239,7 +239,7 @@ function resolveRelayPass(overrides: SendFormState['sessionOverrides'], settings
   return defaultPass && defaultPass.length > 0 ? defaultPass : undefined;
 }
 
-function resolveExcludePatterns(overrides: SendFormState['sessionOverrides'], settings?: SettingsState | null): string[] | undefined {
+function resolveExcludePatterns(overrides: SendFormState['sessionOverrides'], settings?: Settings | null): string[] | undefined {
   if (overrides.exclude && overrides.exclude.length > 0) {
     return overrides.exclude;
   }
@@ -247,7 +247,7 @@ function resolveExcludePatterns(overrides: SendFormState['sessionOverrides'], se
   return defaults.length > 0 ? defaults : undefined;
 }
 
-function resolveCurve(settings?: SettingsState | null): CurveName | undefined {
+function resolveCurve(settings?: Settings | null): CurveName | undefined {
   return settings?.security.curve;
 }
 

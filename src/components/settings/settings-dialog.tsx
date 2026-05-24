@@ -4,7 +4,7 @@ import { Save, SettingsIcon } from 'lucide-react';
 import { getWindowApi } from '@/lib/window-api';
 import { useSettingsStore } from '@/stores/settings';
 import { type UiStore, useUiStore } from '@/stores/ui';
-import type { SettingsState } from '@/types/settings';
+import type { Settings } from '@/types/settings';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -62,7 +62,7 @@ export default function SettingsDialog() {
   }, [open, updateRelayStatus]);
 
   const updateDraft: UpdateDraft = (updater) => {
-    setDraft((current: SettingsState | null) => {
+    setDraft((current: Settings | null) => {
       if (!current) return current;
       const next = structuredClone(current);
       updater(next);
@@ -110,11 +110,11 @@ export default function SettingsDialog() {
                   </TabsTrigger>
                 ))}
               </TabsList>
-              <div className="flex-1 overflow-y-auto px-1">
-                <TabsContent value="general" className="pb-16">
+              <div className="flex-1 overflow-y-auto px-1 pb-16">
+                <TabsContent value="general">
                   <GeneralTab settings={draft} updateDraft={updateDraft} />
                 </TabsContent>
-                <TabsContent value="network" className="pb-16">
+                <TabsContent value="network">
                   <NetworkTab
                     settings={draft}
                     updateDraft={updateDraft}
@@ -123,13 +123,13 @@ export default function SettingsDialog() {
                     onRefreshStatus={() => refreshConnectionStatus()}
                   />
                 </TabsContent>
-                <TabsContent value="security" className="pb-16">
+                <TabsContent value="security">
                   <SecurityTab settings={draft} updateDraft={updateDraft} />
                 </TabsContent>
-                <TabsContent value="advanced" className="pb-16">
+                <TabsContent value="advanced">
                   <AdvancedTab settings={draft} updateDraft={updateDraft} />
                 </TabsContent>
-                <TabsContent value="about" className="pb-16">
+                <TabsContent value="about">
                   <AboutTab settings={draft} />
                 </TabsContent>
               </div>

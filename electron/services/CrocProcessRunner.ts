@@ -159,7 +159,7 @@ export class CrocProcessRunner extends EventEmitter {
         durationMs: finishedAt - session.startedAt,
         finishedAt
       };
-      if (!success) {
+      if (!success && !session.canceled) {
         payload.error = `Exited with code ${code}`;
       }
       this.emitDone(payload);

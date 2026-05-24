@@ -1,22 +1,24 @@
 import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, Globe, History, Minus, Settings, Square, X } from 'lucide-react';
+import { Check, Globe, History, Minus, SettingsIcon, Square, X } from 'lucide-react';
 import type { SupportedLanguage } from '@/lib/i18n';
 import i18next from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { getWindowApi } from '@/lib/window-api';
 import { useSettingsStore } from '@/stores/settings';
 import { type UiStore, useUiStore } from '@/stores/ui';
-import type { SettingsState } from '@/types/settings';
+import type { Settings } from '@/types/settings';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ModeToggle } from '@/components/mode-toggle';
 import crockLogo from '@/assets/crock.svg';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import HeaderActionButton from './action-button';
 
 export default function AppShellTopbar() {
+  useKeyboardShortcuts();
   const openHistory = useUiStore((state: UiStore) => state.openHistory);
   const openSettings = useUiStore((state: UiStore) => state.openSettings);
   const status = useSettingsStore((state) => state.status);
@@ -50,7 +52,7 @@ export default function AppShellTopbar() {
 
   const handleLanguageChange = (value: string) => {
     if (!settings) return;
-    const nextLanguage = value as SettingsState['general']['language'];
+    const nextLanguage = value as Settings['general']['language'];
     if (settings.general.language === nextLanguage) return;
     void patch({
       general: {
@@ -108,7 +110,7 @@ export default function AppShellTopbar() {
           ariaLabel={t('topbar.history.ariaLabel')}
         />
         <HeaderActionButton
-          icon={<Settings className="size-4" aria-hidden />}
+          icon={<SettingsIcon className="size-4" aria-hidden />}
           label={t('topbar.settings.label')}
           tooltip={t('topbar.settings.tooltip')}
           onClick={openSettings}

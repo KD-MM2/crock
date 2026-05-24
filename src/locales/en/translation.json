@@ -101,7 +101,8 @@
         "relayOnline": "{{host}} responding (latency {{latency}} ms).",
         "relayOffline": "{{host}} is offline or not responding.",
         "proxyTestFailure": "Unable to check proxy configuration.",
-        "proxyConfigured": "Proxy configured (HTTP: {{http}}, HTTPS: {{https}}, SOCKS5: {{socks5}}).",
+        "proxyOnline": "All proxy endpoints responding.",
+        "proxyPartial": "Proxy {{failed}} unreachable.",
         "proxyNotConfigured": "No proxy endpoints configured."
       },
       "defaultRelay": {

@@ -101,7 +101,8 @@
         "relayOnline": "{{host}} が応答しています (レイテンシ {{latency}} ms)。",
         "relayOffline": "{{host}} はオフラインか応答していません。",
         "proxyTestFailure": "プロキシ設定を確認できませんでした。",
-        "proxyConfigured": "プロキシ設定済み (HTTP: {{http}}, HTTPS: {{https}}, SOCKS5: {{socks5}})。",
+        "proxyOnline": "すべてのプロキシが応答しています。",
+        "proxyPartial": "プロキシ {{failed}} に接続できません。",
         "proxyNotConfigured": "プロキシは設定されていません。"
       },
       "defaultRelay": {

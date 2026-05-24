@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { ShieldCheck, ShieldQuestion } from 'lucide-react';
-import { CurveName, SettingsState } from '@/types/settings';
+import { CurveName, Settings } from '@/types/settings';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AlertNote from './alert-note';
 import Field from './field';
@@ -8,7 +8,7 @@ import SectionHeading from './section-heading';
 import ToggleField from './toggle-field';
 import { UpdateDraft } from './types';
 
-export default function SecurityTab({ settings, updateDraft }: { settings: SettingsState; updateDraft: UpdateDraft }) {
+export default function SecurityTab({ settings, updateDraft }: { settings: Settings; updateDraft: UpdateDraft }) {
   const { t } = useTranslation();
 
   return (

@@ -1,1 +1,1 @@
-export type { Settings as SettingsState, ConnectionStatus, CurveName } from '../../electron/types/settings';
+export type { Settings, ConnectionStatus, CurveName } from '../../electron/types/settings';

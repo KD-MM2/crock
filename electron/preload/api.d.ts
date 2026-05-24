@@ -1,4 +1,5 @@
 import type { TransferDonePayload, TransferProgress } from '../types/croc';
+import type { DeepLinkData } from '../types/deep-link';
 import type { HistoryRecord } from '../types/history';
 import type { ReleaseInfo } from '../types/release';
 import type { ConnectionStatus, Settings } from '../types/settings';
@@ -47,14 +48,9 @@ export type TransferHandle = {
   id: string;
 };
 
-export type DeepLinkData = {
-  action: 'receive' | 'send';
-  code?: string;
-  relay?: string;
-  password?: string;
-};
+export type { DeepLinkData } from '../types/deep-link';
 
-export type IpcEventName = 'transfer:progress' | 'transfer:done' | 'relay:status' | 'deep-link:receive' | 'croc:downloadProgress';
+export type IpcEventName = 'transfer:progress' | 'transfer:done' | 'relay:status' | 'deep-link:receive' | 'croc:downloadProgress' | 'ui:openHistory' | 'ui:openSettings';
 
 export type EventPayloadMap = {
   'transfer:progress': TransferProgress;
@@ -69,6 +65,8 @@ export type EventPayloadMap = {
   };
   'deep-link:receive': DeepLinkData;
   'croc:downloadProgress': { downloaded: number | null; total: number | null };
+  'ui:openHistory': void;
+  'ui:openSettings': void;
 };
 
 export type EventUnsubscribe = () => void;
@@ -81,6 +79,7 @@ export interface WindowApi {
     clipboardWrite: (text: string) => Promise<void>;
     openPath: (path: string) => Promise<void>;
     getPathStats: (paths: string[]) => Promise<PathStats[]>;
+    getFilePath: (file: File) => string | null;
   };
   window: {
     minimize: () => Promise<void>;

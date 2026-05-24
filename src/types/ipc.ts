@@ -9,5 +9,5 @@ export type {
   EventPayloadMap
 } from '../../electron/preload/api';
 
-export type { ConnectionStatus, SettingsState } from './settings';
+export type { ConnectionStatus, Settings } from './settings';
 export type { HistoryRecord } from './history';

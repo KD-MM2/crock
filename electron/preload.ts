@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import type { EventPayloadMap, IpcEventName, ReceiveRequest, SelectFilesOptions, SendRequest, WindowApi } from './preload/api';
 import type { Settings } from './types/settings';
 
@@ -9,7 +9,8 @@ const api: WindowApi = {
     clipboardRead: () => ipcRenderer.invoke('app:clipboardRead'),
     clipboardWrite: (text: string) => ipcRenderer.invoke('app:clipboardWrite', text),
     openPath: (target: string) => ipcRenderer.invoke('app:openPath', target),
-    getPathStats: (paths: string[]) => ipcRenderer.invoke('app:getPathStats', paths)
+    getPathStats: (paths: string[]) => ipcRenderer.invoke('app:getPathStats', paths),
+    getFilePath: (file: File) => webUtils.getPathForFile(file)
   },
   window: {
     minimize: () => ipcRenderer.invoke('app:window:minimize'),

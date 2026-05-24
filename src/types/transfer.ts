@@ -1,10 +1,12 @@
-export type { TransferType, TransferPhase, TransferProgress, TransferDonePayload } from '../../electron/types/croc';
+import type { TransferPhase, TransferType } from '../../electron/types/croc';
+
+export type { TransferProgress, TransferDonePayload } from '../../electron/types/croc';
 
 export interface TransferSession {
   id: string;
-  type: import('../../electron/types/croc').TransferType;
+  type: TransferType;
   mode?: 'files' | 'text';
-  phase: import('../../electron/types/croc').TransferPhase | 'idle';
+  phase: TransferPhase | 'idle';
   percent: number;
   speed?: string;
   eta?: string;

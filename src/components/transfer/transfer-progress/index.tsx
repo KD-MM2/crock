@@ -67,11 +67,11 @@ export function TransferProgressPanel() {
         badge: done.canceled ? 'warning' : done.success ? 'success' : 'error'
       });
 
-      if (done.error) {
+      if (done.canceled) {
+        toast.info(handlersRef.current.t('transfer.progress.toast.canceled'));
+      } else if (done.error) {
         handlersRef.current.appendLog(done.id, createLogEntry('error', done.error));
         toast.error(done.error);
-      } else if (done.canceled) {
-        toast.info(handlersRef.current.t('transfer.progress.toast.canceled'));
       } else if (done.success) {
         toast.success(handlersRef.current.t('transfer.progress.toast.completed'));
       }

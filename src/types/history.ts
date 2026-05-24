@@ -1,8 +1,9 @@
+import type { TransferPhase } from '../../electron/types/croc';
 import type { HistoryRecord } from '../../electron/types/history';
 
-export type { HistoryRecord } from '../../electron/types/history';
+export type { HistoryRecord };
 
-export type HistoryStatus = import('../../electron/types/croc').TransferPhase | 'in-progress';
+export type HistoryStatus = TransferPhase | 'in-progress';
 
 export interface HistoryFilter {
   type: 'all' | HistoryRecord['type'];

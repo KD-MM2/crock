@@ -1,4 +1,6 @@
-export type SendMode = 'files' | 'text';
+import type { SendMode } from '../../electron/types/croc';
+
+export type { SendMode };
 
 export interface SelectedPathItem {
   id: string;

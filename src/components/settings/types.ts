@@ -1,7 +1,7 @@
 import { SettingsStoreState } from '@/stores/settings';
-import { SettingsState } from '@/types/settings';
+import { Settings } from '@/types/settings';
 
-type UpdateDraft = (updater: (draft: SettingsState) => void) => void;
+type UpdateDraft = (updater: (draft: Settings) => void) => void;
 type SettingsDialogSelectors = Pick<
   SettingsStoreState,
   | 'status'

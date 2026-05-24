@@ -79,14 +79,11 @@ export default defineConfig({
           // i18n
           i18n: ['i18next', 'react-i18next'],
 
-          // UI utilities and animations
-          'ui-utils': ['lucide-react', 'motion', 'sonner', 'qrcode.react', 'react-dropzone'],
+          // UI utilities
+          'ui-utils': ['lucide-react', 'sonner', 'qrcode.react'],
 
           // Utility libraries
-          utils: ['clsx', 'tailwind-merge', 'class-variance-authority', 'zod', 'semver', 'which', 'fast-glob'],
-
-          // File compression (used less frequently)
-          compression: ['decompress', 'decompress-targz', 'decompress-unzip']
+          utils: ['clsx', 'tailwind-merge', 'class-variance-authority', 'zod']
         }
       }
     }

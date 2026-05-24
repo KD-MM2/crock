@@ -2,19 +2,19 @@ import type { SetStateAction } from 'react';
 import { create } from 'zustand';
 import type { StateCreator } from 'zustand';
 import { getWindowApi } from '@/lib/window-api';
-import type { ConnectionStatus, SettingsState } from '@/types/settings';
+import type { ConnectionStatus, Settings } from '@/types/settings';
 
 export type SettingsStoreState = {
-  settings: SettingsState | null;
-  draft: SettingsState | null;
+  settings: Settings | null;
+  draft: Settings | null;
   status: 'idle' | 'loading' | 'ready' | 'error';
   error?: string;
   connectionStatus: ConnectionStatus | null;
   loadingConnection: boolean;
   load: () => Promise<void>;
-  setDraft: (action: SetStateAction<SettingsState | null>) => void;
+  setDraft: (action: SetStateAction<Settings | null>) => void;
   save: () => Promise<void>;
-  patch: (partial: Partial<SettingsState>) => Promise<void>;
+  patch: (partial: Partial<Settings>) => Promise<void>;
   refreshConnectionStatus: () => Promise<ConnectionStatus | null>;
   updateRelayStatus: (payload: { host?: string; latencyMs?: number; online?: boolean; checkedAt?: number; ipv6?: boolean; port?: number }) => void;
   resetDraft: () => void;

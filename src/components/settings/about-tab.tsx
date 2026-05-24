@@ -4,8 +4,8 @@ import { Download, FileCode2, FolderOpen, Info, RefreshCw, ShieldCheck } from 'l
 import { toast } from 'sonner';
 import { getWindowApi } from '@/lib/window-api';
 import { useSettingsStore } from '@/stores/settings';
-import { ReleaseInfo } from '@/types/release';
-import { SettingsState } from '@/types/settings';
+import { ReleaseInfo } from '../../../electron/types/release';
+import { Settings } from '@/types/settings';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import crockLogo from '@/assets/crock.svg';
 import { Button } from '../ui/button';
@@ -15,7 +15,7 @@ import AlertNote from './alert-note';
 import Field from './field';
 import SectionHeading from './section-heading';
 
-export default function AboutTab({ settings }: { settings: SettingsState }) {
+export default function AboutTab({ settings }: { settings: Settings }) {
   const installedVersion = settings.binary.crocVersion?.startsWith('v') ? settings.binary.crocVersion : undefined;
   const hasBinary = Boolean(settings.binary.crocPath);
   const [versions, setVersions] = useState<ReleaseInfo[]>([]);
@@ -202,7 +202,7 @@ export default function AboutTab({ settings }: { settings: SettingsState }) {
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         <SectionHeading icon={FileCode2} title={t('settings.about.binary.title')} description={t('settings.about.binary.description')} />
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">

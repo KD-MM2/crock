@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { ClipboardCopy, Download, FolderOpen, Waypoints } from 'lucide-react';
 import { getWindowApi } from '@/lib/window-api';
-import { SettingsState } from '@/types/settings';
+import { Settings } from '@/types/settings';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
@@ -10,7 +10,7 @@ import SectionHeading from './section-heading';
 import ToggleField from './toggle-field';
 import { UpdateDraft } from './types';
 
-export default function GeneralTab({ settings, updateDraft }: { settings: SettingsState; updateDraft: UpdateDraft }) {
+export default function GeneralTab({ settings, updateDraft }: { settings: Settings; updateDraft: UpdateDraft }) {
   const api = getWindowApi();
   const excludeText = settings.transferDefaults.send.exclude.join('\n');
   const { t } = useTranslation();
@@ -30,9 +30,9 @@ export default function GeneralTab({ settings, updateDraft }: { settings: Settin
 
   return (
     <div className="space-y-8">
-      <div className="space-y-6">
+      <div className="space-y-4">
         <SectionHeading icon={FolderOpen} title={t('settings.general.download.title')} description={t('settings.general.download.description')} />
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
+        <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
           <Input value={settings.general.downloadDir} readOnly className="font-mono" />
           <Button variant="outline" size="sm" onClick={() => void handleSelectFolder()}>
             <FolderOpen className="mr-2 size-4" aria-hidden /> {t('settings.general.download.selectFolder')}
