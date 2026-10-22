@@ -153,7 +153,7 @@ export default function AboutTab({ settings }: { settings: Settings }) {
           <img src={crockLogo} alt={t('settings.about.app.logoAlt')} className="h-14 w-14" />
           <div className="space-y-1">
             <p className="text-base font-semibold leading-none text-foreground">{t('settings.about.app.tagline')}</p>
-            <p className="text-xs text-muted-foreground">{t('settings.about.app.uiVersion', { version: '0.1.2' })}</p>
+            <p className="text-xs text-muted-foreground">{t('settings.about.app.uiVersion', { version: '0.1.3' })}</p>
           </div>
         </div>
         <p>
