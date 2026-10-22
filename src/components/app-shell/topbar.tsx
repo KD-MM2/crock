@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, Globe, History, Minus, SettingsIcon, Square, X } from 'lucide-react';
 import type { SupportedLanguage } from '@/lib/i18n';
-import i18next from '@/lib/i18n';
+import i18next, { detectSystemLanguage } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { getWindowApi } from '@/lib/window-api';
 import { useSettingsStore } from '@/stores/settings';
@@ -33,7 +33,7 @@ export default function AppShellTopbar() {
     }
   }, [status, load]);
 
-  const language = (settings?.general.language ?? 'vi') as SupportedLanguage;
+  const language = (settings?.general.language ?? detectSystemLanguage()) as SupportedLanguage;
 
   const languageOptions = useMemo(
     () => ({
