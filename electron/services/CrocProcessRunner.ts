@@ -50,6 +50,10 @@ function parseHumanReadableBytes(value: string): number | undefined {
   return Math.round(quantity * multiplier);
 }
 
+// Croc prints this when `--code` was rejected on Unix and exits with 0; the
+// session must not be reported as successful (KD-MM2/crock#3).
+const UNIX_CODE_PHRASE_REJECTED_REGEX = /on unix systems, to send with a custom code phrase|set the environmental variable CROC_SECRET/i;
+
 export interface RunnerSession {
   id: string;
   type: TransferType;
@@ -57,6 +61,7 @@ export interface RunnerSession {
   startedAt: number;
   phase?: TransferProgress['phase'];
   canceled?: boolean;
+  blockedReason?: string;
   code?: string;
   bytesTransferred?: number;
   bytesTotal?: number;
@@ -86,8 +91,8 @@ export class CrocProcessRunner extends EventEmitter {
   }
 
   runSend(id: string, options: SendOptions): ChildProcess {
-    const args = this.commandBuilder.buildSendArgs(options);
-    return this.spawnProcess(id, 'send', args, {});
+    const { args, env } = this.commandBuilder.buildSendArgs(options);
+    return this.spawnProcess(id, 'send', args, env);
   }
 
   runReceive(id: string, options: ReceiveOptions): ChildProcess {
@@ -148,7 +153,8 @@ export class CrocProcessRunner extends EventEmitter {
     child.once('close', (code) => {
       this.sessions.delete(id);
       const finishedAt = Date.now();
-      const success = code === 0 && !session.canceled;
+      const unixCodeRejected = Boolean(session.blockedReason);
+      const success = code === 0 && !session.canceled && !unixCodeRejected;
       const payload: TransferDonePayload = {
         id,
         type,
@@ -160,7 +166,7 @@ export class CrocProcessRunner extends EventEmitter {
         finishedAt
       };
       if (!success && !session.canceled) {
-        payload.error = `Exited with code ${code}`;
+        payload.error = unixCodeRejected ? session.blockedReason : `Exited with code ${code}`;
       }
       this.emitDone(payload);
     });
@@ -196,6 +202,11 @@ export class CrocProcessRunner extends EventEmitter {
       if (!line) continue;
 
       this.logStream(session, stream, line);
+
+      if (!session.blockedReason && UNIX_CODE_PHRASE_REJECTED_REGEX.test(line)) {
+        session.blockedReason =
+          'croc refused the custom code phrase on this platform (it exits without transferring). Report this as a bug; the code phrase should have been passed via CROC_SECRET.';
+      }
 
       const payload: TransferProgress = {
         ...basePayload,

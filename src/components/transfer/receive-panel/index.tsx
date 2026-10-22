@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ClipboardPaste, FolderOpen, RefreshCw, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { DEFAULT_CURVE, DEFAULT_RELAY_HOST, normalizeRelayHost } from '@/lib/croc';
+import { DEFAULT_CURVE, DEFAULT_RELAY_HOST, isWindowsRuntime, normalizeRelayHost } from '@/lib/croc';
 import { getWindowApi } from '@/lib/window-api';
 import { useSettingsStore } from '@/stores/settings';
 import { useTransferStore } from '@/stores/transfer';
@@ -97,6 +97,10 @@ export default function ReceivePanel() {
 
   const receiveCli = useMemo(() => {
     const parts: string[] = ['croc'];
+    const trimmedCode = form.code.trim();
+    // On Unix, croc takes the receive code only from CROC_SECRET; a positional
+    // code makes it exit without receiving (KD-MM2/crock#3).
+    const useSecretEnv = trimmedCode.length > 0 && !isWindowsRuntime();
     const relayHost = resolveRelay(form.sessionOverrides, settings);
     const hasRelayOverride = Boolean(form.sessionOverrides.relay?.trim());
     if (relayHost && (hasRelayOverride || normalizeRelayHost(relayHost) !== normalizeRelayHost(DEFAULT_RELAY_HOST))) {
@@ -121,8 +125,10 @@ export default function ReceivePanel() {
       const tokens = extraFlags.match(/(?:[^\s"]+|"[^"]*")+/g) ?? [];
       parts.push(...tokens);
     }
-    parts.push(form.code.trim() || '<code>');
-    return parts
+    if (!useSecretEnv) {
+      parts.push(trimmedCode || '<code>');
+    }
+    const formatted = parts
       .map((part, index) => {
         if (index === 0 || part.startsWith('--')) {
           return part;
@@ -131,6 +137,8 @@ export default function ReceivePanel() {
       })
       .join(' ')
       .trim();
+    const secretPrefix = useSecretEnv ? `CROC_SECRET=${quoteCliArg(trimmedCode)} ` : '';
+    return `${secretPrefix}${formatted}`;
   }, [form.code, form.options.autoConfirm, form.options.overwrite, form.sessionOverrides, settings]);
 
   const canReceive = useMemo(() => {

@@ -2,6 +2,12 @@ import path from 'node:path';
 import type { CrocCapabilities } from '../types/capabilities';
 import type { ReceiveOptions, SendOptions } from '../types/croc';
 
+/** Arguments plus optional extra environment for spawning croc. */
+export type CrocCommand = {
+  args: string[];
+  env?: Record<string, string>;
+};
+
 const SHELL_SAFE_SPLIT = /\s+(?![^"']*["'][^"']*["'])/g;
 
 function normalizePathSegments(paths?: string[]): string[] {
@@ -49,14 +55,23 @@ export class CrocCommandBuilder {
     this.capabilities = next;
   }
 
-  buildSendArgs(options: SendOptions): string[] {
+  buildSendArgs(options: SendOptions): CrocCommand {
     const args: string[] = [];
+    const env: Record<string, string> = {};
     this.applyCommonNetworkFlags(args, options);
 
     args.push('send');
 
     if (options.code) {
-      args.push('--code', options.code);
+      // On Unix (secure mode) croc refuses `--code` for custom code
+      // phrases: it prints an explanation and exits with status 0, which the
+      // UI would misread as success (KD-MM2/crock#3). The code phrase must be
+      // supplied through CROC_SECRET instead; Windows keeps `--code`.
+      if (this.platform !== 'win32' && this.capabilities.crocSecretEnv !== false) {
+        env.CROC_SECRET = options.code;
+      } else {
+        args.push('--code', options.code);
+      }
     }
 
     if (options.noCompress) {
@@ -90,10 +105,10 @@ export class CrocCommandBuilder {
 
     args.push(...parseExtraFlags(options.extraFlags));
 
-    return args;
+    return { args, env: Object.keys(env).length ? env : undefined };
   }
 
-  buildReceiveArgs(options: ReceiveOptions): { args: string[]; env?: Record<string, string> } {
+  buildReceiveArgs(options: ReceiveOptions): CrocCommand {
     const args: string[] = [];
     const env: Record<string, string> = {};
 

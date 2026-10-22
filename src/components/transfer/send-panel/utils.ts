@@ -1,6 +1,6 @@
 import i18next from 'i18next';
 import { toast } from 'sonner';
-import { DEFAULT_CURVE, DEFAULT_RELAY_HOST, normalizeRelayHost } from '@/lib/croc';
+import { DEFAULT_CURVE, DEFAULT_RELAY_HOST, isWindowsRuntime, normalizeRelayHost } from '@/lib/croc';
 import { createLocalId } from '@/lib/id';
 import { getWindowApi } from '@/lib/window-api';
 import { HistoryRecord } from '@/types/history';
@@ -149,7 +149,10 @@ function buildSendCliCommand({
 
   // Use originalCode if available (when session started), otherwise use current form.code
   const codeToShow = originalCode !== undefined ? originalCode : form.code.trim() || undefined;
-  if (codeToShow) {
+  // On Unix, croc rejects `--code` for custom code phrases and silently exits
+  // (KD-MM2/crock#3); mirror the CROC_SECRET form so the copied command runs.
+  const useSecretEnv = Boolean(codeToShow) && !isWindowsRuntime();
+  if (codeToShow && !useSecretEnv) {
     parts.push('--code', codeToShow);
   }
 
@@ -206,7 +209,10 @@ function buildSendCliCommand({
     .join(' ')
     .trim();
 
-  return formatted.length > 0 ? formatted : null;
+  if (formatted.length === 0) return null;
+
+  const secretPrefix = useSecretEnv && codeToShow ? `CROC_SECRET=${quoteCliArg(codeToShow)} ` : '';
+  return `${secretPrefix}${formatted}`;
 }
 
 function quoteCliArg(value: string): string {
