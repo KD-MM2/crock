@@ -2,13 +2,13 @@ import path from 'node:path';
 import type { CrocCapabilities } from '../types/capabilities';
 import type { ReceiveOptions, SendOptions } from '../types/croc';
 
+const SHELL_SAFE_SPLIT = /\s+(?![^"']*["'][^"']*["'])/g;
+
 /** Arguments plus optional extra environment for spawning croc. */
 export type CrocCommand = {
   args: string[];
   env?: Record<string, string>;
 };
-
-const SHELL_SAFE_SPLIT = /\s+(?![^"']*["'][^"']*["'])/g;
 
 function normalizePathSegments(paths?: string[]): string[] {
   if (!paths) return [];
@@ -59,11 +59,25 @@ export class CrocCommandBuilder {
     const args: string[] = [];
     const env: Record<string, string> = {};
     this.applyCommonNetworkFlags(args, options);
+    // Global-scope flags: croc's parser rejects these after the `send`
+    // subcommand, so they must precede it.
+    maybeApplyFlag(args, 'throttleUpload', this.capabilities, () => {
+      if (!options.throttleUpload) return undefined;
+      return ['--throttleUpload', options.throttleUpload];
+    });
+
+    maybeApplyFlag(args, 'yes', this.capabilities, () => {
+      if (!options.yes) return undefined;
+      return ['--yes'];
+    });
+    if (options.noCompress) {
+      args.push('--no-compress');
+    }
 
     args.push('send');
 
     if (options.code) {
-      // On Unix (secure mode) croc refuses `--code` for custom code
+      // On Unix (non-classic mode) croc refuses `--code` for custom code
       // phrases: it prints an explanation and exits with status 0, which the
       // UI would misread as success (KD-MM2/crock#3). The code phrase must be
       // supplied through CROC_SECRET instead; Windows keeps `--code`.
@@ -74,24 +88,29 @@ export class CrocCommandBuilder {
       }
     }
 
-    if (options.noCompress) {
-      args.push('--no-compress');
-    }
-
     maybeApplyFlag(args, 'exclude', this.capabilities, () => {
       if (!options.exclude?.length) return undefined;
       return ['--exclude', options.exclude.join(',')];
     });
 
-    maybeApplyFlag(args, 'throttleUpload', this.capabilities, () => {
-      if (!options.throttleUpload) return undefined;
-      return ['--throttleUpload', options.throttleUpload];
+    maybeApplyFlag(args, 'excludeFile', this.capabilities, () => {
+      if (!options.excludeFile?.trim()) return undefined;
+      return ['--exclude-file', options.excludeFile.trim()];
     });
 
-    maybeApplyFlag(args, 'yes', this.capabilities, () => {
-      if (!options.yes) return undefined;
-      return ['--yes'];
-    });
+    maybeApplyFlag(args, 'zip', this.capabilities, () => (options.zip ? ['--zip'] : undefined));
+
+    maybeApplyFlag(args, 'git', this.capabilities, () => (options.git ? ['--git'] : undefined));
+
+    maybeApplyFlag(args, 'hash', this.capabilities, () => (options.hash ? ['--hash', options.hash] : undefined));
+
+    maybeApplyFlag(args, 'noLocal', this.capabilities, () => (options.noLocal ? ['--no-local'] : undefined));
+
+    maybeApplyFlag(args, 'noMulti', this.capabilities, () => (options.noMulti ? ['--no-multi'] : undefined));
+
+    maybeApplyFlag(args, 'transport', this.capabilities, () => (options.transport ? ['--transport', options.transport] : undefined));
+
+    maybeApplyFlag(args, 'store', this.capabilities, () => (options.store ? ['--store'] : undefined));
 
     if (options.mode === 'text') {
       maybeApplyFlag(args, 'text', this.capabilities, () => {
@@ -114,10 +133,14 @@ export class CrocCommandBuilder {
 
     this.applyCommonNetworkFlags(args, options);
 
+    if (options.noCompress) {
+      args.push('--no-compress');
+    }
+
     maybeApplyFlag(args, 'overwrite', this.capabilities, () => (options.overwrite ? ['--overwrite'] : undefined));
+    maybeApplyFlag(args, 'rename', this.capabilities, () => (options.rename ? ['--rename'] : undefined));
     maybeApplyFlag(args, 'yes', this.capabilities, () => (options.yes ? ['--yes'] : undefined));
     maybeApplyFlag(args, 'out', this.capabilities, () => (options.outDir ? ['--out', options.outDir] : undefined));
-    maybeApplyFlag(args, 'curve', this.capabilities, () => (options.curve ? ['--curve', options.curve] : undefined));
 
     args.push(...parseExtraFlags(options.extraFlags));
 
@@ -143,7 +166,9 @@ export class CrocCommandBuilder {
       args.push('--pass', options.pass);
     }
     maybeApplyFlag(args, 'socks5', this.capabilities, () => (options.socks5 ? ['--socks5', options.socks5] : undefined));
+    maybeApplyFlag(args, 'connect', this.capabilities, () => (options.connect ? ['--connect', options.connect] : undefined));
     maybeApplyFlag(args, 'local', this.capabilities, () => (options.local ? ['--local'] : undefined));
     maybeApplyFlag(args, 'internalDns', this.capabilities, () => (options.internalDns ? ['--internal-dns'] : undefined));
+    maybeApplyFlag(args, 'curve', this.capabilities, () => (options.curve ? ['--curve', options.curve] : undefined));
   }
 }

@@ -26,15 +26,16 @@ import { useTransferStore } from '@/stores/transfer';
 import { type UiStore, useUiStore } from '@/stores/ui';
 import type { HistoryRecord } from '@/types/history';
 import type { TransferSession } from '@/types/transfer';
-import type { SelectedPathItem, SendFormState, SendMode } from '@/types/transfer-ui';
+import type { CrocHashAlgorithm, CrocTransport, SelectedPathItem, SendFormState, SendMode } from '@/types/transfer-ui';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { resolveRelay, resolveRelayPass } from '../receive-panel/utils';
-import { FINAL_SEND_PHASES, MAX_TEXT_LENGTH, MODE_OPTIONS } from './const';
+import { ADVANCED_SEND_TOGGLES, FINAL_SEND_PHASES, MAX_TEXT_LENGTH, MODE_OPTIONS } from './const';
 import {
   addItems,
   buildInitialForm,
@@ -137,7 +138,7 @@ export default function SendPanel() {
         });
       }
     },
-    [addItems]
+    []
   );
 
   const activeSendSession = useMemo<TransferSession | undefined>(() => {
@@ -327,7 +328,15 @@ export default function SendPanel() {
         relay: resolveRelay(form.sessionOverrides, settings),
         pass: resolveRelayPass(form.sessionOverrides, settings),
         exclude: resolveExcludePatterns(form.sessionOverrides, settings),
+        excludeFile: form.options.excludeFile?.trim() || undefined,
         yes: form.sessionOverrides.autoConfirm,
+        zip: form.options.zip || undefined,
+        git: form.options.git || undefined,
+        hash: form.options.hash,
+        noLocal: form.options.noLocal || undefined,
+        noMulti: form.options.noMulti || undefined,
+        transport: form.options.transport,
+        store: form.options.store || undefined,
         extraFlags: settings.advanced.extraFlags
       });
 
@@ -463,7 +472,7 @@ export default function SendPanel() {
       removeSendSessions((session) => FINAL_SEND_PHASES.includes(session.phase));
       resetFormState();
     }
-  }, [activeSendSession?.id, activeSendSession?.phase, autoResetOnSuccess, autoResetOnFailure, removeSendSessions, resetFormState]);
+  }, [activeSendSession, autoResetOnSuccess, autoResetOnFailure, removeSendSessions, resetFormState]);
 
   useEffect(() => {
     if (!autoCopyEnabled) return;
@@ -815,6 +824,89 @@ export default function SendPanel() {
               />
               <span className="text-[10px] text-muted-foreground">{t('transfer.common.sessionOptions.exclude.help')}</span>
             </label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="grid gap-1 text-xs font-medium uppercase text-muted-foreground">
+                <span>{t('transfer.common.sessionOptions.hash.label')}</span>
+                <Select
+                  value={form.options.hash ?? 'default'}
+                  onValueChange={(value) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      options: { ...prev.options, hash: value === 'default' ? undefined : (value as CrocHashAlgorithm) }
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">{t('transfer.common.sessionOptions.hash.default')}</SelectItem>
+                    <SelectItem value="xxhash">xxhash</SelectItem>
+                    <SelectItem value="imohash">imohash</SelectItem>
+                    <SelectItem value="md5">md5</SelectItem>
+                    <SelectItem value="highway">highway</SelectItem>
+                  </SelectContent>
+                </Select>
+              </label>
+              <label className="grid gap-1 text-xs font-medium uppercase text-muted-foreground">
+                <span>{t('transfer.common.sessionOptions.transport.label')}</span>
+                <Select
+                  value={form.options.transport ?? 'default'}
+                  onValueChange={(value) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      options: { ...prev.options, transport: value === 'default' ? undefined : (value as CrocTransport) }
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">{t('transfer.common.sessionOptions.transport.default')}</SelectItem>
+                    <SelectItem value="auto">auto</SelectItem>
+                    <SelectItem value="derp">derp</SelectItem>
+                    <SelectItem value="relay">relay</SelectItem>
+                  </SelectContent>
+                </Select>
+              </label>
+            </div>
+            <label className="grid gap-1 text-xs font-medium uppercase text-muted-foreground">
+              <span>{t('transfer.common.sessionOptions.excludeFile.label')}</span>
+              <Input
+                value={form.options.excludeFile ?? ''}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    options: { ...prev.options, excludeFile: event.target.value ? event.target.value : undefined }
+                  }))
+                }
+                placeholder={t('transfer.common.sessionOptions.excludeFile.placeholder')}
+              />
+              <span className="text-[10px] text-muted-foreground">{t('transfer.common.sessionOptions.excludeFile.help')}</span>
+            </label>
+            <div className="space-y-2">
+              {ADVANCED_SEND_TOGGLES.map((toggle) => (
+                <div
+                  key={toggle.key}
+                  className="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 px-3 py-2 text-sm"
+                >
+                  <div>
+                    <p className="font-medium">{t(toggle.labelKey)}</p>
+                    <p className="text-xs text-muted-foreground">{t(toggle.descriptionKey)}</p>
+                  </div>
+                  <Switch
+                    checked={Boolean(form.options[toggle.key])}
+                    onCheckedChange={(checked) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        options: { ...prev.options, [toggle.key]: checked }
+                      }))
+                    }
+                  />
+                </div>
+              ))}
+            </div>
             <div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 px-3 py-2 text-sm">
               <div>
                 <p className="font-medium">{t('transfer.common.sessionOptions.autoConfirm.label')}</p>

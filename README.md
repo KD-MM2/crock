@@ -45,6 +45,8 @@ Crock UI wraps the battle-tested `croc` CLI in a modern desktop experience. It b
 - **Relay & proxy health checks** — Test the configured relay, proxy, and croc binary; receive live relay status events streamed from the main process.
 - **Binary lifecycle management** — Download, install, or pin croc releases directly from GitHub without leaving the app.
 - **Theming & localisation** — Light, dark, and system themes plus English, Vietnamese, and Japanese translations out of the box.
+- **croc v11 feature parity with graceful fallback** — Advanced send flags (`--zip`, `--git`, `--hash`, `--no-local`, `--no-multi`, `--transport`, `--store`, `--exclude-file`) and the receive-side `--rename` are capability-detected from the installed binary's help output; unsupported flags on older releases (e.g. v10.2.5) stay hidden instead of breaking transfers.
+- **Correct custom code handling on every platform** — On Unix, custom code phrases are passed through the `CROC_SECRET` environment variable (croc refuses `--code` there and exits silently), and the GUI mirrors that exact command in its CLI preview so copy-paste works.
 
 ## Screenshots
 
@@ -199,6 +201,7 @@ croc://receive?code=<code-phrase>[&relay=<relay-host>][&password=<relay-password
 
 - **No SOCKS5 relay UI** – SOCKS5 proxy is fully supported in settings and diagnostics, but the relay favorites and default relay fields only accept standard host:port addresses without a protocol prefix for SOCKS5 relays.
 - **Large file memory usage** – The transfer progress parser buffers process output in memory; very long-running transfers with verbose logging may accumulate significant memory.
+- **Advanced flags track the installed croc** – `--transport`, `--store`, `--rename`, and `--exclude-file` only appear when the active binary advertises them; pinning a pre-v11 release hides them until you update.
 
 ## Troubleshooting
 

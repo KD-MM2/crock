@@ -8,7 +8,8 @@ function buildInitialReceiveForm(settings?: Settings | null): ReceiveFormState {
     sessionOverrides: {},
     options: {
       overwrite: settings?.transferDefaults.receive.overwrite ?? false,
-      autoConfirm: settings?.transferDefaults.receive.yes ?? false
+      autoConfirm: settings?.transferDefaults.receive.yes ?? false,
+      rename: false
     }
   };
 }

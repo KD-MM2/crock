@@ -19,12 +19,22 @@ export type SendRequest = {
   relay6?: string;
   pass?: string;
   socks5?: string;
+  connect?: string;
   local?: boolean;
   internalDns?: boolean;
   noCompress?: boolean;
+  curve?: 'curve25519' | 'p256' | 'p384' | 'p521';
   exclude?: string[];
+  excludeFile?: string;
   throttleUpload?: string;
   yes?: boolean;
+  zip?: boolean;
+  git?: boolean;
+  hash?: 'xxhash' | 'imohash' | 'md5' | 'highway';
+  noLocal?: boolean;
+  noMulti?: boolean;
+  transport?: 'auto' | 'derp' | 'relay';
+  store?: boolean;
   extraFlags?: string;
 };
 
@@ -35,9 +45,12 @@ export type ReceiveRequest = {
   relay6?: string;
   pass?: string;
   socks5?: string;
+  connect?: string;
   local?: boolean;
   internalDns?: boolean;
+  noCompress?: boolean;
   overwrite?: boolean;
+  rename?: boolean;
   yes?: boolean;
   outDir?: string;
   curve?: 'curve25519' | 'p256' | 'p384' | 'p521';

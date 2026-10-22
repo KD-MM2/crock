@@ -442,7 +442,40 @@
         "autoConfirm": {
           "label": "自動確認 (--yes)"
         },
-        "reset": "セッションの上書きをリセット"
+        "reset": "セッションの上書きをリセット",
+        "zip": {
+          "label": "フォルダをZIP圧縮 (--zip)",
+          "description": "送信前にフォルダを1つのzip圧縮パックにまとめます。"
+        },
+        "git": {
+          "label": ".gitignore を尊重 (--git)",
+          "description": "フォルダ送信時、.gitignore に無視されたファイルをスキップします。"
+        },
+        "hash": {
+          "label": "ハッシュアルゴリズム (--hash)",
+          "default": "デフォルト (xxhash)"
+        },
+        "noLocal": {
+          "label": "ローカル検出を無効化 (--no-local)",
+          "description": "LAN 内の受取人を検索せず、リレー経由のみで接続します。"
+        },
+        "noMulti": {
+          "label": "単一接続 (--no-multi)",
+          "description": "多重化を無効にし、ファイルごとに1本の接続を使います。"
+        },
+        "transport": {
+          "label": "データ転送方式 (--transport)",
+          "default": "デフォルト (auto)"
+        },
+        "store": {
+          "label": "保存して転送 (--store)",
+          "description": "暗号化したファイルをリレーにアップロードし、受取人が後から取得できるようにします。"
+        },
+        "excludeFile": {
+          "label": "完全一致の除外パス (--exclude-file)",
+          "placeholder": "docs/secret.txt,tmp/data",
+          "help": "カンマ区切りの相対パスをそのまま除外します。"
+        }
       },
       "dialogs": {
         "close": "閉じる"
@@ -551,6 +584,10 @@
         "overwrite": {
           "label": "ファイルを上書き (--overwrite)",
           "description": "ダウンロード先で同名ファイルを置き換えます。"
+        },
+        "rename": {
+          "label": "競合時にリネーム (--rename)",
+          "description": "既存ファイルには警告の代わりに別名で受け取ります。"
         }
       },
       "actions": {

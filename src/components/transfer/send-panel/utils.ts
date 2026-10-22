@@ -15,7 +15,15 @@ function buildInitialForm(settings?: Settings | null): SendFormState {
     code: '',
     resolvedCode: undefined,
     options: {
-      noCompress: settings?.transferDefaults.send.noCompress ?? false
+      noCompress: settings?.transferDefaults.send.noCompress ?? false,
+      zip: false,
+      git: false,
+      hash: undefined,
+      noLocal: false,
+      noMulti: false,
+      transport: undefined,
+      store: false,
+      excludeFile: undefined
     },
     sessionOverrides: {}
   };
@@ -170,9 +178,41 @@ function buildSendCliCommand({
     parts.push('--pass', relayPass);
   }
 
+  const proxy = settings?.relayProxy?.proxy;
+  const connect = proxy?.http?.trim() || proxy?.https?.trim();
+  if (connect) {
+    parts.push('--connect', connect);
+  }
+
   const excludes = resolveExcludePatterns(overrides, settings) ?? [];
-  for (const pattern of excludes) {
-    parts.push('--exclude', pattern);
+  if (excludes.length > 0) {
+    parts.push('--exclude', excludes.join(','));
+  }
+
+  if (form.options.excludeFile?.trim()) {
+    parts.push('--exclude-file', form.options.excludeFile.trim());
+  }
+
+  if (form.options.zip) {
+    parts.push('--zip');
+  }
+  if (form.options.git) {
+    parts.push('--git');
+  }
+  if (form.options.hash) {
+    parts.push('--hash', form.options.hash);
+  }
+  if (form.options.noLocal) {
+    parts.push('--no-local');
+  }
+  if (form.options.noMulti) {
+    parts.push('--no-multi');
+  }
+  if (form.options.transport) {
+    parts.push('--transport', form.options.transport);
+  }
+  if (form.options.store) {
+    parts.push('--store');
   }
 
   if (overrides.autoConfirm) {

@@ -442,7 +442,40 @@
         "autoConfirm": {
           "label": "Auto confirm (--yes)"
         },
-        "reset": "Reset session overrides"
+        "reset": "Reset session overrides",
+        "zip": {
+          "label": "Zip folder (--zip)",
+          "description": "Bundle folders into one zip archive before sending."
+        },
+        "git": {
+          "label": "Respect .gitignore (--git)",
+          "description": "Skip files ignored by .gitignore when sending folders."
+        },
+        "hash": {
+          "label": "Hash algorithm (--hash)",
+          "default": "Default (xxhash)"
+        },
+        "noLocal": {
+          "label": "Disable local discovery (--no-local)",
+          "description": "Connect through the relay only; skip LAN peer discovery."
+        },
+        "noMulti": {
+          "label": "Single connection (--no-multi)",
+          "description": "Disable multiplexed streams; use one connection per file."
+        },
+        "transport": {
+          "label": "Data transport (--transport)",
+          "default": "Default (auto)"
+        },
+        "store": {
+          "label": "Store & forward (--store)",
+          "description": "Upload encrypted files to the relay so receivers can fetch them later."
+        },
+        "excludeFile": {
+          "label": "Exact exclude paths (--exclude-file)",
+          "placeholder": "docs/secret.txt,tmp/data",
+          "help": "Comma-separated relative paths excluded verbatim."
+        }
       },
       "dialogs": {
         "close": "Close"
@@ -551,6 +584,10 @@
         "overwrite": {
           "label": "Overwrite files (--overwrite)",
           "description": "Allow replacing files with the same name in the download directory."
+        },
+        "rename": {
+          "label": "Rename on conflict (--rename)",
+          "description": "Receive files that already exist under a new name instead of prompting."
         }
       },
       "actions": {

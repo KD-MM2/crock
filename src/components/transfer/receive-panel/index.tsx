@@ -38,7 +38,8 @@ export default function ReceivePanel() {
       ...prev,
       options: {
         overwrite: settings.transferDefaults.receive.overwrite,
-        autoConfirm: settings.transferDefaults.receive.yes
+        autoConfirm: settings.transferDefaults.receive.yes,
+        rename: prev.options.rename
       }
     }));
   }, [settings]);
@@ -110,11 +111,19 @@ export default function ReceivePanel() {
     if (relayPass) {
       parts.push('--pass', relayPass);
     }
+    const proxy = settings?.relayProxy?.proxy;
+    const connect = proxy?.http?.trim() || proxy?.https?.trim();
+    if (connect) {
+      parts.push('--connect', connect);
+    }
     if (form.options.autoConfirm) {
       parts.push('--yes');
     }
     if (form.options.overwrite) {
       parts.push('--overwrite');
+    }
+    if (form.options.rename) {
+      parts.push('--rename');
     }
     const curve = resolveSecurityCurve(settings);
     if (curve && curve !== DEFAULT_CURVE) {
@@ -139,7 +148,7 @@ export default function ReceivePanel() {
       .trim();
     const secretPrefix = useSecretEnv ? `CROC_SECRET=${quoteCliArg(trimmedCode)} ` : '';
     return `${secretPrefix}${formatted}`;
-  }, [form.code, form.options.autoConfirm, form.options.overwrite, form.sessionOverrides, settings]);
+  }, [form.code, form.options.autoConfirm, form.options.overwrite, form.options.rename, form.sessionOverrides, settings]);
 
   const canReceive = useMemo(() => {
     if (isReceiving) return false;
@@ -179,6 +188,7 @@ export default function ReceivePanel() {
         relay: resolveRelay(form.sessionOverrides, settings),
         pass: resolveRelayPass(form.sessionOverrides, settings),
         overwrite: form.options.overwrite,
+        rename: form.options.rename || undefined,
         yes: form.options.autoConfirm,
         outDir: downloadDir,
         curve: resolveSecurityCurve(settings),
@@ -332,6 +342,24 @@ export default function ReceivePanel() {
                   options: {
                     ...prev.options,
                     overwrite: checked
+                  }
+                }))
+              }
+            />
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 px-3 py-2">
+            <div>
+              <p className="font-medium">{t('transfer.receive.sessionOptions.rename.label')}</p>
+              <p className="text-xs text-muted-foreground">{t('transfer.receive.sessionOptions.rename.description')}</p>
+            </div>
+            <Switch
+              checked={form.options.rename}
+              onCheckedChange={(checked) =>
+                setForm((prev) => ({
+                  ...prev,
+                  options: {
+                    ...prev.options,
+                    rename: checked
                   }
                 }))
               }

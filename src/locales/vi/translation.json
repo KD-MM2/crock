@@ -442,7 +442,40 @@
                 "autoConfirm": {
                     "label": "Tự xác nhận (--yes)"
                 },
-                "reset": "Đặt lại tùy chọn phiên"
+                "reset": "Đặt lại tùy chọn phiên",
+                "zip": {
+                    "label": "Nén thư mục (--zip)",
+                    "description": "Đóng gói thư mục thành một tệp zip trước khi gửi."
+                },
+                "git": {
+                    "label": "Tuân thủ .gitignore (--git)",
+                    "description": "Bỏ qua các tệp bị .gitignore bỏ qua khi gửi thư mục."
+                },
+                "hash": {
+                    "label": "Thuật toán băm (--hash)",
+                    "default": "Mặc định (xxhash)"
+                },
+                "noLocal": {
+                    "label": "Tắt tìm kiếm cục bộ (--no-local)",
+                    "description": "Chỉ kết nối qua relay, bỏ qua tìm kiếm máy nhận trong mạng LAN."
+                },
+                "noMulti": {
+                    "label": "Một kết nối (--no-multi)",
+                    "description": "Tắt multiplexing, dùng một kết nối cho mỗi tệp."
+                },
+                "transport": {
+                    "label": "Vận chuyển dữ liệu (--transport)",
+                    "default": "Mặc định (auto)"
+                },
+                "store": {
+                    "label": "Lưu & chuyển tiếp (--store)",
+                    "description": "Tải tệp đã mã hóa lên relay để máy nhận tải sau."
+                },
+                "excludeFile": {
+                    "label": "Đường dẫn loại trừ chính xác (--exclude-file)",
+                    "placeholder": "docs/secret.txt,tmp/data",
+                    "help": "Các đường dẫn tương đối phân tách bằng dấu phẩy bị loại trừ chính xác."
+                }
             },
             "dialogs": {
                 "close": "Đóng"
@@ -551,6 +584,10 @@
                 "overwrite": {
                     "label": "Ghi đè file (--overwrite)",
                     "description": "Cho phép thay thế file trùng tên tại thư mục tải xuống."
+                },
+                "rename": {
+                    "label": "Đổi tên khi trùng (--rename)",
+                    "description": "Nhận tệp đã tồn tại với tên mới thay vì hỏi xác nhận."
                 }
             },
             "actions": {

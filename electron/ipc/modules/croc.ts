@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import { mkdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
-import { getCapabilities } from '../../services/CrocCapabilities';
+import { detectCapabilities } from '../../services/CrocCapabilities';
 import type { ReceiveOptions, SendMode, SendOptions } from '../../types/croc';
 import type { HistoryFileEntry, HistoryRecord } from '../../types/history';
 import type { ReleaseInfo } from '../../types/release';
@@ -13,6 +13,10 @@ import { parseHostPort } from '../../utils/network';
 import type { AppIpcContext } from '../context';
 
 const CODE_REGEX = /^.{4,}$/;
+
+const CURVE_ENUM = ['curve25519', 'p256', 'p384', 'p521'] as const;
+const HASH_ENUM = ['xxhash', 'imohash', 'md5', 'highway'] as const;
+const TRANSPORT_ENUM = ['auto', 'derp', 'relay'] as const;
 
 const sendPayloadBase = z.object({
   id: z.string().optional(),
@@ -24,12 +28,22 @@ const sendPayloadBase = z.object({
   relay6: z.string().optional(),
   pass: z.string().optional(),
   socks5: z.string().optional(),
+  connect: z.string().optional(),
   local: z.boolean().optional(),
   internalDns: z.boolean().optional(),
   noCompress: z.boolean().optional(),
+  curve: z.enum(CURVE_ENUM).optional(),
   exclude: z.array(z.string()).optional(),
+  excludeFile: z.string().optional(),
   throttleUpload: z.string().optional(),
   yes: z.boolean().optional(),
+  zip: z.boolean().optional(),
+  git: z.boolean().optional(),
+  hash: z.enum(HASH_ENUM).optional(),
+  noLocal: z.boolean().optional(),
+  noMulti: z.boolean().optional(),
+  transport: z.enum(TRANSPORT_ENUM).optional(),
+  store: z.boolean().optional(),
   extraFlags: z.string().optional()
 });
 
@@ -52,12 +66,15 @@ const receivePayloadBase = z.object({
   relay6: z.string().optional(),
   pass: z.string().optional(),
   socks5: z.string().optional(),
+  connect: z.string().optional(),
   local: z.boolean().optional(),
   internalDns: z.boolean().optional(),
+  noCompress: z.boolean().optional(),
   overwrite: z.boolean().optional(),
+  rename: z.boolean().optional(),
   yes: z.boolean().optional(),
   outDir: z.string().optional(),
-  curve: z.enum(['curve25519', 'p256', 'p384', 'p521']).optional(),
+  curve: z.enum(CURVE_ENUM).optional(),
   extraFlags: z.string().optional()
 });
 
@@ -94,6 +111,12 @@ function sanitizeCode(settings: Settings, code: string | undefined): string | un
   return code;
 }
 
+function resolveHttpProxy(settings: Settings): string | undefined {
+  const proxy = settings.relayProxy?.proxy;
+  const candidate = proxy?.http?.trim() || proxy?.https?.trim();
+  return candidate && candidate.length > 0 ? candidate : undefined;
+}
+
 function mergeExtraFlags(settings: Settings, extraFlags?: string): string | undefined {
   const flags = [settings.advanced?.extraFlags, extraFlags].filter((value) => typeof value === 'string' && value.trim().length > 0) as string[];
   if (!flags.length) return undefined;
@@ -119,9 +142,19 @@ function buildSendOptions(payload: SendPayloadInput, settings: Settings): SendOp
     local: payload.local ?? defaults.local,
     internalDns: payload.internalDns ?? defaults.internalDns,
     noCompress: payload.noCompress ?? defaults.noCompress,
+    curve: payload.curve ?? settings.security?.curve,
     exclude: payload.exclude?.length ? payload.exclude : defaults.exclude,
+    excludeFile: payload.excludeFile?.trim() || undefined,
     throttleUpload: payload.throttleUpload ?? defaults.throttleUpload,
     yes: payload.yes,
+    zip: payload.zip,
+    git: payload.git,
+    hash: payload.hash,
+    noLocal: payload.noLocal,
+    noMulti: payload.noMulti,
+    transport: payload.transport,
+    store: payload.store,
+    connect: payload.connect ?? resolveHttpProxy(settings),
     extraFlags: mergeExtraFlags(settings, payload.extraFlags)
   };
 
@@ -153,11 +186,14 @@ async function buildReceiveOptions(payload: ReceivePayloadInput, settings: Setti
     relay6: ensureHostPort(payload.relay6 ?? relayDefaults.defaultRelay.relay6, 'relay6'),
     pass: payload.pass ?? relayDefaults.defaultRelay.pass,
     socks5: ensureHostPort(payload.socks5 ?? relayDefaults.proxy?.socks5, 'socks5'),
+    connect: payload.connect ?? resolveHttpProxy(settings),
     local: payload.local ?? defaults.local,
     internalDns: payload.internalDns ?? defaults.internalDns,
+    noCompress: payload.noCompress,
     overwrite: payload.overwrite ?? defaults.overwrite,
+    rename: payload.rename,
     yes: payload.yes ?? defaults.yes,
-    curve: payload.curve ?? defaults.curve,
+    curve: payload.curve ?? defaults.curve ?? settings.security?.curve,
     outDir,
     extraFlags: mergeExtraFlags(settings, payload.extraFlags)
   };
@@ -257,8 +293,9 @@ export function registerCrocHandlers(context: AppIpcContext) {
 
     processRunner.setBinaryPath(binaryPath);
 
-    // Use hard-coded capabilities (assuming all v10.x versions have same capabilities)
-    const capabilities = getCapabilities();
+    // Detect capabilities from the freshly installed binary; falls back to the
+    // static baseline when the help output cannot be parsed.
+    const capabilities = await detectCapabilities(binaryPath);
     commandBuilder.setCapabilities(capabilities);
 
     settingsStore.set({

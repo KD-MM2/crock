@@ -5,7 +5,7 @@ import type { AppIpcContext } from './ipc/context.js';
 import { setupIpcHandlers } from './ipc/index.js';
 import { ConnectionDiagnostics } from './services/ConnectionDiagnostics';
 import { CrocBinaryManager } from './services/CrocBinaryManager';
-import { getCapabilities } from './services/CrocCapabilities';
+import { detectCapabilities } from './services/CrocCapabilities';
 import { CrocCommandBuilder } from './services/CrocCommandBuilder';
 import { CrocProcessRunner } from './services/CrocProcessRunner';
 import { DeepLinkManager } from './services/DeepLinkManager';
@@ -190,7 +190,7 @@ async function bootstrap() {
     }
   });
 
-  const capabilities = getCapabilities();
+  const capabilities = await detectCapabilities(binaryPath);
   const commandBuilder = new CrocCommandBuilder(capabilities, process.platform);
   const processRunner = new CrocProcessRunner(binaryPath, window, commandBuilder);
   const relayMonitor = new RelayStatusMonitor(window, settingsStore);

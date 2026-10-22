@@ -1,6 +1,11 @@
+import type { CurveName } from './settings';
+
 export type TransferPhase = 'connecting' | 'hashing' | 'waiting' | 'sending' | 'receiving' | 'done' | 'failed' | 'canceled';
 export type TransferType = 'send' | 'receive';
 export type SendMode = 'files' | 'text';
+
+export type CrocHashAlgorithm = 'xxhash' | 'imohash' | 'md5' | 'highway';
+export type CrocTransport = 'auto' | 'derp' | 'relay';
 
 export type SendOptions = {
   id?: string;
@@ -12,12 +17,22 @@ export type SendOptions = {
   relay6?: string;
   pass?: string;
   socks5?: string;
+  connect?: string;
   local?: boolean;
   internalDns?: boolean;
   noCompress?: boolean;
+  curve?: CurveName;
   exclude?: string[];
+  excludeFile?: string;
   throttleUpload?: string;
   yes?: boolean;
+  zip?: boolean;
+  git?: boolean;
+  hash?: CrocHashAlgorithm;
+  noLocal?: boolean;
+  noMulti?: boolean;
+  transport?: CrocTransport;
+  store?: boolean;
   extraFlags?: string;
 };
 
@@ -26,14 +41,17 @@ export type ReceiveOptions = {
   code: string;
   outDir?: string;
   overwrite?: boolean;
+  rename?: boolean;
   yes?: boolean;
   relay?: string;
   relay6?: string;
   pass?: string;
   socks5?: string;
+  connect?: string;
   local?: boolean;
   internalDns?: boolean;
-  curve?: 'curve25519' | 'p256' | 'p384' | 'p521';
+  noCompress?: boolean;
+  curve?: CurveName;
   extraFlags?: string;
 };
 
